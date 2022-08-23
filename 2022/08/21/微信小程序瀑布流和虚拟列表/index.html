@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            微信小程序瀑布流和虚拟列表
+        </div>
+        <div class="post-meta">
+            2022-08-21
+        </div>
+    
+
+    <div class="post-md">
+        <h2 id="微信小程序瀑布流和虚拟列表"><a href="#微信小程序瀑布流和虚拟列表" class="headerlink" title="微信小程序瀑布流和虚拟列表"></a>微信小程序瀑布流和虚拟列表</h2><p>首先声明虽然本篇是写的微信小程序的案例，但是也可用于H5，思路是想通的，只是有些api的差异，最后会贴代码片段<br><img src="https://img-blog.csdnimg.cn/40f9275783f14ed4a2a020ec733b3043.gif#pic_center" alt="example"></p>
+<h3 id="虚拟列表"><a href="#虚拟列表" class="headerlink" title="虚拟列表"></a>虚拟列表</h3><ul>
+<li>一般在做长列表优化时，特别是面试时，虚拟列表就是个高频词。这个名词听起来很高级，其实原理很简单</li>
+<li>虚拟列表就是将需要渲染的数组数据改造成二维数组，然后通过监听DOM在合适的地方切换为占位元素，达到长列表无限滚动时减少DOM的优化</li>
+<li>JS</li>
+</ul>
+<pre><code class="js">/**
+ * 处理占位元素，就是在获取新的数据后
+ * 通过SelectQuery获取当前数据的实际高度，然后把这个高度设置到占位元素上
+ */
+getCurrentItemHeight() &#123;
+  const query = this.createSelectorQuery();
+  const &#123; virtualId &#125; = this.data
+  query.select(`#$&#123;virtualId&#125;`).boundingClientRect()
+  query.exec((res) =&gt; &#123;
+    this.setData(&#123;
+      height: res[0].height
+    &#125;, this.observePage())
+  &#125;)
+&#125;
+
+/**
+ * 监听元素与页面的相交
+ * 可以选择指定元素为参照区域，也可以选择页面为参照元素，只是API不同
+ * @doc https://developers.weixin.qq.com/miniprogram/dev/api/wxml/IntersectionObserver.html
+ */
+observePage() &#123;
+  const &#123; virtualId, observeDistance, wrapId &#125; = this.data
+  let IntersectionObserver = wx.createIntersectionObserver(this);
+  (wrapId ? IntersectionObserver.relativeTo(`#$&#123;wrapId&#125;`) : IntersectionObserver.relativeToViewport(&#123; top: observeDistance, bottom: observeDistance &#125;))
+  .observe(`#$&#123;virtualId&#125;`, (&#123; intersectionRatio &#125;) =&gt; &#123;
+    this.setData(&#123;
+      isShow: intersectionRatio &gt; 0,
+    &#125;)
+  &#125;)
+&#125;
+</code></pre>
+<ul>
+<li>html</li>
+</ul>
+<pre><code class="js">&lt;view id=&quot;&#123;&#123;virtualId&#125;&#125;&quot;&gt;
+  &lt;block wx:if=&quot;&#123;&#123;isShow&#125;&#125;&quot;&gt;
+    &lt;slot&gt;&lt;/slot&gt;
+  &lt;/block&gt;
+  &lt;view wx:else style=&quot;height: &#123;&#123; height &#125;&#125;px&quot;&gt;&lt;/view&gt;
+&lt;/view&gt;
+</code></pre>
+<h3 id="瀑布流"><a href="#瀑布流" class="headerlink" title="瀑布流"></a>瀑布流</h3><ul>
+<li>瀑布流，又称瀑布流式布局。视觉表现为参差不齐的多栏布局，随着页面滚动条向下滚动，这种布局还会不断加载数据块并附加至当前尾部</li>
+<li>瀑布流有多种写法，有通过纯CSS完成的，也有借助JS完成的，方法很多，但是我为了接下来能与虚拟列表相结合，就采用JS的写法，就是通过列数把每一列分为一个单独的子元素，然后会记录每一列的高度，通过判断哪一列高度最小，然后将数据push到高度最小的那一列</li>
+</ul>
+<pre><code class="js">/**
+ * 获取列表数据
+ * @describe 瀑布流处理，哪列高度小，就往哪列push新数据
+ */
+getList() &#123;
+  let &#123; listQuery: &#123; pageIndex, pageSize &#125;, columns, columnsHeight &#125; = this.data;
+  for (let i = 0; i &lt; pageSize; i++) &#123;
+    const height = Math.floor(Math.random() * 100)
+    const item = height &lt; 50 ? height + 50 : height
+    const position = this.computePosition(columnsHeight)
+    columns[position].push(item)
+    columnsHeight += item
+  &#125;
+  // 在html中双重遍历columns，然后通过flex：1均匀分布
+  this.setData(&#123;
+    columns,
+  &#125;)
+  this.data.columnsHeight = columnsHeight
+&#125;
+
+/**
+ * 获取高度最小列下标
+ */
+computePosition(heights) &#123;
+  const min = Math.min(...heights);
+  return heights.findIndex((item) =&gt; item === min)
+&#125;
+</code></pre>
+<h3 id="瀑布流结合虚拟列表"><a href="#瀑布流结合虚拟列表" class="headerlink" title="瀑布流结合虚拟列表"></a>瀑布流结合虚拟列表</h3><ul>
+<li>让瀑布流有虚拟滚动的能力，思路很简单，就是计算每列的偏移量，因为瀑布流被我们分成了二维数组，所以每块子元素之间就会因为列高度的不一致产生空白区域，所以需要计算这个空白区域的大小，然后通过<code>margin-top</code>移动列元素达到视觉上的瀑布流衔接效果<br><img src="https://img-blog.csdnimg.cn/070e8c72d982470ca8808ad8121e6110.png#pic_center" alt="在这里插入图片描述"></li>
+</ul>
+<pre><code class="js">getList() &#123;
+  let &#123; listQuery: &#123; pageIndex &#125;, column, columnsHeights &#125; = this.data;
+  const columns = [];
+  // 上一组的高度数据，用于计算偏移值
+  const lastHeights = [...columnsHeights];
+  // 获取数据
+  const list = this.getListData();
+  // 初始化当前屏数据
+  for (let i = 0; i &lt; column; i++ ) &#123;
+    columns.push([]);
+  &#125;
+  // 遍历新数据，分配至各列
+  for (let i = 0; i &lt; list.length; i++) &#123;
+    const position = this.computePosition(columnsHeights);
+    columns[position].push(list[i]);
+    columnsHeights[position] += Number(list[i].height);
+  &#125;
+  this.setData(&#123;
+    [`listData[$&#123;pageIndex&#125;]`]: &#123;
+      columns,
+      columnOffset: this.computeOffset(lastHeights),
+    &#125;
+  &#125;);
+  this.data.listQuery.pageIndex = pageIndex + 1;
+  this.data.columnsHeights = columnsHeights;
+&#125;,
+
+/**
+ * 获取列表数据
+ */
+getListData() &#123;
+  const result = []
+  for (let i = 0; i &lt; this.data.listQuery.pageSize; i++) &#123;
+    const height = Math.floor(Math.random() * 300);
+    const item = &#123;
+      height: height &lt; 150 ? height + 150 : height,
+      color: this.randomRgbColor(),
+    &#125;;
+    result.push(item);
+  &#125;
+  return result;
+&#125;,
+
+/**
+ * 随机生成RGB颜色
+ */
+randomRgbColor() &#123;
+  var r = Math.floor(Math.random() * 256); //随机生成256以内r值
+  var g = Math.floor(Math.random() * 256); //随机生成256以内g值
+  var b = Math.floor(Math.random() * 256); //随机生成256以内b值
+  return `rgb($&#123;r&#125;,$&#123;g&#125;,$&#123;b&#125;)`; //返回rgb(r,g,b)格式颜色
+&#125;,
+
+/**
+ * 获取最小高度列下标
+ */
+computePosition(heights) &#123;
+  const min = Math.min(...heights);
+  return heights.findIndex((item) =&gt; item === min);
+&#125;,
+
+/**
+ * 计算偏移量
+ */
+computeOffset(heights) &#123;
+  const max = Math.max(...heights);
+  return heights.map((item) =&gt; max - item);
+&#125;,
+
+onScrollLower() &#123;
+  this.getList();
+&#125;
+</code></pre>
+<ul>
+<li>WXML</li>
+</ul>
+<pre><code class="js">&lt;view&gt;
+  &lt;scroll-view class=&quot;virtualScrollView&quot; eventhandle scroll-y bindscrolltolower=&quot;onScrollLower&quot;&gt;
+    &lt;block wx:for=&quot;&#123;&#123; listData &#125;&#125;&quot; wx:key=&quot;screenIndex&quot; wx:for-index=&quot;screenIndex&quot; wx:for-item=&quot;screenItem&quot;&gt;
+      &lt;VirtualItem virtualId=&quot;virtual_&#123;&#123;pageIndex&#125;&#125;&quot;&gt;
+        &lt;view class=&quot;fall&quot;&gt;
+          &lt;block wx:for=&quot;&#123;&#123; screenItem.columns &#125;&#125;&quot; wx:key=&quot;columnIndex&quot; wx:for-index=&quot;columnIndex&quot; wx:for-item=&quot;column&quot; &gt;
+            &lt;view style=&quot;margin-top: -&#123;&#123;screenItem.columnOffset[columnIndex]&#125;&#125;px;&quot; class=&quot;fallCol&quot;&gt;
+              &lt;view wx:for=&quot;&#123;&#123;column&#125;&#125;&quot; style=&quot;height: &#123;&#123; item.height &#125;&#125;px; background-color: &#123;&#123; item.color &#125;&#125;;&quot; wx:key=&quot;index&quot; wx:for-item=&quot;item&quot; wx:for-index=&quot;index&quot;&gt;
+                screen: &#123;&#123; screenIndex &#125;&#125;, column: &#123;&#123; columnIndex &#125;&#125;
+              &lt;/view&gt;
+            &lt;/view&gt;
+          &lt;/block&gt;
+        &lt;/view&gt;
+      &lt;/VirtualItem&gt;
+    &lt;/block&gt;
+  &lt;/scroll-view&gt;
+&lt;/view&gt;
+</code></pre>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>代码片段：<a target="_blank" rel="noopener" href="https://developers.weixin.qq.com/s/5P3DpGmI7PBc">https://developers.weixin.qq.com/s/5P3DpGmI7PBc</a></li>
+</ul>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+    <span>Theme Designed By <a target="_blank" href="https://zheli.design/one-paper">這Li</a></span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            微信小程序蓝牙控制开门
+        </div>
+        <div class="post-meta">
+            2020-01-10
+        </div>
+    
+
+    <div class="post-md">
+        <h2 id="小程序低功耗蓝牙控制开门"><a href="#小程序低功耗蓝牙控制开门" class="headerlink" title="小程序低功耗蓝牙控制开门"></a>小程序低功耗蓝牙控制开门</h2><h3 id="整体流程"><a href="#整体流程" class="headerlink" title="整体流程"></a>整体流程</h3><blockquote>
+<ol>
+<li>初始化蓝牙模块<code>openBluetoothAdapter</code></li>
+<li>获取本机蓝牙适配器状态<code>getBluetoothAdapterState</code></li>
+<li>搜索外围蓝牙设备<code>startBluetoothDevicesDiscovery</code></li>
+<li>监听寻找到新设备<code>onBluetoothDeviceFound</code></li>
+<li>连接蓝牙<code>createBLEConnection</code></li>
+<li>获取蓝牙设备的服务<code>getBLEDeviceServices</code></li>
+<li>获取服务中的特征值<code>getBLEDeviceCharacteristics</code></li>
+<li>启用特征值变化时的notify功能<code>notifyBLECharacteristicValueChange</code></li>
+<li>向蓝牙设备写入数据<code>writeBLECharacteristicValue</code></li>
+<li>关闭蓝牙模块<code>closeBluetoothAdapter</code></li>
+</ol>
+</blockquote>
+<h3 id="1-初始化蓝牙模块"><a href="#1-初始化蓝牙模块" class="headerlink" title="1. 初始化蓝牙模块"></a>1. 初始化蓝牙模块</h3><ul>
+<li>初始化蓝牙模块使用的是：<code>wx.openBluetoothAdapter</code>，初始化之前对蓝牙功能做一个判断，看手机微信版本是否支持此功能</li>
+<li>初始化之前需要关闭蓝牙模块：<code>wx.closeBluetoothAdapter</code>，否则容易搜索失败</li>
+</ul>
+<pre><code class="js">var _this = this
+if (!wx.openBluetoothAdapter) &#123;
+  wx.showModal(&#123;
+    title: &#39;提示&#39;,
+    showCancel: false,
+    content: &#39;当前微信版本过低，无法使用该功能，请升级到最新微信版本后重试&#39;,
+  &#125;)
+&#125; else &#123;
+  wx.closeBluetoothAdapter(&#123;
+    success: res =&gt; &#123;
+      wx.openBluetoothAdapter(&#123; // 初始化蓝牙模块
+        success: res =&gt; &#123;
+          console.log(&#39;初始化蓝牙成功&#39;)
+          _this.getBluetoothAdapterState()
+        &#125;,
+        fail: err =&gt; &#123;
+          console.log(err)
+        &#125;
+      &#125;)
+    &#125;,
+  &#125;)
+&#125;
+</code></pre>
+<h3 id="2-获取本机蓝牙适配器状态"><a href="#2-获取本机蓝牙适配器状态" class="headerlink" title="2. 获取本机蓝牙适配器状态"></a>2. 获取本机蓝牙适配器状态</h3><ul>
+<li>获取本机蓝牙适配器状态使用的是<code>wx.getBluetoothAdapterState</code>，调用成功后，会返回两个参数<ul>
+<li><code>discovering</code>判断是否正在搜索设备</li>
+<li><code>available</code>判断蓝牙适配器是否可用</li>
+</ul>
+</li>
+</ul>
+<pre><code class="js">getBluetoothAdapterState: function()&#123;
+  var _this = this
+  wx.getBluetoothAdapterState(&#123;
+    success: res =&gt; &#123;
+      if (res.available == false) &#123;
+        wx.showToast(&#123;
+          title: &#39;设备无法开启蓝牙连接&#39;,
+          icon: &#39;none&#39;,
+          duration: 2000
+        &#125;)
+        wx.closeBluetoothAdapter()
+      &#125; else if (res.discovering == false) &#123;
+        _this.startBluetoothDevicesDiscovery() // 开启搜索外围设备
+      &#125; else if (res.available)&#123;
+        _this.startBluetoothDevicesDiscovery() // 蓝牙适配器正常，去执行搜索外围设备
+      &#125;
+    &#125;
+  &#125;)
+&#125;
+</code></pre>
+<h3 id="3-搜索外围蓝牙设备"><a href="#3-搜索外围蓝牙设备" class="headerlink" title="3. 搜索外围蓝牙设备"></a>3. 搜索外围蓝牙设备</h3><ul>
+<li>搜索外围蓝牙设备使用的是<code>wx.startBluetoothDevicesDiscovery</code>，连接设备后一定要使用<code>wx.stopBluetoothDevicesDiscovery</code>停止搜索</li>
+</ul>
+<pre><code class="js">startBluetoothDevicesDiscovery: function()&#123;
+    var _this = this
+    wx.startBluetoothDevicesDiscovery(&#123;
+      allowDuplicatesKey: false,
+      success: res =&gt; &#123;
+        if(!res.isDiscovering)&#123; // 是否在搜索设备
+          _this.getBluetoothAdapterState()
+        &#125;else&#123;
+          _this.onBluetoothDeviceFound() // 搜索成功后，执行监听设备的api
+        &#125;
+      &#125;,
+      fail: err =&gt; &#123;
+        console.log(&quot;蓝牙搜寻失败&quot;)
+        wx.stopBluetoothDevicesDiscovery() // 没有搜索到设备
+        wx.closeBluetoothAdapter() // 关闭蓝牙模块
+      &#125;
+    &#125;)
+&#125;
+</code></pre>
+<h3 id="4-监听寻找到新设备"><a href="#4-监听寻找到新设备" class="headerlink" title="4. 监听寻找到新设备"></a>4. 监听寻找到新设备</h3><ul>
+<li>监听寻找到新设备使用的是<code>wx.onBluetoothDeviceFound</code>，每搜到一个新设备就会触发一次，然后返回一个搜索到的设备列表，包含了设备名称和mac地址，一般都是使用设备名称和mac地址来匹配设备的<ul>
+<li>安卓和IOS返回的deviceId不一样，安卓返回的是mac地址，IOS返回的是UUID，如果想通过mac地址来匹配设备，可以让mac地址存储在<code>advertisData</code>数据段中，然后解析这个数据段得到mac地址</li>
+<li>我使用的是通过设备名称来进行匹配</li>
+</ul>
+</li>
+</ul>
+<pre><code class="js">onBluetoothDeviceFound: function()&#123;
+  var _this = this
+  wx.onBluetoothDeviceFound(res =&gt; &#123;
+    for(let i=0; i&lt;res.devices.length; i++)&#123;
+      if(res.devices[i].name == &quot;设备名称&quot; || res.devices[i].localName == &quot;设备名称&quot;)&#123;
+        _this.setData(&#123;
+          deviceId: res.devices[i].deviceId // 把匹配设备的deviceId存到data中
+        &#125;)
+        wx.stopBluetoothDevicesDiscovery() // 匹配到设备后关闭搜索
+        _this.createBLEConnection() // 连接蓝牙
+      &#125;
+    &#125;
+  &#125;)
+&#125;
+</code></pre>
+<h3 id="5-连接蓝牙"><a href="#5-连接蓝牙" class="headerlink" title="5. 连接蓝牙"></a>5. 连接蓝牙</h3><ul>
+<li>连接蓝牙使用的是<code>wx.createBLEConnection</code>，连接蓝牙是通过<code>deviceId</code>连接，<code>deviceId</code>是通过<code>wx.onBluetoothDeviceFound</code>获取的</li>
+<li>连接蓝牙容易失败，所以可以定一个变量<code>count</code>用来计算连接的次数，如果超出特定的次数就判断为连接失败，关闭蓝牙模块</li>
+</ul>
+<pre><code class="js">createBLEConnection: function () &#123; // 连接低功耗蓝牙
+  var _this = this
+  wx.createBLEConnection(&#123;
+    deviceId: _this.data.deviceId,
+    success: res =&gt; &#123;
+      _this.getBLEDeviceServices()
+    &#125;,
+    fail: err =&gt; &#123;
+      console.log(&quot;连接失败&quot;)
+      if( count &lt; 6 )&#123;
+        count++
+        _this.createBLEConnection()
+      &#125;else&#123;
+        wx.closeBluetoothAdapter() // 连接失败关闭蓝牙模块
+      &#125;
+    &#125;
+  &#125;)
+&#125;
+</code></pre>
+<h3 id="6-获取蓝牙设备的服务"><a href="#6-获取蓝牙设备的服务" class="headerlink" title="6. 获取蓝牙设备的服务"></a>6. 获取蓝牙设备的服务</h3><ul>
+<li>获取蓝牙设备的服务列表使用的是<code>wx.getBLEDeviceServices</code></li>
+</ul>
+<pre><code class="js">  getBLEDeviceServices: function () &#123;
+    var _this = this
+    wx.getBLEDeviceServices(&#123;
+      deviceId: _this.data.deviceId,
+      success: res =&gt; &#123;
+        for(let i=0; i&lt;res.services.length; i++)&#123;
+          // 如果提前得知可以直接判断，如果不知道可以用蓝牙工具看一下服务所需的功能
+          if(res.services[i].uuid == _this.data.service)&#123;
+            _this.setData(&#123;
+              serviceId: res.services[i].uuid
+            &#125;)
+            _this.getBLEDeviceCharacteristics()
+          &#125;   
+        &#125;
+      &#125;,
+      fail: err =&gt; &#123;
+        console.log(&quot;获取服务失败&quot;)
+        wx.closeBluetoothAdapter() // 关闭蓝牙模块
+      &#125;
+    &#125;)
+  &#125;,
+</code></pre>
+<h3 id="7-获取服务中的特征值"><a href="#7-获取服务中的特征值" class="headerlink" title="7. 获取服务中的特征值"></a>7. 获取服务中的特征值</h3><ul>
+<li>获取服务中的特征值使用的是<code>wx.getBLEDeviceCharacteristics</code></li>
+</ul>
+<pre><code class="js">  getBLEDeviceCharacteristics: function () &#123; // 获取服务中的特征值
+    var _this = this
+    wx.getBLEDeviceCharacteristics(&#123;
+      deviceId: _this.data.deviceId,
+      serviceId: _this.data.serviceId,
+      success: res =&gt; &#123;
+        for(let i=0; i&lt;res.characteristics.length; i++)&#123;
+          let model = res.characteristics[i]
+          if ((model.properties.notify || model.properties.indicate) &amp;&amp; (model.properties.read &amp;&amp; model.properties.write))&#123;
+            _this.setData(&#123;
+              characteristicId: model.uuid
+            &#125;)
+            _this.notifyBLECharacteristicValueChange()
+          &#125;
+        &#125;
+      &#125;,
+      fail: err =&gt; &#123;
+        console.log(&quot;获取服务中的特征值失败&quot;)
+        wx.closeBluetoothAdapter() // 关闭蓝牙模块
+      &#125;
+    &#125;)
+  &#125;,
+</code></pre>
+<h3 id="8-启用特征值变化时的notify功能"><a href="#8-启用特征值变化时的notify功能" class="headerlink" title="8. 启用特征值变化时的notify功能"></a>8. 启用特征值变化时的notify功能</h3><ul>
+<li>启用特征值变化时的notify功能使用的是<code>wx.notifyBLECharacteristicValueChange</code></li>
+</ul>
+<pre><code class="js">notifyBLECharacteristicValueChange: function () &#123; // 启用蓝牙特征值变化时的notify功能
+    var _this = this
+    wx.notifyBLECharacteristicValueChange(&#123;
+      deviceId: _this.data.deviceId,
+      serviceId: _this.data.serviceId,
+      characteristicId: _thisa.characteristicId,
+      state: true,
+      success: res =&gt; &#123;
+        wx.onBLECharacteristicValueChange(res =&gt; &#123;
+            console.log(如果要打印需要从arraybuffer格式转为字符串或16进制)
+        &#125;)
+        _this.writeBLECharacteristicValue() // 向蓝牙设备写入数据
+      &#125;,
+      fail: err =&gt; &#123;
+        console.log(&quot;启用BLE蓝牙特征值变化时的notify功能错误&quot;)
+        wx.closeBluetoothAdapter() // 关闭蓝牙模块
+      &#125;
+    &#125;)
+</code></pre>
+<h3 id="9-向蓝牙设备写入数据"><a href="#9-向蓝牙设备写入数据" class="headerlink" title="9. 向蓝牙设备写入数据"></a>9. 向蓝牙设备写入数据</h3><ul>
+<li>向蓝牙设备写入数据<code>wx.writeBLECharacteristicValue</code>，这时候就是输入提前设定好的指令</li>
+</ul>
+<pre><code class="js">  writeBLECharacteristicValue: function () &#123; // 向蓝牙设备写入数据
+    var _this = this
+    wx.writeBLECharacteristicValue(&#123;
+      deviceId: _this.data.deviceId,
+      serviceId: _this.data.serviceId,
+      characteristicId: _this.data.characteristicId,
+      value: buffer, // 这个输入的指令，需要转换成ArrayBuffer
+      success: res =&gt; &#123;
+        console.log(&quot;成功&quot;)
+        wx.closeBluetoothAdapter() // 关闭蓝牙模块
+      &#125;,
+      fail: err =&gt; &#123;
+        console.log(&quot;输入指令失败&quot;)
+        wx.closeBluetoothAdapter() // 关闭蓝牙模块
+      &#125;
+    &#125;)
+  &#125;
+</code></pre>
+<h3 id="转换格式"><a href="#转换格式" class="headerlink" title="转换格式"></a>转换格式</h3><ul>
+<li>字符串转为arraybuffer</li>
+</ul>
+<pre><code class="js">string2buffer: function (str) &#123;
+    // 首先将字符串转为16进制
+    let val = &quot;&quot;
+    for (let i = 0; i &lt; str.length; i++) &#123;
+      if (val === &#39;&#39;) &#123;
+        val = str.charCodeAt(i).toString(16)
+      &#125; else &#123;
+        val += &#39;,&#39; + str.charCodeAt(i).toString(16)
+      &#125;
+    &#125;
+    // 将16进制转化为ArrayBuffer
+    return new Uint8Array(val.match(/[\da-f]&#123;2&#125;/gi).map(function (h) &#123;
+      return parseInt(h, 16)
+    &#125;)).buffer
+&#125;
+</code></pre>
+<ul>
+<li>arraybuffer转为字符串</li>
+</ul>
+<pre><code class="js">function ab2str(u,f) &#123;
+   var b = new Blob([u]);
+   var r = new FileReader();
+    r.readAsText(b, &#39;utf-8&#39;);
+    r.onload = function ()&#123;if(f)f.call(null,r.result)&#125;
+&#125;
+</code></pre>
+<h3 id="蓝牙遇见的坑"><a href="#蓝牙遇见的坑" class="headerlink" title="蓝牙遇见的坑"></a>蓝牙遇见的坑</h3><ul>
+<li>1.苹果手机有时候输入指令会显示发送成功，但是设备并没有反应<ul>
+<li><pre><code>解决方法：把需要输入的指令改成每10毫秒输入一个字节
+</code></pre>
+</li>
+<li>如果改成每10毫秒输入一个字节，安卓手机就会频繁出现10008错误</li>
+<li>针对这个问题我用了一个不太好的方法，我判断了一下手机的类型，如果是ios的就分10毫秒输入，如果是安卓的就一次性输入</li>
+</ul>
+</li>
+<li>2.在调用<code>wx.onBluetoothDeviceFound</code>这个api时ios会监听两次，然后就会导致最后设备会有两次指令输入<ul>
+<li>解决方法：我在搜索蓝牙设备之前做了一个定时器，然后用<code>getBluetoothDevices</code>来查看所有已搜索到的蓝牙，在这个里面做判断来连接蓝牙设备</li>
+</ul>
+</li>
+<li>我上面的步骤没有把这些坑的解决步骤加上，如果碰见此类问题，可以自己在合适的位置修改一下</li>
+</ul>
+<h3 id="二维码"><a href="#二维码" class="headerlink" title="二维码"></a>二维码</h3><p>我自己做了一个小程序的蓝牙调试器，下面是小程序码，欢迎大家体验<br><img src="https://img-blog.csdnimg.cn/20200123154720532.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDcxOTI1OA==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+    <span>Theme Designed By <a target="_blank" href="https://zheli.design/one-paper">這Li</a></span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

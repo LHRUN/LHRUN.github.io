@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <ul class="nav">
+        
+        <li><a href="/">首页</a></li>
+        
+        <li><a href="/archives">归档</a></li>
+        
+        <li><a href="/about">关于</a></li>
+        
+        <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44719258">CSDN</a></li>
+        
+    </ul>
+</div>
+                
+                <div class="post-list">
+    
+    <div class="post">
+        <a class="post-title" href="/2022/08/21/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%80%91%E5%B8%83%E6%B5%81%E5%92%8C%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8/">微信小程序瀑布流和虚拟列表</a>
+        <div class="post-except">
+            微信小程序瀑布流和虚拟列表首先声明虽然本篇是写的微信小程序的案例，但是也可用于H5，思路是想通的，只是有些api的差异，最后会贴代码片段
+虚拟列表
+一般在做长列表优化时，特别是面试时，虚拟列表就是个高频词。这个名词听起来很高级，其实原理很简单
+虚拟列表就是将需要渲染的数组数据改造成二维数组，然后通过监听DOM在合适的地方切换为占位元素，达到长列表无限滚动时减少DOM的优化
+JS
+
+/**
+ * 处理占位元素，就是在获取新的数据后
+ * 通过SelectQuery获取当前数据的
+            <a class="read-more" href="/2022/08/21/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%80%91%E5%B8%83%E6%B5%81%E5%92%8C%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8/"> ... </a>
+        </div>
+        <div class="post-date">2022.08.21</div>
+    </div>
+    
+    <div class="post">
+        <a class="post-title" href="/2021/09/08/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%9B%BE%E7%89%87%E4%B8%8A%E4%BC%A0-%E4%B9%9D%E5%AE%AB%E6%A0%BC%E6%8B%96%E6%8B%BD%E7%BB%84%E4%BB%B6/">微信小程序图片上传&amp;九宫格拖拽组件</a>
+        <div class="post-except">
+            微信小程序图片上传&amp;九宫格拖拽组件前言
+图片上传加九宫格拖拽是一个比较常用的组件，常用于发帖或者评论等内容上传模块，我这篇九宫格拖拽的思路是借鉴了一款优雅的小程序拖拽排序组件实现这篇文章
+
+实现效果如下图
+
+实现原理：新增图片时，为每一个图片增加一个key属性，和tranX、tranY属性，用于transform位移，然后这个九宫格的拖拽新增删除都是以key为标记来修改tranX和tranY，从而达到拖拽效果
+
+使用了以下变量
+
+
+data: &#123;
+  ITE
+            <a class="read-more" href="/2021/09/08/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%9B%BE%E7%89%87%E4%B8%8A%E4%BC%A0-%E4%B9%9D%E5%AE%AB%E6%A0%BC%E6%8B%96%E6%8B%BD%E7%BB%84%E4%BB%B6/"> ... </a>
+        </div>
+        <div class="post-date">2021.09.08</div>
+    </div>
+    
+    <div class="post">
+        <a class="post-title" href="/2021/08/21/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%8D%95%E6%8C%87%E6%8B%96%E6%8B%BD%E5%92%8C%E5%8F%8C%E6%8C%87%E7%BC%A9%E6%94%BE%E6%97%8B%E8%BD%AC/">微信小程序单指拖拽和双指缩放旋转</a>
+        <div class="post-except">
+            前言小程序单指拖拽和双指操作是一个比较常用的功能，效果如下图
+
+实现这三个功能，主要用三个触摸事件touchstart、touchmove、touchend
+
+&lt;view style=&quot;height: 100vh; width: 100vw&quot;&gt;
+  &lt;image
+    src=&quot;...&quot;
+    style=&quot;transform: translate(&#123;&#123;translateX&#125;
+            <a class="read-more" href="/2021/08/21/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%8D%95%E6%8C%87%E6%8B%96%E6%8B%BD%E5%92%8C%E5%8F%8C%E6%8C%87%E7%BC%A9%E6%94%BE%E6%97%8B%E8%BD%AC/"> ... </a>
+        </div>
+        <div class="post-date">2021.08.21</div>
+    </div>
+    
+    <div class="post">
+        <a class="post-title" href="/2021/08/01/%E8%A7%A3%E6%9E%90reactive-vue3%E5%93%8D%E5%BA%94%E5%BC%8F/">解析reactive---vue3响应式</a>
+        <div class="post-except">
+            
+想要了解vue3的reactive模块，就要对Proxy和Reflect有所了解，关于这两个知识我推荐看阮一峰老师的ES6入门教程
+我对reactive模块有一个大致梳理，见下图
+
+
+从上图可以大致理清一个值被创建响应式状态的过程，下面分四部分解析
+reactive文件：目标对象转化为proxy实例
+baseHandler文件：基本类型处理器
+collectionHandlers文件：Map、Set处理器
+effect文件：收集触发依赖
+
+
+
+reactive
+reacti
+            <a class="read-more" href="/2021/08/01/%E8%A7%A3%E6%9E%90reactive-vue3%E5%93%8D%E5%BA%94%E5%BC%8F/"> ... </a>
+        </div>
+        <div class="post-date">2021.08.01</div>
+    </div>
+    
+    <div class="post">
+        <a class="post-title" href="/2021/07/17/%E8%A7%A3%E6%9E%90nextTick-vue3%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/">解析nextTick---vue3任务调度</a>
+        <div class="post-except">
+            nextTick
+定义：将回调推迟到下一个 DOM 更新周期之后执行，在更改了一些数据以等待 DOM 更新后立即使用它在实际中使用这个方法一般是用于组件更新，你需要获取更新后的数据，所以使用nextTick等待DOM更新
+
+// vue3中的语法对比vue2做了一些改动
+import &#123; createApp, nextTick &#125; from &#39;vue&#39;
+const app = createApp(&#123;
+  setup() &#123
+            <a class="read-more" href="/2021/07/17/%E8%A7%A3%E6%9E%90nextTick-vue3%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/"> ... </a>
+        </div>
+        <div class="post-date">2021.07.17</div>
+    </div>
+    
+    <div class="post">
+        <a class="post-title" href="/2021/06/12/%E8%A7%A3%E5%86%B3react%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86-ReactQuery/">解决react状态管理---React Query</a>
+        <div class="post-except">
+            
+什么是React Query
+react-query是一个适用于react hooks的请求库，它可以为任何类型的异步数据提供React状态管理功能，使React中的获取、缓存、同步和更新服务器数据变得轻而易举
+react-query与一些传统的状态管理库如redux,mobx不同，它是负责管理服务器与客户端之间的状态，一些用户交互的中间状态，如loading状态，错误信息等都是通过hooks直接返回
+React Query官网
+
+初步使用
+yarn add react-q
+            <a class="read-more" href="/2021/06/12/%E8%A7%A3%E5%86%B3react%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86-ReactQuery/"> ... </a>
+        </div>
+        <div class="post-date">2021.06.12</div>
+    </div>
+    
+    <div class="post">
+        <a class="post-title" href="/2021/06/10/H5%E8%B7%B3%E8%BD%AC%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">H5跳转微信小程序</a>
+        <div class="post-except">
+            H5跳转微信小程序
+H5跳转小程序有两个方法，需要根据浏览器环境判断微信外使用URL Scheme，根据生成的一个link进行location跳转微信内使用wx-open-launch-weapp开放标签进行跳转，实测ios系统微信内也可以使用URL Scheme，根据自己的需求选择
+
+wx-open-launch-weapp
+官方文档
+注意事项：微信版本要求为：7.0.12及以上。 系统版本要求为：iOS 10.3及以上、Android 5.0及以上
+绑定域名: 登录微信公
+            <a class="read-more" href="/2021/06/10/H5%E8%B7%B3%E8%BD%AC%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/"> ... </a>
+        </div>
+        <div class="post-date">2021.06.10</div>
+    </div>
+    
+    <div class="post">
+        <a class="post-title" href="/2021/04/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6/">小程序滚动日历组件</a>
+        <div class="post-except">
+            小程序滚动日历组件前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法
+
+在ready中初始化组件数据
+
+/**
+ * @description: 初始化
+ */
+ready() &#123;
+  // 这两个数据是从页面中传过来的，起始时间和结束时间
+  // 数组类型 [year, mo
+            <a class="read-more" href="/2021/04/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6/"> ... </a>
+        </div>
+        <div class="post-date">2021.04.13</div>
+    </div>
+    
+    <div class="post">
+        <a class="post-title" href="/2020/01/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%93%9D%E7%89%99%E6%8E%A7%E5%88%B6%E5%BC%80%E9%97%A8/">微信小程序蓝牙控制开门</a>
+        <div class="post-except">
+            小程序低功耗蓝牙控制开门整体流程
+
+初始化蓝牙模块openBluetoothAdapter
+获取本机蓝牙适配器状态getBluetoothAdapterState
+搜索外围蓝牙设备startBluetoothDevicesDiscovery
+监听寻找到新设备onBluetoothDeviceFound
+连接蓝牙createBLEConnection
+获取蓝牙设备的服务getBLEDeviceServices
+获取服务中的特征值getBLEDeviceCharacteristi
+            <a class="read-more" href="/2020/01/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%93%9D%E7%89%99%E6%8E%A7%E5%88%B6%E5%BC%80%E9%97%A8/"> ... </a>
+        </div>
+        <div class="post-date">2020.01.10</div>
+    </div>
+    
+</div>
+
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+    <span>Theme Designed By <a target="_blank" href="https://zheli.design/one-paper">這Li</a></span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

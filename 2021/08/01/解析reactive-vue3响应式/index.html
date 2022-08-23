@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            解析reactive---vue3响应式
+        </div>
+        <div class="post-meta">
+            2021-08-01
+        </div>
+    
+
+    <div class="post-md">
+        <ol>
+<li>想要了解vue3的reactive模块，就要对<code>Proxy</code>和<code>Reflect</code>有所了解，关于这两个知识我推荐看阮一峰老师的<a target="_blank" rel="noopener" href="https://es6.ruanyifeng.com/#README">ES6入门教程</a></li>
+<li>我对reactive模块有一个大致梳理，见下图<br><img src="https://img-blog.csdnimg.cn/83a41b1d8a3044d6b8135850ea972ed1.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDcxOTI1OA==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></li>
+</ol>
+<ul>
+<li>从上图可以大致理清一个值被创建响应式状态的过程，下面分四部分解析<ul>
+<li>reactive文件：目标对象转化为proxy实例</li>
+<li>baseHandler文件：基本类型处理器</li>
+<li>collectionHandlers文件：Map、Set处理器</li>
+<li>effect文件：收集触发依赖</li>
+</ul>
+</li>
+</ul>
+<h3 id="reactive"><a href="#reactive" class="headerlink" title="reactive"></a>reactive</h3><ul>
+<li><code>reactive</code>：将一个JS对象转为具有响应式的proxy实例</li>
+</ul>
+<pre><code class="ts">export function reactive(target: object) &#123;
+  // 如果是只读数据，就直接返回
+  if (target &amp;&amp; (target as Target)[ReactiveFlags.IS_READONLY]) &#123;
+    return target
+  &#125;
+  return createReactiveObject(
+    target,
+    false,
+    mutableHandlers,
+    mutableCollectionHandlers,
+    reactiveMap
+  )
+&#125;
+</code></pre>
+<ul>
+<li><code>createReactiveObject</code></li>
+</ul>
+<pre><code class="ts">function createReactiveObject(
+  target: Target, // 源对象
+  isReadonly: boolean, // 是否只读
+  baseHandlers: ProxyHandler&lt;any&gt;, // 基本类型的handlers
+  collectionHandlers: ProxyHandler&lt;any&gt;, // 主要针对(set、map、weakSet、weakMap)的handlers
+  proxyMap: WeakMap&lt;Target, any&gt;
+) &#123;
+  // 如果不是一个对象，直接返回
+  if (!isObject(target)) &#123;
+    if (__DEV__) &#123;
+      console.warn(`value cannot be made reactive: $&#123;String(target)&#125;`)
+    &#125;
+    return target
+  &#125;
+  // 如果已经是响应式，直接返回
+  if (
+    target[ReactiveFlags.RAW] &amp;&amp;
+    !(isReadonly &amp;&amp; target[ReactiveFlags.IS_REACTIVE])
+  ) &#123;
+    return target
+  &#125;
+
+  // 如果目标对象已经存在代理，直接返回
+  const existingProxy = proxyMap.get(target)
+  if (existingProxy) &#123;
+    return existingProxy
+  &#125;
+
+  // 如果类型值不是Object、Array、Map、Set、WeakMap、WeakSet的，直接返回
+  const targetType = getTargetType(target)
+  if (targetType === TargetType.INVALID) &#123;
+    return target
+  &#125;
+
+  // 根据不同的类型值赋予不同的handlers，就是我之前图上画的分开处理
+  /* 
+    把set、Map这种数据与基础数据分开处理，是因为Map、Set中存储的数据必须通过this进行访问
+    但是被proxy劫持后，this就变成了proxy，
+    所以需要特殊处理，把劫持方法进行重写
+   */
+  const proxy = new Proxy(
+    target,
+    targetType === TargetType.COLLECTION ? collectionHandlers : baseHandlers
+  )
+  proxyMap.set(target, proxy)
+  return proxy
+&#125;
+</code></pre>
+<h3 id="baseHandler"><a href="#baseHandler" class="headerlink" title="baseHandler"></a>baseHandler</h3><ul>
+<li><code>baseHandler</code>这个文件我主要分析reactive的处理器对象<code>mutableHandlers</code></li>
+</ul>
+<pre><code class="ts">// 对get set delete has onwKeys做了拦截处理
+export const mutableHandlers: ProxyHandler&lt;object&gt; = &#123;
+  get,
+  set,
+  deleteProperty,
+  has,
+  ownKeys
+&#125;
+</code></pre>
+<h4 id="get"><a href="#get" class="headerlink" title="get"></a>get</h4><pre><code class="ts">function createGetter(isReadonly = false, shallow = false) &#123;
+  return function get(target: Target, key: string | symbol, receiver: object) &#123;
+    // 访问标志位时的逻辑处理
+    if (key === ReactiveFlags.IS_REACTIVE) &#123;
+      return !isReadonly
+    &#125; else if (key === ReactiveFlags.IS_READONLY) &#123;
+      return isReadonly
+    &#125; else if (
+      key === ReactiveFlags.RAW &amp;&amp;
+      receiver ===
+        (isReadonly
+          ? shallow
+            ? shallowReadonlyMap
+            : readonlyMap
+          : shallow
+            ? shallowReactiveMap
+            : reactiveMap
+        ).get(target)
+    ) &#123;
+      return target
+    &#125;
+
+    const targetIsArray = isArray(target)
+
+    // 如果target是数组并且key属于一些数组的原始方法，即触发拦截hack
+    if (!isReadonly &amp;&amp; targetIsArray &amp;&amp; hasOwn(arrayInstrumentations, key)) &#123;
+      return Reflect.get(arrayInstrumentations, key, receiver)
+    &#125;
+
+    const res = Reflect.get(target, key, receiver)
+
+    // 如果key是symbol的内置方法，或者是原型对象，直接返回
+    if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) &#123;
+      return res
+    &#125;
+
+    // 只读对象不收集依赖，因为不会触发依赖更新
+    if (!isReadonly) &#123;
+      track(target, TrackOpTypes.GET, key)
+    &#125;
+
+    // 浅层响应立即返回，不递归转化
+    if (shallow) &#123;
+      return res
+    &#125;
+
+    // 如果是ref对象(数组除外)，返回真正的值，
+    if (isRef(res)) &#123;
+      const shouldUnwrap = !targetIsArray || !isIntegerKey(key)
+      return shouldUnwrap ? res.value : res
+    &#125;
+
+    if (isObject(res)) &#123;
+      // 由于proxy只能代理一层，所以target[key]的值如果是对象，就继续对其进行代理
+      return isReadonly ? readonly(res) : reactive(res)
+    &#125;
+    return res
+  &#125;
+&#125;
+</code></pre>
+<p>数组方法拦截hack: 响应式系统对数组的两种原生方法进行了hack</p>
+<ul>
+<li>遍历查找的方法：includes、indexOf、lastIndexOf</li>
+<li>改变数组长度的方法：push、pop、shift、unshift、splice</li>
+</ul>
+<pre><code class="ts">function createArrayInstrumentations() &#123;
+  const instrumentations: Record&lt;string, Function&gt; = &#123;&#125;
+  ;([&#39;includes&#39;, &#39;indexOf&#39;, &#39;lastIndexOf&#39;] as const).forEach(key =&gt; &#123;
+    const method = Array.prototype[key] as any
+    instrumentations[key] = function(this: unknown[], ...args: unknown[]) &#123;
+      // 这一步是为了取原始实例，因为当前的this是receiver
+      const arr = toRaw(this)
+      // 搜集依赖
+      for (let i = 0, l = this.length; i &lt; l; i++) &#123;
+        track(arr, TrackOpTypes.GET, i + &#39;&#39;)
+      &#125;
+      // 触发方法，如果没有找到对应的值，就取原始值再遍历
+      const res = method.apply(arr, args)
+      if (res === -1 || res === false) &#123;
+        return method.apply(arr, args.map(toRaw))
+      &#125; else &#123;
+        return res
+      &#125;
+    &#125;
+  &#125;)
+  /* 
+    因为改变数组长度的方法，执行期间会触发length的get和set
+    就回导致无限循环track和trigger
+    所以就用pauseTracking()禁用依赖收集，触发方法后，
+    再用resetTracking()恢复track
+   */
+  ;([&#39;push&#39;, &#39;pop&#39;, &#39;shift&#39;, &#39;unshift&#39;, &#39;splice&#39;] as const).forEach(key =&gt; &#123;
+    const method = Array.prototype[key] as any
+    instrumentations[key] = function(this: unknown[], ...args: unknown[]) &#123;
+      pauseTracking()
+      const res = method.apply(this, args)
+      resetTracking()
+      return res
+    &#125;
+  &#125;)
+  return instrumentations
+&#125;
+</code></pre>
+<h4 id="set"><a href="#set" class="headerlink" title="set"></a>set</h4><pre><code class="ts">function createSetter(shallow = false) &#123;
+  return function set(
+    target: object,
+    key: string | symbol,
+    value: unknown,
+    receiver: object
+  ): boolean &#123;
+    let oldValue = (target as any)[key]
+    if (!shallow) &#123;
+      value = toRaw(value)
+      oldValue = toRaw(oldValue)
+      // 如果原来的值是ref，但新的值不是，则将新的值赋给oldValue.value
+      if (!isArray(target) &amp;&amp; isRef(oldValue) &amp;&amp; !isRef(value)) &#123;
+        oldValue.value = value
+        return true
+      &#125;
+    &#125; else &#123;
+      // in shallow mode, objects are set as-is regardless of reactive or not
+    &#125;
+
+    const hadKey =
+      isArray(target) &amp;&amp; isIntegerKey(key)
+        ? Number(key) &lt; target.length
+        : hasOwn(target, key)
+    const result = Reflect.set(target, key, value, receiver)
+    
+    // 判断receiver是当前对象的proxy实例，防止原型链上的proxy触发更新
+    if (target === toRaw(receiver)) &#123;
+      // 判断新增属性还是修改属性
+      if (!hadKey) &#123;
+        trigger(target, TriggerOpTypes.ADD, key, value)
+      &#125; else if (hasChanged(value, oldValue)) &#123;
+        trigger(target, TriggerOpTypes.SET, key, value, oldValue)
+      &#125;
+    &#125;
+    return result
+  &#125;
+&#125;
+</code></pre>
+<h4 id="deleteProperty、has…"><a href="#deleteProperty、has…" class="headerlink" title="deleteProperty、has…"></a>deleteProperty、has…</h4><ul>
+<li>deleteProperty、has、ownKeys的源码就不贴了，都是判断key的属性，然后选择触发或者收集依赖</li>
+</ul>
+<h3 id="collectionHandlers"><a href="#collectionHandlers" class="headerlink" title="collectionHandlers"></a>collectionHandlers</h3><ul>
+<li>collection这个文件我主要分析reactive的重写方法对象mutableInstrumentations</li>
+</ul>
+<pre><code class="ts">// 主要对以下原生api进行了改写
+const mutableInstrumentations: Record&lt;string, Function&gt; = &#123;
+  get(this: MapTypes, key: unknown) &#123;
+    return get(this, key)
+  &#125;,
+  get size() &#123;
+    return size((this as unknown) as IterableCollections)
+  &#125;,
+  has,
+  add,
+  set,
+  delete: deleteEntry,
+  clear,
+  forEach: createForEach(false, false)
+&#125;
+</code></pre>
+<h4 id="get-1"><a href="#get-1" class="headerlink" title="get"></a>get</h4><pre><code class="ts">function get(
+  target: MapTypes,
+  key: unknown,
+  isReadonly = false,
+  isShallow = false
+) &#123;
+  // 获取原始值重新赋值给target
+  target = (target as any)[ReactiveFlags.RAW]
+
+  // 对target源对象和key进一步获取原始值
+  const rawTarget = toRaw(target)
+  const rawKey = toRaw(key)
+
+  // 包装后的key和原始key均进行依赖收集(track)
+  if (key !== rawKey) &#123;
+    !isReadonly &amp;&amp; track(rawTarget, TrackOpTypes.GET, key)
+  &#125;
+  !isReadonly &amp;&amp; track(rawTarget, TrackOpTypes.GET, rawKey)
+  const &#123; has &#125; = getProto(rawTarget)
+
+  // 获取对应的转换函数
+  const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive
+  /* 
+    如果源对象有key对应的属性，就通过原生get方法取到值，
+    并对该值进行响应式转换，返回转换后的响应式对象，
+    如果没有，就去key原始值中去查找
+  */
+  if (has.call(rawTarget, key)) &#123;
+    return wrap(target.get(key))
+  &#125; else if (has.call(rawTarget, rawKey)) &#123;
+    return wrap(target.get(rawKey))
+  &#125; else if (target !== rawTarget) &#123;
+    target.get(key)
+  &#125;
+&#125;
+</code></pre>
+<h4 id="size"><a href="#size" class="headerlink" title="size"></a>size</h4><pre><code class="ts">// 对size属性做get拦截
+function size(target: IterableCollections, isReadonly = false) &#123;
+  target = (target as any)[ReactiveFlags.RAW]
+  // 获取size和获取数组的length类似，都用专门的key做依赖收集
+  !isReadonly &amp;&amp; track(toRaw(target), TrackOpTypes.ITERATE, ITERATE_KEY)
+  return Reflect.get(target, &#39;size&#39;, target)
+&#125;
+</code></pre>
+<h4 id="set-1"><a href="#set-1" class="headerlink" title="set"></a>set</h4><pre><code class="ts">function set(this: MapTypes, key: unknown, value: unknown) &#123;
+  // 获取value和this上下文的原始值
+  value = toRaw(value)
+  const target = toRaw(this)
+  const &#123; has, get &#125; = getProto(target)
+
+  /* 
+    判断源对象是否已经存在key对应的属性
+    1. 首先查找源对象是否已有key对应的属性
+    2. 如果没有，再查找key对应的原始值在源对象的属性是否存在
+  */
+  let hadKey = has.call(target, key)
+  if (!hadKey) &#123;
+    key = toRaw(key)
+    hadKey = has.call(target, key)
+  &#125; else if (__DEV__) &#123;
+    checkIdentityKeys(target, has, key)
+  &#125;
+
+  const oldValue = get.call(target, key)
+  target.set(key, value)
+
+  // 触发依赖，新增属性和修改属性分开进行trigger
+  if (!hadKey) &#123;
+    trigger(target, TriggerOpTypes.ADD, key, value)
+  &#125; else if (hasChanged(value, oldValue)) &#123;
+    trigger(target, TriggerOpTypes.SET, key, value, oldValue)
+  &#125;
+  return this
+&#125;
+</code></pre>
+<h4 id="has、clear…"><a href="#has、clear…" class="headerlink" title="has、clear…"></a>has、clear…</h4><ul>
+<li>其余重写方法我就不上代码了，不同点是单个属性触发单个的依赖，如果是遍历所有属性的方法就触发所有依赖</li>
+</ul>
+<h3 id="effect"><a href="#effect" class="headerlink" title="effect"></a>effect</h3><ul>
+<li>effect文件作为响应式的核心，主要负责收集依赖，触发依赖</li>
+</ul>
+<h4 id="effect-1"><a href="#effect-1" class="headerlink" title="effect"></a>effect</h4><ul>
+<li>effect函数主要是生成收集依赖所需的依赖函数</li>
+</ul>
+<pre><code class="ts">export function effect&lt;T = any&gt;(
+  fn: () =&gt; T,
+  options: ReactiveEffectOptions = EMPTY_OBJ
+): ReactiveEffect&lt;T&gt; &#123;
+  // 如果已经是effect函数，取得原来的fn
+  if (isEffect(fn)) &#123;
+    fn = fn.raw
+  &#125;
+  const effect = createReactiveEffect(fn, options)
+
+  // 如果lazy为false，立即执行一次
+  if (!options.lazy) &#123;
+    effect()
+  &#125;
+  return effect
+&#125;
+</code></pre>
+<ul>
+<li><code>createReactiveEffect</code>：生成effect对象</li>
+</ul>
+<pre><code class="ts">function createReactiveEffect&lt;T = any&gt;(
+  fn: () =&gt; T,
+  options: ReactiveEffectOptions
+): ReactiveEffect&lt;T&gt; &#123;
+  const effect = function reactiveEffect(): unknown &#123;
+    // 没有激活，已经调用stop函数停止监听
+    if (!effect.active) &#123;
+      return fn()
+    &#125;
+    // 判断effectStack中有没有effect，避免递归循环，effectStack是一个全局effect栈
+    if (!effectStack.includes(effect)) &#123;
+      // 清除effect依赖，保证当前effect的dep是最新且有效的
+      cleanup(effect)
+      try &#123;
+        enableTracking() // 重新收集依赖
+        effectStack.push(effect)
+        activeEffect = effect
+        return fn()
+      &#125; finally &#123;
+        /* 
+          track将依赖函数activeEffect添加到对应的dep中，
+          然后将activeEffect重置为上一个effect的值
+        */
+        effectStack.pop()
+        resetTracking()
+        activeEffect = effectStack[effectStack.length - 1]
+      &#125;
+    &#125;
+  &#125; as ReactiveEffect
+  effect.id = uid++ // 自增ID
+  effect.allowRecurse = !!options.allowRecurse // 递归状态
+  effect._isEffect = true // 用于标识方法是不是effect
+  effect.active = true // 用于判断当前effect是否激活，有一个stop()来将它设为false
+  effect.raw = fn // effect的执行函数
+  effect.deps = [] // 用于收集依赖
+  effect.options = options // 创建effect传入的options
+  return effect
+&#125;
+</code></pre>
+<ul>
+<li>activeEffect就是标记track所需的依赖函数</li>
+</ul>
+<h4 id="track"><a href="#track" class="headerlink" title="track"></a>track</h4><ul>
+<li>track就是baseHandler和collectionHandlers文件中频繁使用的收集依赖函数</li>
+<li>首先需要看一个关键变量targetMap</li>
+</ul>
+<pre><code class="ts">// targetMap是依赖管理中心，收集依赖和触发依赖都依托于这个Map数据
+// 下面是targetMap的定义(target -&gt; key -&gt; dep)
+// target: 监听的对象源
+// key: 监听的键值
+// dep：依赖函数
+type Dep = Set&lt;ReactiveEffect&gt;
+type KeyToDepMap = Map&lt;any, Dep&gt;
+const targetMap = new WeakMap&lt;any, KeyToDepMap&gt;()
+// 格式大致为
+targetMap = &#123;
+  target: &#123;
+    key1: &#123; fn1, fn2 &#125;
+    key2: &#123; fn1, fn2 &#125;
+  &#125;
+&#125;
+</code></pre>
+<pre><code class="ts">/**
+ * @param &#123;target&#125; 目标对象
+ * @param &#123;type&#125; 收集类型
+ * @param &#123;key&#125; 需要收集依赖的key
+ */
+export function track(target: object, type: TrackOpTypes, key: unknown) &#123;
+  // activeEffect为空，就表示当前没有依赖，就没必要做依赖收集了
+  if (!shouldTrack || activeEffect === undefined) &#123;
+    return
+  &#125;
+  // 获取当前依赖数据
+  let depsMap = targetMap.get(target)
+
+  if (!depsMap) &#123;
+    targetMap.set(target, (depsMap = new Map()))
+  &#125;
+
+  // 如果当前数据中没有所属的依赖key，就重新设置一个
+  let dep = depsMap.get(key)
+  if (!dep) &#123;
+    depsMap.set(key, (dep = new Set()))
+  &#125;
+  // 添加依赖函数
+  if (!dep.has(activeEffect)) &#123;
+    dep.add(activeEffect)
+    activeEffect.deps.push(dep)
+    if (__DEV__ &amp;&amp; activeEffect.options.onTrack) &#123;
+      activeEffect.options.onTrack(&#123;
+        effect: activeEffect,
+        target,
+        type,
+        key
+      &#125;)
+    &#125;
+  &#125;
+&#125;
+</code></pre>
+<h4 id="trigger"><a href="#trigger" class="headerlink" title="trigger"></a>trigger</h4><pre><code class="ts">// 触发依赖
+export function trigger(
+  target: object,
+  type: TriggerOpTypes,
+  key?: unknown,
+  newValue?: unknown,
+  oldValue?: unknown,
+  oldTarget?: Map&lt;unknown, unknown&gt; | Set&lt;unknown&gt;
+) &#123;
+  const depsMap = targetMap.get(target)
+  // 如果没有收集过依赖，直接返回
+  if (!depsMap) &#123;
+    return
+  &#125;
+
+  const effects = new Set&lt;ReactiveEffect&gt;()
+  const add = (effectsToAdd: Set&lt;ReactiveEffect&gt; | undefined) =&gt; &#123;
+    if (effectsToAdd) &#123;
+      effectsToAdd.forEach(effect =&gt; &#123;
+        // 避免重复触发依赖
+        if (effect !== activeEffect || effect.allowRecurse) &#123;
+          effects.add(effect)
+        &#125;
+      &#125;)
+    &#125;
+  &#125;
+
+  if (type === TriggerOpTypes.CLEAR) &#123;
+    // 在清空前，将对应的依赖全部添加到局部Set
+    depsMap.forEach(add)
+  &#125; else if (key === &#39;length&#39; &amp;&amp; isArray(target)) &#123;
+    // 当数组的length属性变化时触发
+    depsMap.forEach((dep, key) =&gt; &#123;
+      if (key === &#39;length&#39; || key &gt;= (newValue as number)) &#123;
+        add(dep)
+      &#125;
+    &#125;)
+  &#125; else &#123;
+    // schedule runs for SET | ADD | DELETE
+    // 往相应队列添加依赖
+    if (key !== void 0) &#123;
+      add(depsMap.get(key))
+    &#125;
+
+    // also run for iteration key on ADD | DELETE | Map.SET
+    // 通过不同的TriggerOpTypes将depsMap的数据取出，添加到effects
+    switch (type) &#123;
+      case TriggerOpTypes.ADD:
+        if (!isArray(target)) &#123;
+          add(depsMap.get(ITERATE_KEY))
+          if (isMap(target)) &#123;
+            add(depsMap.get(MAP_KEY_ITERATE_KEY))
+          &#125;
+        &#125; else if (isIntegerKey(key)) &#123;
+          // new index added to array -&gt; length changes
+          add(depsMap.get(&#39;length&#39;))
+        &#125;
+        break
+      case TriggerOpTypes.DELETE:
+        if (!isArray(target)) &#123;
+          add(depsMap.get(ITERATE_KEY))
+          if (isMap(target)) &#123;
+            add(depsMap.get(MAP_KEY_ITERATE_KEY))
+          &#125;
+        &#125;
+        break
+      case TriggerOpTypes.SET:
+        if (isMap(target)) &#123;
+          add(depsMap.get(ITERATE_KEY))
+        &#125;
+        break
+    &#125;
+  &#125;
+
+  const run = (effect: ReactiveEffect) =&gt; &#123;
+    if (__DEV__ &amp;&amp; effect.options.onTrigger) &#123;
+      effect.options.onTrigger(&#123;
+        effect,
+        target,
+        key,
+        type,
+        newValue,
+        oldValue,
+        oldTarget
+      &#125;)
+    &#125;
+    if (effect.options.scheduler) &#123;
+      // 如果有调度属性，就通过scheduler处理执行
+      effect.options.scheduler(effect)
+    &#125; else &#123;
+      effect()
+    &#125;
+  &#125;
+
+  effects.forEach(run)
+&#125;
+</code></pre>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+    <span>Theme Designed By <a target="_blank" href="https://zheli.design/one-paper">這Li</a></span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

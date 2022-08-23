@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            解决react状态管理---React Query
+        </div>
+        <div class="post-meta">
+            2021-06-12
+        </div>
+    
+
+    <div class="post-md">
+        <p><img src="https://img-blog.csdnimg.cn/20210612171112847.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDcxOTI1OA==,size_16,color_FFFFFF,t_70#pic_center" alt="React Query"></p>
+<h3 id="什么是React-Query"><a href="#什么是React-Query" class="headerlink" title="什么是React Query"></a>什么是React Query</h3><ul>
+<li><code>react-query</code>是一个适用于react hooks的请求库，它可以为任何类型的异步数据提供React状态管理功能，使React中的获取、缓存、同步和更新服务器数据变得轻而易举</li>
+<li><code>react-query</code>与一些传统的状态管理库如redux,mobx不同，它是负责管理服务器与客户端之间的状态，一些用户交互的中间状态，如loading状态，错误信息等都是通过hooks直接返回</li>
+<li><a target="_blank" rel="noopener" href="https://react-query-v2.tanstack.com/">React Query官网</a></li>
+</ul>
+<h3 id="初步使用"><a href="#初步使用" class="headerlink" title="初步使用"></a>初步使用</h3><ol>
+<li><code>yarn add react-query</code> or <code>npm i react-query</code>安装react-query</li>
+<li>使用<code>QueryClientProvider</code>组件连接并提供一个<code>QueryClient</code>到你的应用程序</li>
+</ol>
+<pre><code class="js">import &#123; QueryClient, QueryClientProvider &#125; from &#39;react-query&#39;
+
+&lt;QueryClientProvider client=&#123;new QueryClient()&#125;&gt;
+  &#123; ... &#125;
+&lt;/QueryClientProvider&gt;
+</code></pre>
+<h4 id="Devtools"><a href="#Devtools" class="headerlink" title="Devtools"></a>Devtools</h4><ul>
+<li><code>yarn add react-query-devtools</code> or <code>npm i --save react-query-devtools</code>安装Devtools</li>
+<li><code>react-query-devtools</code>是与<code>react-query</code>相匹配的开发工具</li>
+<li>可在开发中实时查看缓存，手动获取和删除查询等等</li>
+</ul>
+<pre><code class="js">import &#123; ReactQueryDevtools &#125; from &#39;react-query-devtools&#39;
+
+const App = () =&gt; &#123;
+  return (
+    &lt;&gt;    
+      &#123; ... &#125;
+      &lt;ReactQueryDevtools initialIsOpen=&#123;true&#125; /&gt;
+    &lt;/&gt;
+  );
+&#125;;
+</code></pre>
+<h3 id="增删改查"><a href="#增删改查" class="headerlink" title="增删改查"></a>增删改查</h3><ul>
+<li>react-query最常用的两个hook，查询(<code>useQuery</code>)、增删改(<code>useMutation</code>)</li>
+</ul>
+<h4 id="useQuery"><a href="#useQuery" class="headerlink" title="useQuery"></a>useQuery</h4><ul>
+<li><code>useQuery</code>：在<code>React Query</code>中，查询是对某些异步数据源的声明性依赖。查询可以与任何基于Promise的方法(GET)一起使用，从服务器获取数据</li>
+</ul>
+<pre><code class="js">const useTodos = (param) =&gt; &#123;
+  const request = useHttp()
+
+  /**
+   * 第一个参数是QueryKey，是查询的关键，是一个独一无二的key，并在之后的增删改中需要，
+   * 	如果需要动态的QueryKey，可以使用数组的方式，如[&#39;todos&#39;, params]
+   * 第二个参数是用于获取数据的异步函数
+   * useQuery的响应返回就是获取到的数据和一些中间状态，如isLoading，error，isIdle...
+   */
+  return useQuery(&#39;todos&#39;, () =&gt;
+    request(&#39;todos&#39;, &#123; data: param &#125;)
+  )
+&#125;
+
+// 在UI组件调用
+const &#123; isLoading, error, data: todos &#125; = useTodos()
+</code></pre>
+<h4 id="useMutation"><a href="#useMutation" class="headerlink" title="useMutation"></a>useMutation</h4><ul>
+<li><code>useMutation</code>：常用于创建&#x2F;更新&#x2F;删除数据或执行服务器副作用</li>
+</ul>
+<pre><code class="js">const useAddTodo = () =&gt; &#123;
+  const request = useHttp()
+
+  /**
+   * 第一个参数是执行操作的异步函数，在返回的mutate中触发
+   * 第二个参数是执行成功或者失败的一些配置函数，可用于一些处理缓存的操作，例如乐观更新
+   */
+  return useMutation(
+    (data) =&gt;
+      request(`todos`, &#123;
+        data,
+        method: &#39;POST&#39;,
+      &#125;),
+    &#123;
+      onSuccess()&#123;&#125;
+      onError()&#123;&#125;
+      onSettled()&#123;&#125;
+      ...
+    &#125;
+  )
+&#125;
+
+// 操作组件调用
+const TodosAddBtn = () =&gt; &#123;
+  ...
+  const &#123; mutateAsync, isLoading, error &#125; = useAddTodo()
+  return &lt;Button onClick=&#123;() =&gt; mutateAsync(todoData)&#125;&gt;add&lt;/Button&gt;
+&#125;
+</code></pre>
+<h5 id="例：用第二个参数配置乐观更新"><a href="#例：用第二个参数配置乐观更新" class="headerlink" title="例：用第二个参数配置乐观更新"></a>例：用第二个参数配置乐观更新</h5><ul>
+<li>乐观更新就是在一些请求或者数据处理没有结束的时候，提前给用户显示理想的结果，如果失败就回滚更新</li>
+</ul>
+<pre><code class="js">const useAddConfig = (queryKey) =&gt; &#123;
+  // 获取当前QueryClient的实例
+  const queryClient = useQueryClient()
+  
+  return &#123;
+    // 当mutate被调用时触发
+    async onMutate(target) &#123;
+      // 获取当前数据快照，用于错误时回滚更新
+      const previousItems = queryClient.getQueryData(queryKey)
+      // 乐观更新为新值
+      queryClient.setQueryData(queryKey, (old) =&gt; &#123;
+        return (target, old) =&gt; (old ? [...old, target] : [])
+      &#125;)
+
+      // 这个返回值会作为最后一个参数传递给onError和onSettled
+      return &#123; previousItems &#125;
+    &#125;,
+    // 成功回调 清除缓存
+    onSuccess: () =&gt; queryClient.invalidateQueries(queryKey),
+    // 失败回调
+    onError(error, newItem, context) &#123;
+      // 当前queryKey的数据回滚
+      queryClient.setQueryData(
+        queryKey,
+        context.previousItems
+      )
+    &#125;,
+    // 无论错误或者成功都会触发，此例子没有使用
+    onSettled() &#123;&#125;
+  &#125;
+&#125;
+</code></pre>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>本地&#x2F;客户端中间状态<ul>
+<li>redux与react-query都可，没有较大的优缺点</li>
+</ul>
+</li>
+<li>服务端中间状态<ul>
+<li>推荐react-query，将服务器状态从全局状态中解放出来，用更少的代码实现复杂的需求，让你的状态管理更优雅</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+    <span>Theme Designed By <a target="_blank" href="https://zheli.design/one-paper">這Li</a></span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

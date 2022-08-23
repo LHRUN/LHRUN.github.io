@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            微信小程序图片上传&amp;九宫格拖拽组件
+        </div>
+        <div class="post-meta">
+            2021-09-08
+        </div>
+    
+
+    <div class="post-md">
+        <h2 id="微信小程序图片上传-amp-九宫格拖拽组件"><a href="#微信小程序图片上传-amp-九宫格拖拽组件" class="headerlink" title="微信小程序图片上传&amp;九宫格拖拽组件"></a>微信小程序图片上传&amp;九宫格拖拽组件</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><ul>
+<li><p>图片上传加九宫格拖拽是一个比较常用的组件，常用于发帖或者评论等内容上传模块，我这篇九宫格拖拽的思路是借鉴了<a target="_blank" rel="noopener" href="https://www.cnblogs.com/haha1212/p/11562944.html"><strong>一款优雅的小程序拖拽排序组件实现</strong></a>这篇文章</p>
+</li>
+<li><p>实现效果如下图<br><img src="https://img-blog.csdnimg.cn/cc8c84d6bc3049349e94b95f540916c7.gif" alt="请添加图片描述"></p>
+</li>
+<li><p>实现原理：新增图片时，为每一个图片增加一个key属性，和tranX、tranY属性，用于transform位移，然后这个九宫格的拖拽新增删除都是以key为标记来修改tranX和tranY，从而达到拖拽效果</p>
+</li>
+<li><p>使用了以下变量</p>
+</li>
+</ul>
+<pre><code class="js">data: &#123;
+  ITEM_SIZE: 100, // 图片大小 单位px
+  dragImgList: [], // 图片列表 &#123; src: string, key: number, tranX: number, tranY: number &#125;[]
+  containerRes: &#123;&#125;, // 拖拽容器属性
+  currentKey: -1, // 正在拖拽图片的key
+  currentIndex: -1, // 正在拖拽图片的index
+  tranX: 0, // 正在拖拽图片移动的x距离
+  tranY: 0, // 正在拖拽图片移动的y距离
+  uploadPosition: &#123; // upload上传图标位移距离
+    tranX: 0,
+    tranY: 0,
+  &#125;
+&#125;,
+</code></pre>
+<h3 id="WXML-amp-WXSS"><a href="#WXML-amp-WXSS" class="headerlink" title="WXML &amp; WXSS"></a>WXML &amp; WXSS</h3><pre><code class="html">&lt;view class=&quot;drag-container&quot;&gt;
+  &lt;view
+    wx:for=&quot;&#123;&#123;dragImgList&#125;&#125;&quot; 
+    wx:key=&quot;index&quot;
+    style=&quot;transform: translate(&#123;&#123;index === currentIndex ? tranX : item.tranX&#125;&#125;px, &#123;&#123;index === currentIndex ? tranY : item.tranY&#125;&#125;px); z-index: &#123;&#123;index === currentIndex ? 10 : 1&#125;&#125;;&quot;
+    class=&quot;darg-item item-transition&quot;
+    mark:index=&quot;&#123;&#123;index&#125;&#125;&quot;
+    mark:key=&quot;&#123;&#123;item.key&#125;&#125;&quot;
+    catch:longpress=&quot;longPress&quot;
+    catch:touchmove=&quot;touchMove&quot;
+    catch:touchend=&quot;touchEnd&quot;
+  &gt;
+    &lt;image class=&quot;darg-item-img&quot; src=&quot;&#123;&#123;item.src&#125;&#125;&quot;/&gt;
+    &lt;text catch:tap=&quot;deleteImg&quot; mark:key=&quot;&#123;&#123;item.key&#125;&#125;&quot; class=&quot;drag-item-delete&quot;&gt;×&lt;/text&gt;
+  &lt;/view&gt;
+  &lt;view
+    bindtap=&quot;uploadImage&quot;
+    class=&quot;darg-item drag-item-upload&quot;
+    hidden=&quot;&#123;&#123;dragImgList.length >= 9&#125;&#125;&quot;
+    style=&quot;transform: translate(&#123;&#123;uploadPosition.tranX&#125;&#125;px, &#123;&#123;uploadPosition.tranY&#125;&#125;px);&quot;
+  &gt;+&lt;/view&gt;
+&lt;/view&gt;
+</code></pre>
+<pre><code class="css">.drag-container&#123;
+  position: relative;
+  width: 300px;
+  height: 300px;
+&#125;
+.item-transition &#123;
+  transition: transform 0.1s
+&#125;
+.darg-item&#123;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+&#125;
+.darg-item-img&#123;
+  width: 100%;
+  height: 100%;
+&#125;
+.drag-item-delete&#123;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 58rpx;
+  height: 33rpx;
+  background-color: rgba(0,0,0,0.7);
+  font-size: 47rpx;
+  line-height: 25rpx;
+  text-align: center;
+  border-radius: 0 0 0 64rpx;
+  color: #fff;
+&#125;
+.drag-item-upload&#123;
+  background-color: burlywood;
+  font-size: 200rpx;
+  text-align: center;
+  color: white;
+  line-height: 200rpx;
+&#125;
+</code></pre>
+<h3 id="图片上传"><a href="#图片上传" class="headerlink" title="图片上传"></a>图片上传</h3><ul>
+<li>图片上传很简单，就是初始化上传的图片，然后拼接图片列表，最后修改上传图标位置即可</li>
+</ul>
+<pre><code class="js">uploadImage() &#123;
+  let &#123; dragImgList, ITEM_SIZE &#125; = this.data
+  wx.chooseImage(&#123;
+    count: 9 - dragImgList.length,
+    success: (res) =&gt; &#123;
+      const imgList = res.tempFilePaths.map((item, index) =&gt; (&#123;
+        tranX: ITEM_SIZE * ((dragImgList.length + index) % 3),
+        tranY: Math.floor((dragImgList.length + index) / 3) * ITEM_SIZE,
+        src: item,
+        key: dragImgList.length + index
+      &#125;))
+      dragImgList = dragImgList.concat(imgList)
+      // 修改上传图标位置
+      this.setUploaPosition(dragImgList.length)
+      this.setData(&#123;
+        dragImgList,
+      &#125;)
+    &#125;
+  &#125;)
+&#125;,
+</code></pre>
+<pre><code class="js">setUploaPosition(listLength) &#123;
+  const ITEM_SIZE = this.data.ITEM_SIZE
+  const uploadPosition = &#123;
+    tranX: listLength % 3 * ITEM_SIZE,
+    tranY: Math.floor(listLength / 3) * ITEM_SIZE,
+  &#125;
+  this.setData(&#123;
+    uploadPosition,
+  &#125;)
+&#125;,
+</code></pre>
+<h3 id="图片删除"><a href="#图片删除" class="headerlink" title="图片删除"></a>图片删除</h3><ul>
+<li>首先从图片列表中删除所需图片，然后修改列表，把大于所选图片key的key全部减一，最后修改剩余图片位置和上传图标位置</li>
+</ul>
+<pre><code class="js">deleteImg(e) &#123;
+  const key = e.mark.key
+  // 删除图片
+  const list = this.data.dragImgList.filter((item) =&gt; item.key !== key)
+  // 修改key值
+  list.forEach((item) =&gt; item.key &gt; key &amp;&amp; item.key--)
+  // 修改剩余图片位置
+  this.getListPosition(list)
+  // 修改上传图标位置
+  this.setUploaPosition(list.length)
+&#125;
+</code></pre>
+<pre><code class="js">getListPosition(list) &#123;
+  const ITEM_SIZE = this.data.ITEM_SIZE
+  const dragImgList = list.map((item) =&gt; &#123;
+    item.tranX = ITEM_SIZE * (item.key % 3);
+    item.tranY = Math.floor(item.key / 3) * ITEM_SIZE;
+    return item
+  &#125;)
+  this.setData(&#123;
+    dragImgList,
+  &#125;)
+
+  // 向页面传递最新图片列表
+  const urlList = [...dragImgList].sort((a, b) =&gt; a.key - b.key).map((item) =&gt; item.src)
+  this.triggerEvent(&#39;updateImage&#39;, &#123;
+    list: urlList
+  &#125;)
+&#125;,
+</code></pre>
+<h3 id="九宫格拖拽"><a href="#九宫格拖拽" class="headerlink" title="九宫格拖拽"></a>九宫格拖拽</h3><h4 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h4><ul>
+<li>初始化只需获取容器的位置信息即可，因为拖拽组件不一定是在页面的左上角，所以需要知道容器的位置信息</li>
+</ul>
+<pre><code class="js">lifetimes: &#123;
+  ready() &#123;
+    this.createSelectorQuery()
+      .select(&quot;.drag-container&quot;)
+      .boundingClientRect((res) =&gt; &#123;
+        this.data.containerRes = res
+      &#125;).exec();
+  &#125;
+&#125;,
+</code></pre>
+<h4 id="longPress"><a href="#longPress" class="headerlink" title="longPress"></a>longPress</h4><ul>
+<li>这里采用longPress，而不是touchStart的原因，一是为了优化体验，二是touchStart与删除按钮冲突</li>
+</ul>
+<pre><code class="js">longPress(e) &#123;
+  const index = e.mark.index
+  const &#123; pageX, pageY &#125; = e.touches[0]
+  const &#123; top, left &#125; = this.data.containerRes
+  this.setData(&#123;
+    currentIndex: index,
+    tranX: pageX - 50 - left,
+    tranY: pageY - 50 - top
+  &#125;)
+&#125;,
+</code></pre>
+<h4 id="touchMove"><a href="#touchMove" class="headerlink" title="touchMove"></a>touchMove</h4><ul>
+<li>touchMove首先计算出位移距离，然后根据位移距离求出停放位置的key，如果不一样就修改位置</li>
+</ul>
+<pre><code class="js">touchMove(e) &#123;
+  // 如果currentIndex &lt; 0，说明并没有触发longPress
+  if (this.data.currentIndex &lt; 0) return
+  const &#123; pageX, pageY &#125; = e.touches[0]
+  const &#123; top, left &#125; = this.data.containerRes
+  const tranX = pageX - 50 - left
+  const tranY = pageY - 50 - top
+  this.setData(&#123;
+    tranX,
+    tranY
+  &#125;)
+  // 对比当前移动的key和停放位置的key，如果不一样就修改位置
+  const currentKey = e.mark.key
+  const moveKey = this.getMoveKey(tranX, tranY)
+  if (currentKey === moveKey || this.data.currentKey === currentKey) return
+  this.data.currentKey = currentKey
+  this.insert(currentKey, moveKey)
+&#125;,
+</code></pre>
+<pre><code class="js">getMoveKey(tranX, tranY) &#123;
+  const &#123; dragImgList: list, ITEM_SIZE &#125; = this.data
+  const _getPositionNumber = (position) =&gt; &#123;
+    const positionNumber = Math.round(position/ ITEM_SIZE)
+    return positionNumber &gt; 2 ? 2 : positionNumber &lt; 0 ? 0 : positionNumber
+  &#125;
+  const endKey = 3 * _getPositionNumber(tranY) + _getPositionNumber(tranX)
+  return endKey &gt;= list.length ? list.length - 1 : endKey
+&#125;,
+</code></pre>
+<pre><code class="js">insert(origin, end) &#123;
+  const dragImgList = this.data.dragImgList
+  dragImgList.forEach((item) =&gt; &#123;
+    if (origin &lt; end) &#123;
+      // 如果起始key小于结束key，就把区间内的key全部减一
+      if (item.key &gt; origin &amp;&amp; item.key &lt;= end) item.key--
+      else if (item.key === origin) item.key = end
+    &#125; else if (origin &gt; end) &#123;
+      // 如果起始key大于结束key，就把区间内的key全部加一
+      if (item.key &gt;= end &amp;&amp; item.key &lt; origin) item.key++
+      else if (item.key === origin) item.key = end
+    &#125;
+  &#125;)
+  this.getListPosition(dragImgList)
+&#125;,
+</code></pre>
+<h4 id="touchEnd"><a href="#touchEnd" class="headerlink" title="touchEnd"></a>touchEnd</h4><ul>
+<li>touchEnd用于重置数据</li>
+</ul>
+<pre><code class="js">touchEnd() &#123;
+  this.setData(&#123;
+    tranX: 0,
+    tranY: 0,
+    currentIndex: -1,
+  &#125;)
+  this.data.currentKey = -1
+&#125;,
+</code></pre>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>代码片段<code>https://developers.weixin.qq.com/s/2rFIJamX7xty</code></li>
+</ul>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+    <span>Theme Designed By <a target="_blank" href="https://zheli.design/one-paper">這Li</a></span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

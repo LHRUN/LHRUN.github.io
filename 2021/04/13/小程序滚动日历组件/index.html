@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            小程序滚动日历组件
+        </div>
+        <div class="post-meta">
+            2021-04-13
+        </div>
+    
+
+    <div class="post-md">
+        <h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
+<ol>
+<li>在ready中初始化组件数据</li>
+</ol>
+<pre><code class="js">/**
+ * @description: 初始化
+ */
+ready() &#123;
+  // 这两个数据是从页面中传过来的，起始时间和结束时间
+  // 数组类型 [year, month, day]
+  const &#123; endDate, startDate &#125; = this.data
+  let monthList = [] // 这个用于wxml中遍历，以每月为item
+
+  // 未跨年
+  if ( endDate[0] === startDate[0]) &#123;
+    let rangeMonth = endDate[1] - startDate[1]
+    for (let i = 0; i &lt;= rangeMonth; i++) &#123;
+      let date = [startDate[0], startDate[1] + i + 1]
+      // monthInitData()初始化每月数据
+      let days = this.monthInitData(startDate[0], startDate[1] + i)
+      monthList.push(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+  &#125; else &#123;
+    // 跨年前月份
+    for (let i = 0, lng = 12 - startDate[1]; i &lt; lng; i++) &#123;
+      let date = [startDate[0], startDate[1] + i + 1]
+      let days = this.monthInitData(startDate[0], startDate[1] + i)
+      monthList.push(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+
+    // 跨年后月份
+    for (let i = 0; i &lt;= endDate[1]; i++) &#123;
+      let date = [endDate[0], i + 1]
+      let days = this.monthInitData(endDate[0], i)
+      monthList.push(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+  &#125;
+  this.setData(&#123;
+    monthList,
+  &#125;)
+&#125;
+</code></pre>
+<ol start="2">
+<li>初始化每月数据: <blockquote>
+<p>逻辑是获取每个月第一天的星期数和每个月的最大天数，然后在之前和之后的空数据填充item占位<br>然后遍历，根据不同的需求，在遍历中处理，最后在html中flex布局即可</p>
+</blockquote>
+</li>
+</ol>
+<pre><code class="js">/**
+ * @description: 初始化每月数据
+ * @param: &#123; number &#125; year 年
+ * @param: &#123; number &#125; month 月
+ */
+monthInitData(year, month) &#123;
+  let &#123; calendarValue, startDate, endDate &#125;= this.data, // 当前点击时间，起始时间，结束时间
+    firstWeek = new Date(year, month, 1).getDay(), // 本月的第一天的星期数
+    days = [], // 日期数组
+    max = this.getMonthMax(year, month + 1), // 每月最大天数
+    lastWeek = new Date(year, (month + 1), 0).getDay() // 本月的最后一天的星期数
+
+  // 填充每月一号之前的空数据
+  if (firstWeek &gt; 0) &#123;
+    for (let i = 0; i &lt; firstWeek; i++) &#123;
+      days.push(&#123;
+        day: 0
+      &#125;)
+    &#125;
+  &#125;
+
+  let currentTime = 0, 
+      startTime = 0,
+      endTime = 0
+
+  if (calendarValue[0]) &#123;
+    currentTime = new Date(calendarValue[0], calendarValue[1], calendarValue[2]).getTime()
+  &#125;
+  if (startDate[0]) &#123;
+    startTime = new Date(startDate[0], startDate[1], startDate[2]).getTime()
+  &#125;
+  if (endDate[0]) &#123;
+    endTime = new Date(endDate[0], endDate[1], endDate[2]).getTime()
+  &#125;
+
+  for (let i = 1; i &lt;= max; i++) &#123;
+    // 以下状态是需要在html中判断处理，根据自己需求改变
+    let current = false, // 当前点击状态
+      disabled = false, // 禁止状态
+      now = false, // 今天显示文案
+      time = new Date(year, month, i).getTime(),
+      nowTime = [new Date().getFullYear(), new Date().getMonth(), new Date().getDate()]
+    if (currentTime &amp;&amp; currentTime == time) current = true
+    if (startTime &amp;&amp; startTime &gt; time) disabled = true
+    if (endTime &amp;&amp; endTime &lt; time) disabled = true
+    if (year === nowTime[0] &amp;&amp; month === nowTime[1] &amp;&amp; i === nowTime[2]) now = true
+
+    days.push(&#123;
+      day: i,
+      current,
+      disabled,
+      now,
+    &#125;)
+  &#125;
+
+  // 填充每月最后一天之后的空数据
+  if (lastWeek != 6) &#123;
+    for (let i = 0, l = (6 - lastWeek); i &lt; l; i++) &#123;
+      days.push(&#123;
+        day: 0
+      &#125;)
+    &#125;
+  &#125;
+  return days
+&#125;,
+
+/**
+ * 获取一个月最大天数
+ * @method getMonthMax
+ * @param: &#123; number &#125; year 年份
+ * @param: &#123; number &#125; month 月份
+ */
+getMonthMax(year, month) &#123;
+  let max = 31
+  if (month == 4 || month == 6 || month == 9 || month == 11) &#123;
+    max = 30
+  &#125; else if (month == 2) &#123;
+    if (((year % 4) == 0 &amp;&amp; (year % 100) &gt; 0) || (year % 400) == 0) &#123;
+      max = 29
+    &#125; else &#123;
+      max = 28
+    &#125; 
+  &#125;
+
+  return max
+&#125;,
+</code></pre>
+<ul>
+<li>以上就是核心逻辑，像一些弹窗事件和一些点击事件就不附上来了</li>
+</ul>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+    <span>Theme Designed By <a target="_blank" href="https://zheli.design/one-paper">這Li</a></span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

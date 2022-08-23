@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            解析nextTick---vue3任务调度
+        </div>
+        <div class="post-meta">
+            2021-07-17
+        </div>
+    
+
+    <div class="post-md">
+        <h3 id="nextTick"><a href="#nextTick" class="headerlink" title="nextTick"></a>nextTick</h3><blockquote>
+<p>定义：将回调推迟到下一个 DOM 更新周期之后执行，在更改了一些数据以等待 DOM 更新后立即使用它<br>在实际中使用这个方法一般是用于组件更新，你需要获取更新后的数据，所以使用nextTick等待DOM更新</p>
+</blockquote>
+<pre><code class="js">// vue3中的语法对比vue2做了一些改动
+import &#123; createApp, nextTick &#125; from &#39;vue&#39;
+const app = createApp(&#123;
+  setup() &#123;
+    const message = ref(&#39;Hello!&#39;)
+    const changeMessage = async newMessage =&gt; &#123;
+      message.value = newMessage
+      // 这里的value是旧值
+      await nextTick()
+      // nextTick后获取的就是DOM更新后的value
+      console.log(&#39;Now DOM is updated&#39;)
+    &#125;
+  &#125;
+&#125;)
+</code></pre>
+<ul>
+<li>这个api使用时相当简单，而且相当容易理解，但是为了知其意，还是要翻一下源码了解它的执行机制</li>
+</ul>
+<pre><code class="ts">export function nextTick(
+  this: ComponentPublicInstance | void,
+  fn?: () =&gt; void
+): Promise&lt;void&gt; &#123;
+  const p = currentFlushPromise || resolvedPromise
+  return fn ? p.then(this ? fn.bind(this) : fn) : p
+&#125;
+</code></pre>
+<ul>
+<li>上面是vue源码中nextTick的实现，为了搞清楚实现逻辑，就必须搞懂<code>currentFlushPromise</code>这个变量的含义，所以要从任务的调度机制开始分析</li>
+</ul>
+<h3 id="任务调度"><a href="#任务调度" class="headerlink" title="任务调度"></a>任务调度</h3><p>首先这个调度机制的功能在<code>runtime-core</code>的<code>scheduler</code>文件</p>
+<ul>
+<li>API</li>
+</ul>
+<pre><code class="ts">// 这个文件会抛出以下几个API函数
+nextTick()&#123;&#125; // 将函数在任务队列清空后执行
+queueJob()&#123;&#125; // 添加任务并开始执行任务队列
+invalidateJob()&#123;&#125; // 删除任务
+queuePreFlushCb()&#123;&#125; // 添加前置回调函数并开始执行任务队列
+queuePostFlushCb()&#123;&#125; // 添加后置回调函数并开始执行任务队列
+flushPreFlushCbs()&#123;&#125; // 执行前置回调函数
+flushPostFlushCbs()&#123;&#125; // 执行后置回调函数
+</code></pre>
+<ul>
+<li>我们首先要知道几个关键变量</li>
+</ul>
+<pre><code class="ts">let isFlushing = false // 是否正在清空任务队列
+let isFlushPending = false // 清队任务已创建，等待清空状态
+const queue: SchedulerJob[] = [] // 任务队列
+let flushIndex = 0 // 当前正在执行的任务在任务队列中的索引
+</code></pre>
+<ul>
+<li>然后我们从<code>queueJob</code>这个函数开始</li>
+</ul>
+<pre><code class="ts">/* 
+  这个函数主要是将一个任务(job)进行入队操作
+  然后在满足条件的情况下启动清空队列任务(queueFlush)
+ */
+export function queueJob(job: SchedulerJob) &#123;
+  /**
+   * 任务可入队逻辑
+   * 1. 任务队列为空
+   * 2. 待入队任务不能存在于任务队列中(按情况分析)
+   */
+  if (
+    (!queue.length ||
+      !queue.includes(
+        job,
+        /* 
+          在正在清空队列且当前待入队任务是可以递归时，
+          说明当前任务一定和当前正在执行任务是同一任务，所以+1，
+          就是为了保证待入队任务和正在执行任务相同，但不能和后面待执行任务相同
+         */
+        isFlushing &amp;&amp; job.allowRecurse ? flushIndex + 1 : flushIndex
+      )) &amp;&amp;
+    job !== currentPreFlushParentJob
+  ) &#123;
+    // 二分查找任务在队列中的位置
+    const pos = findInsertionIndex(job)
+    if (pos &gt; -1) &#123;
+      queue.splice(pos, 0, job)
+    &#125; else &#123;
+      queue.push(job)
+    &#125;
+    queueFlush()
+  &#125;
+&#125;
+</code></pre>
+<ul>
+<li><code>queueFlush</code></li>
+</ul>
+<pre><code class="ts">function queueFlush() &#123;
+  /**
+    清队任务创建后禁止再次创建更多的清队任务
+    因为在入队操作完成后，flushJobs会在一次递归中将任务队列全部清空，所以只需要一次清队任务即可
+   */
+  if (!isFlushing &amp;&amp; !isFlushPending) &#123;
+    isFlushPending = true
+    /* 
+      清队任务创建成功，并记录下当前清队任务，这个标记可以用于nextTick创建自定义函数，
+      说明nextTick的执行时机是在清队任务后的，其实从这个地方就可以理解nextTick的执行原理了
+    */
+    currentFlushPromise = resolvedPromise.then(flushJobs)
+  &#125;
+&#125;
+</code></pre>
+<ul>
+<li><code>flushJobs</code></li>
+</ul>
+<pre><code class="ts">// 清空任务队列
+function flushJobs(seen?: CountMap) &#123;
+  isFlushPending = false // 关闭清队任务等待状态
+  isFlushing = true // 开启正在清空队列状态
+  if (__DEV__) &#123;
+    seen = seen || new Map()
+  &#125;
+
+  // 清空前置回调任务队列
+  flushPreFlushCbs(seen)
+
+  /* 
+    任务队列中的任务根据ID进行排序的原因
+      1. 因为组件更新是从父组件到子组件的，而任务更新是在数据源更新时触发的，所以为了更新任务的顺序就需要进行排序
+      2. 如果在父组件更新期间已经卸载了组件，那么子组件的更新任务就可以跳过
+  */
+  queue.sort((a, b) =&gt; getId(a) - getId(b))
+
+  try &#123;
+    // 遍历任务队列
+    for (flushIndex = 0; flushIndex &lt; queue.length; flushIndex++) &#123;
+      const job = queue[flushIndex]
+      if (job &amp;&amp; job.active !== false) &#123;
+        if (__DEV__ &amp;&amp; checkRecursiveUpdates(seen!, job)) &#123;
+          continue
+        &#125;
+        // 执行当前任务
+        callWithErrorHandling(job, null, ErrorCodes.SCHEDULER)
+      &#125;
+    &#125;
+  &#125; finally &#123;
+    // 重置当前任务索引
+    flushIndex = 0
+    // 清空任务队列
+    queue.length = 0
+
+    // 执行后置回调任务队列
+    flushPostFlushCbs(seen)
+    // 重置清队任务的状态
+    isFlushing = false
+    currentFlushPromise = null
+    /* 
+      因为清队任务执行期间也会有任务入队，所以为了清队执行完成
+      就需要判断各任务队列的长度，然后递归执行
+    */
+    if (
+      queue.length ||
+      pendingPreFlushCbs.length ||
+      pendingPostFlushCbs.length
+    ) &#123;
+      flushJobs(seen)
+    &#125;
+  &#125;
+&#125;
+</code></pre>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>nextTick的执行时机是在任务队列(前置、主任务、后置)清除后的，<code>currentFlushPromise</code>是清队任务的promise标记</li>
+<li>任务队列执行顺序：执行前置回调任务队列 -&gt; 执行主任务队列 -&gt; 执行后置回调任务队列</li>
+</ul>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+    <span>Theme Designed By <a target="_blank" href="https://zheli.design/one-paper">這Li</a></span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

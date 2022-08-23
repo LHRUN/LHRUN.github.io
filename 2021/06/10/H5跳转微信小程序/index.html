@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            H5跳转微信小程序
+        </div>
+        <div class="post-meta">
+            2021-06-10
+        </div>
+    
+
+    <div class="post-md">
+        <h2 id="H5跳转微信小程序"><a href="#H5跳转微信小程序" class="headerlink" title="H5跳转微信小程序"></a>H5跳转微信小程序</h2><blockquote>
+<p>H5跳转小程序有两个方法，需要根据浏览器环境判断<br>微信外使用<code>URL Scheme</code>，根据生成的一个link进行location跳转<br>微信内使用<code>wx-open-launch-weapp</code>开放标签进行跳转，实测ios系统微信内也可以使用<code>URL Scheme</code>，根据自己的需求选择</p>
+</blockquote>
+<h3 id="wx-open-launch-weapp"><a href="#wx-open-launch-weapp" class="headerlink" title="wx-open-launch-weapp"></a><code>wx-open-launch-weapp</code></h3><ul>
+<li><a target="_blank" rel="noopener" href="https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_Open_Tag.html">官方文档</a></li>
+<li>注意事项：微信版本要求为：7.0.12及以上。 系统版本要求为：iOS 10.3及以上、Android 5.0及以上</li>
+<li>绑定域名: 登录微信公众平台进入“公众号设置”的“功能设置”里填写“JS接口安全域名”  </li>
+<li>引入SDK：官网推荐引入方法<code>&lt;script src=&quot;https://res.wx.qq.com/open/js/jweixin-1.6.0.js&quot;&gt;&lt;/script&gt;</code>;，也可以使用第三方npm包<code>weixin-js-sdk</code>  </li>
+<li>校验签名是否正确：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=jsapisign">微信 JS 接口签名校验工具</a></li>
+<li>如果开放标签需要绝对定位，就在外面包裹一个div进行定位，避免直接定位开放标签</li>
+<li>调试：好多人在进行调试的时候认为非常麻烦，需要不断切换环境，我推荐一个我的调试方式，在开发过程中，使用SwitchHosts进行IP映射，把本地启动项目的域名映射到公众号平台设置的域名，然后在微信开发工具中调试，就非常轻松了</li>
+</ul>
+<pre><code class="html">// 普通H5的写法可参考官方文档，以下是我在vue中的写法
+&lt;wx-open-launch-weapp
+ username=&quot;小程序原始id&quot;
+ path=&quot;页面路径及参数&quot;&gt;
+  &lt;script type=&quot;text/wxtag-template&quot;&gt;           
+    &lt;button class=&quot;wx-btn&quot;&gt;跳转小程序&lt;/button&gt;   
+  &lt;/script&gt;
+&lt;/wx-open-launch-weapp&gt;
+&lt;script&gt;
+...
+async mounted() &#123;
+  const wx = require(&#39;weixin-js-sdk&#39;)
+  wx.config(&#123;
+    debug: true, // 开启调试模式，会在移动端以alert的形式打印返回值
+    appId: &#39;&#39;, // 必填，从服务端获取
+    timestamp: , // 必填，生成签名的时间戳，从服务端获取
+    nonceStr: &#39;&#39;, // 必填，生成签名的随机串，从服务端获取
+    signature: &#39;&#39;,// 必填，签名，从服务端获取
+    jsApiList: [], // 必填，需要使用的JS接口列表，这个随便填一个就行
+    openTagList: [&#39;wx-open-launch-weapp&#39;]
+  &#125;)
+  wx.ready((e) =&gt; console.log(e))
+  wx.error((e) =&gt; console.log(e))
+&#125;
+&lt;/script&gt;
+</code></pre>
+<h3 id="URL-Scheme"><a href="#URL-Scheme" class="headerlink" title="URL Scheme"></a><code>URL Scheme</code></h3><ul>
+<li>注意事项：安卓不能直接跳转，需要H5中转，否则Android会出现无法访问</li>
+<li>写法很简单，只需<code>location.href=&#39;URL Scheme&#39;</code>，在页面初始化时调用或者在按钮点击事件中调用</li>
+</ul>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+    <span>Theme Designed By <a target="_blank" href="https://zheli.design/one-paper">這Li</a></span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>
