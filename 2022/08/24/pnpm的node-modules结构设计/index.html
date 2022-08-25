@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            pnpm的node_modules结构设计
+        </div>
+        <div class="post-meta">
+            2022-08-24
+        </div>
+    
+
+    <div class="post-md">
+        <h2 id="pnpm的node-modules结构设计"><a href="#pnpm的node-modules结构设计" class="headerlink" title="pnpm的node_modules结构设计"></a>pnpm的node_modules结构设计</h2><p>分析pnpm之前，先说一下npm现在的一些问题</p>
+<h3 id="npm的问题"><a href="#npm的问题" class="headerlink" title="npm的问题"></a>npm的问题</h3><ul>
+<li><p>平时我们使用<code>npm install</code>命令后，node_modules就会呈现以下类似内容<br><img src="https://img-blog.csdnimg.cn/7396b28d86f84a21b15b4ef6026ddd45.png#pic_center" alt="npm_node_modules"></p>
+</li>
+<li><p>之所以出现这种扁平的结构，最初时初衷是好的，为了更好的利用资源，把每个依赖全部放到顶层，这样就不会造成每个依赖嵌套过深，导致很多重复依赖文件</p>
+</li>
+<li><p>但是随着这种文件结构逐步使用后，就会暴露出来两个问题</p>
+<ul>
+<li><strong>幽灵依赖</strong></li>
+<li><strong>版本冲突</strong></li>
+</ul>
+</li>
+<li><p>幽灵依赖就是你在引用npm包时，你会发现一些没有在<code>package.json</code>中出现的包也能引用，这个就是幽灵依赖，这是因为你在install下载npm包时，npm包也有它的依赖会下载，但是下载的依赖也会存在node_modules同一层级下，这样就会导致可以直接引用</p>
+</li>
+<li><p>版本冲突是因为不同的依赖可能依赖的包版本也不同，但是node_modules的同一层级只能存在一个包的一个版本号，如果有不同的版本号就只能存在依赖包的node_modules中，这样就会导致出现重复资源</p>
+</li>
+</ul>
+<pre><code class="js">├── package-A @1.0
+|── package-B @1.0
+├── package-C @1.0
+│   └── package-A @2.0
+│   └── package-B @2.0
+├── package-D @1.0
+│   └── package-A @2.0
+│   └── package-B @2.0
+</code></pre>
+<h3 id="pnpm的出现"><a href="#pnpm的出现" class="headerlink" title="pnpm的出现"></a>pnpm的出现</h3><ul>
+<li><p>在所有前端苦npm久已时，pnpm出现了，并且在pnpm官网的简介上就简单说明了它的构造：<code>store + link</code><br><img src="https://img-blog.csdnimg.cn/20ef6cd68a0440c9841ea1450297c17a.jpeg#pic_center" alt="pnpm_node_modules"></p>
+<ul>
+<li>store就是依赖的实际存储位置，Mac&#x2F;linux在<code>&#123;home dir&#125;&gt;/.pnpm-store/v3</code>，windows在<code>当前盘/.pnpm-store/v3</code>。这样就会有个好处，你在多个项目使用的是同一个依赖时，就不用重复下载，这样就极大的减少存储空间</li>
+<li>link是指符号链接(<code>SymbolicLink</code>)和硬链接(<code>HardLink</code>)<ul>
+<li>SymbolicLink是一种特殊的文件，包含一条以绝对路径或者相对路径的形式指向其他文件或者目录的引用，它的存在不依赖于目标文件，如果目标文件被删除或者移动，指向目标文件的符号链接依然存在，但是它们会指向一个不复存在的文件</li>
+<li>相比于SymbolicLink，HardLink不是引用文件，而是引用<strong>inode</strong>，inode是文件系统的一种数据结构，用于描述文件系统对象。所以你即使更改目标文件的内容或位置，HardLink仍然指向目标文件，因为inode指向该文件</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>然后拿react举例，当<code>pnpm add react</code>后，在node_modules终端输入<code>tree -a -L 3</code>会得到以下node_modules结构</p>
+</li>
+</ul>
+<pre><code class="js">.
+├── .modules.yaml
+├── .pnpm
+│   ├── js-tokens@4.0.0
+│   │   └── node_modules
+│   ├── lock.yaml
+│   ├── loose-envify@1.4.0
+│   │   └── node_modules
+│   ├── node_modules
+│   │   ├── .bin
+│   │   ├── js-tokens -&gt; ../js-tokens@4.0.0/node_modules/js-tokens
+│   │   └── loose-envify -&gt; ../loose-envify@1.4.0/node_modules/loose-envify
+│   └── react@18.2.0
+│       └── node_modules
+└── react -&gt; .pnpm/react@18.2.0/node_modules/react
+</code></pre>
+<ul>
+<li>node_modules下除了.pnpm外只有一个react，这个react只是一个SymbolicLink，当node.js解析时，会找到react的真实位置<code>node_modules/.pnpm/react@18.2.0/node_modules/react</code></li>
+<li>.pnpm就是将所有依赖放在同一层文件夹中，每个包都可以通过<code>.pnpm/&lt;name&gt;@&lt;version&gt;/node_modules/&lt;name&gt;</code>这种路径找到，然后通过<code>hand link</code>的方式在store中引用依赖文件</li>
+<li>通过这种文件结构，pnpm就解决了npm的两个问题，首先node_modules下不会有你未在package.json中声明的依赖，这样就不会有幽灵依赖的问题。然后.pnpm下会有name+version的方式链接到store中，这样就不会出现因为版本冲突造成资源重复的问题</li>
+</ul>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://www.pnpm.cn/blog/2020/05/27/flat-node-modules-is-not-the-only-way">Flat node_modules is not the only way</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.pnpm.cn/symlinked-node-modules-structure">Symlinked node_modules structure</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/7043998041786810398">One For All：基于pnpm + lerna + typescript的最佳项目实践 - 理论篇</a></li>
+</ul>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>

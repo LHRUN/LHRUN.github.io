@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            解析Vue3patch核心算法patchKeyedChildren
+        </div>
+        <div class="post-meta">
+            2022-08-25
+        </div>
+    
+
+    <div class="post-md">
+        <h3 id="解析Vue3patch核心算法patchKeyedChildren"><a href="#解析Vue3patch核心算法patchKeyedChildren" class="headerlink" title="解析Vue3patch核心算法patchKeyedChildren"></a>解析Vue3patch核心算法patchKeyedChildren</h3><ul>
+<li>locate：<code>runtime-core &gt; renderer &gt; baseCreateRenderer &gt; patchKeyedChildren</code></li>
+<li>patchKeyedChildren是patch算法中较为复杂的一段，更是vue技术栈面试的高频点，最初我是在vue3.0 beta版本时大概看过源码，后来在《vue设计与分析》中看了霍春阳大佬的解析，本篇就简要分析一下做个记录</li>
+<li>首先patchKeyedChildren是在子列表对比并且有key的情况会进入，并且逻辑大致分为5步，这个看源码官方注释就可以看出</li>
+</ul>
+<h4 id="第一步，从前向后遍历"><a href="#第一步，从前向后遍历" class="headerlink" title="第一步，从前向后遍历"></a>第一步，从前向后遍历</h4><p>这一步是从节点组头部向尾部遍历，如果遍历过程中遇到相似节点，就进行patch对比，否则就退出遍历，并记录当前遍历的最新下标</p>
+<pre><code class="js">while (i &lt;= e1 &amp;&amp; i &lt;= e2) &#123;
+  const n1 = c1[i]
+  const n2 = (c2[i] = optimized
+    ? cloneIfMounted(c2[i] as VNode)
+    : normalizeVNode(c2[i]))
+  if (isSameVNodeType(n1, n2)) &#123;
+    patch(
+      n1,
+      n2,
+      container,
+      null,
+      parentComponent,
+      parentSuspense,
+      isSVG,
+      slotScopeIds,
+      optimized
+    )
+  &#125; else &#123;
+    break
+  &#125;
+  i++
+&#125;
+</code></pre>
+<h4 id="第二步，从后向前遍历"><a href="#第二步，从后向前遍历" class="headerlink" title="第二步，从后向前遍历"></a>第二步，从后向前遍历</h4><p>从后向前遍历，如果遇到第一步记录的下标就停止，然后遍历过程中，如果遇到相似节点也是直接进行patch对比，如果不相同就是直接退出遍历，并且记录旧节点组和新节点组的尾指针</p>
+<pre><code class="js">while (i &lt;= e1 &amp;&amp; i &lt;= e2) &#123;
+  const n1 = c1[e1]
+  const n2 = (c2[e2] = optimized
+    ? cloneIfMounted(c2[e2] as VNode)
+    : normalizeVNode(c2[e2]))
+  if (isSameVNodeType(n1, n2)) &#123;
+    patch(
+      n1,
+      n2,
+      container,
+      null,
+      parentComponent,
+      parentSuspense,
+      isSVG,
+      slotScopeIds,
+      optimized
+    )
+  &#125; else &#123;
+    break
+  &#125;
+  e1--
+  e2--
+&#125;
+</code></pre>
+<h4 id="第三步，检查旧节点组"><a href="#第三步，检查旧节点组" class="headerlink" title="第三步，检查旧节点组"></a>第三步，检查旧节点组</h4><p>这一步就是检查旧节点组在上两步的遍历后是否遍历完，如果遍历完，那么新节点组没有遍历完的就都是新的dom，可以全部当作新增节点进行挂载处理</p>
+<pre><code class="js">if (i &gt; e1) &#123;
+  if (i &lt;= e2) &#123;
+    const nextPos = e2 + 1
+    const anchor = nextPos &lt; l2 ? (c2[nextPos] as VNode).el : parentAnchor
+    while (i &lt;= e2) &#123;
+      // patch第一个参数为null，就是代表没有旧节点，直接将新节点插入
+      patch(
+        null,
+        (c2[i] = optimized
+          ? cloneIfMounted(c2[i] as VNode)
+          : normalizeVNode(c2[i])),
+        container,
+        anchor,
+        parentComponent,
+        parentSuspense,
+        isSVG,
+        slotScopeIds,
+        optimized
+      )
+      i++
+    &#125;
+  &#125;
+&#125;
+</code></pre>
+<h4 id="第四步，检查新节点组"><a href="#第四步，检查新节点组" class="headerlink" title="第四步，检查新节点组"></a>第四步，检查新节点组</h4><p>如果上一步检查旧节点未遍历完，那么就检查新节点组是否遍历完，如果遍历完，那么旧的节点组剩余的节点说明都是要卸载的，因为都不需要了</p>
+<pre><code class="js">else if (i &gt; e2) &#123;
+  // 旧子节点未被遍历完
+  while (i &lt;= e1) &#123;
+    unmount(c1[i], parentComponent, parentSuspense, true)
+    i++
+  &#125;
+&#125;
+</code></pre>
+<h4 id="第五步，未知序列"><a href="#第五步，未知序列" class="headerlink" title="第五步，未知序列"></a>第五步，未知序列</h4><ul>
+<li>如果新旧节点组都未遍历完，说明存在未知序列，可能存在位移等情况，就需要进一步处理</li>
+<li>首先创建一个数组，用于记录新旧节点的对应关系</li>
+</ul>
+<pre><code class="js">// toBePatched是新序列的节点数量 e2 - s2 + 1
+const newIndexToOldIndexMap = new Array(toBePatched)
+for (i = 0; i &lt; toBePatched; i++) newIndexToOldIndexMap[i] = 0
+</code></pre>
+<ul>
+<li>然后会遍历旧节点组，这里会用两个变量记录<ul>
+<li><code>let moved = false</code>：位移标识，用于判断是否需要位移</li>
+<li><code>let patched = 0</code>：记录已执行patch的新节点数量，用于处理如果在更新时更新过的数量大于需要更新的节点数量，就卸载对应旧节点</li>
+</ul>
+</li>
+</ul>
+<pre><code class="js">for (i = s1; i &lt;= e1; i++) &#123;
+  const prevChild = c1[i]
+  // 如果已更新数量大于新节点数量，就卸载节点
+  if (patched &gt;= toBePatched) &#123;
+    unmount(prevChild, parentComponent, parentSuspense, true)
+    continue
+  &#125;
+  let newIndex //新旧节点key相同的新节点index
+  if (prevChild.key != null) &#123;
+    newIndex = keyToNewIndexMap.get(prevChild.key)
+  &#125; else &#123;
+    for (j = s2; j &lt;= e2; j++) &#123;
+      if (
+        newIndexToOldIndexMap[j - s2] === 0 &amp;&amp;
+        isSameVNodeType(prevChild, c2[j] as VNode)
+      ) &#123;
+        newIndex = j
+        break
+      &#125;
+    &#125;
+  &#125;
+  // 如果newIndex为空，则说明未找到与旧节点对应的新节点，直接卸载
+  if (newIndex === undefined) &#123;
+    unmount(prevChild, parentComponent, parentSuspense, true)
+  &#125; else &#123;
+    // 更新新旧节点关系表
+    newIndexToOldIndexMap[newIndex - s2] = i + 1
+    /**
+     * 这里的maxNexIndexSoFar是记录每次patch最大index
+     * 也是用于判断是否产生了位移，因为如果新节点index比最大index小，就说明发生了位移
+     * 例如：
+     *  (a b) c
+     *  (a c  b)
+     * 在新旧序列对比b，c时，由于c最新的newIndex已经小于b对应的newIndex，因此会记录需要位移
+     */
+    if (newIndex &gt;= maxNewIndexSoFar) &#123;
+      maxNewIndexSoFar = newIndex
+    &#125; else &#123;
+      moved = true
+    &#125;
+    patch(
+      prevChild,
+      c2[newIndex] as VNode,
+      container,
+      null,
+      parentComponent,
+      parentSuspense,
+      isSVG,
+      slotScopeIds,
+      optimized
+    )
+    patched++
+  &#125;
+&#125;
+</code></pre>
+<ul>
+<li>遍历完旧序列后，就需要确定如何位移</li>
+<li>首先是根据新旧节点关系表生成最长递增子序列(这个算法就不陈述了，较复杂，可以看<a target="_blank" rel="noopener" href="https://juejin.cn/post/6952674285311754276#comment">精读《DOM diff 最长上升子序列》</a>)，然后倒序遍历新子节点</li>
+</ul>
+<pre><code class="js">// 最长递增子序列
+const increasingNewIndexSequence = moved
+  ? getSequence(newIndexToOldIndexMap)
+  : EMPTY_ARR
+j = increasingNewIndexSequence.length - 1
+// 从新序列尾部向前遍历，目的是为了使用上一个遍历的节点做锚点
+for (i = toBePatched - 1; i &gt;= 0; i--) &#123;
+  const nextIndex = s2 + i
+  const nextChild = c2[nextIndex] as VNode
+  // 如果是序列的最后一个节点，anchor就是父节点对应的anchor，否则就是上一个子节点
+  const anchor =
+    nextIndex + 1 &lt; l2 ? (c2[nextIndex + 1] as VNode).el : parentAnchor
+  // 如果newIndexToOldIndexMap[i]还是0，那么说明新节点没有对应的旧节点，说明是新节点，直接挂载
+  if (newIndexToOldIndexMap[i] === 0) &#123;
+    patch(
+      null,
+      nextChild,
+      container,
+      anchor,
+      parentComponent,
+      parentSuspense,
+      isSVG,
+      slotScopeIds,
+      optimized
+    )
+  &#125; else if (moved) &#123;
+    // 然后在moved为true的情况下，如果最长子序列为空或者最长子序列和当前访问的新节点index不同，说明就需要进行位移
+    if (j &lt; 0 || i !== increasingNewIndexSequence[j]) &#123;
+      move(nextChild, container, anchor, MoveType.REORDER)
+    &#125; else &#123;
+      j--
+    &#125;
+  &#125;
+&#125;
+</code></pre>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>
