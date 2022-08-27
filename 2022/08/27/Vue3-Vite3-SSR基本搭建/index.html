@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
+    <title>LH&#39;BLOG | </title>
+    
+<link rel="stylesheet" href="/css/reset.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/markdown.css">
+
+    
+<link rel="stylesheet" href="/css/fonts.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+    <body>
+        <div class="paper">
+            <div class="paper-main">
+                
+                    <div class="post-header">
+    <a class="logo" href="/">LH&#39;BLOG</a>
+    <a class="go-home" href="/">
+        <svg width="8" height="14" viewBox="0 0 8 14">
+            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+</div>
+                
+                <div class="post-main">
+
+    
+        <div class="post-main-title">
+            Vue3+Vite3 SSR基本搭建
+        </div>
+        <div class="post-meta">
+            2022-08-27
+        </div>
+    
+
+    <div class="post-md">
+        <h2 id="Vue3-Vite3-SSR基本搭建"><a href="#Vue3-Vite3-SSR基本搭建" class="headerlink" title="Vue3+Vite3 SSR基本搭建"></a>Vue3+Vite3 SSR基本搭建</h2><ul>
+<li>首先说明如果是生产使用强烈推荐Nuxt，但是如果想深入服务端渲染的运行原理，可以看本篇，会根据渲染流程搭建一个demo版ssr，源码在最后会贴上</li>
+<li>主要技术栈：Vite3 + Vue3 + pinia + VueRouter4 + express</li>
+<li>开始搭建之前，先说一下SSR渲染流程</li>
+</ul>
+<h3 id="SSR渲染流程"><a href="#SSR渲染流程" class="headerlink" title="SSR渲染流程"></a>SSR渲染流程</h3><ul>
+<li>首先浏览器向服务器请求，然后服务器根据请求的路由，会匹配相关的路由组件，然后执行组件的自定义服务端生命周期(例：Nuxt的asyncData)或者自定义获取数据的hook，并且把执行后的数据收集起来，统一在window的属性中存储</li>
+<li>然后vue的组件会被renderToString渲染成静态HTML字符串，替换掉index.html的提前指定的占位代码。然后index.html改变后的静态字符串发给客户端</li>
+<li>客户端拿到后，首先对数据进行初始化，然后进行激活，因为当前html只是静态数据，激活主要做两件事<ul>
+<li><ol>
+<li>把页面中的DOM元素与虚拟DOM之间建立联系</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>为页面中的DOM元素添加事件绑定</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-创建项目"><a href="#1-创建项目" class="headerlink" title="1. 创建项目"></a>1. 创建项目</h3><ul>
+<li>首先用vite命令创建项目<code>pnpm create vite vue-ssr --template vue-ts</code><ul>
+<li>安装相关依赖：<code>pnpm add express pinia vue-router@4</code></li>
+</ul>
+</li>
+<li>创建三个文件 <code>touch server.js src src/entry-client.ts src/entry-server.js</code><ul>
+<li>server.js：服务端启动文件</li>
+<li>entry-client.ts：客户端入口，应用挂载元素</li>
+<li>entry-server.js：服务端入口，处理服务端逻辑和静态资源</li>
+</ul>
+</li>
+<li>修改<code>package.json</code>运行脚本<pre><code class="js">&quot;scripts&quot;: &#123;
+  &quot;dev&quot;: &quot;node server&quot;, // 运行开发环境
+&#125;
+</code></pre>
+</li>
+<li>然后需要把应用创建都改为函数的方式进行调用创建，因为在SSR环境下，和纯客户端不一样，服务器只会初始化一次，所以为了防止状态污染，每次请求必须是全新的实例</li>
+</ul>
+<pre><code class="js">// src/main.ts
+import &#123; createSSRApp &#125; from &#39;vue&#39;
+import App from &#39;./App.vue&#39;
+import &#123; createRouter &#125; from &#39;./router&#39;
+import &#123; createPinia &#125; from &#39;pinia&#39;
+
+export function createApp() &#123;
+  const app = createSSRApp(App)
+  const router = createRouter()
+  const pinia = createPinia()
+  app.use(router)
+  app.use(pinia)
+  return &#123; app, router, pinia &#125;
+&#125;
+</code></pre>
+<ul>
+<li>roter同理</li>
+</ul>
+<pre><code class="js">// src/router/index
+import &#123; createRouter as _createRrouter, createMemoryHistory, createWebHistory, RouteRecordRaw &#125; from &#39;vue-router&#39;
+
+const routes: RouteRecordRaw[] = [
+  ...
+]
+
+export function createRouter() &#123;
+  return _createRrouter(&#123;
+    history: import.meta.env.SSR ? createMemoryHistory() : createWebHistory(),
+    routes,
+  &#125;)
+&#125;
+</code></pre>
+<ul>
+<li>然后修改index.html，增加注释占位和客户端入口文件，在之后的服务端渲染时注入</li>
+</ul>
+<pre><code class="html">&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+    &lt;link rel=&quot;icon&quot; type=&quot;image/svg+xml&quot; href=&quot;/vite.svg&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Vite + Vue + TS&lt;/title&gt;
+    &lt;!-- 静态资源占位 .js .css ... --&gt;
+    &lt;!--preload-links--&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;!-- 应用代码占位 --&gt;
+    &lt;div id=&quot;app&quot;&gt;&lt;!--ssr-outlet--&gt;&lt;/div&gt;
+    &lt;script type=&quot;module&quot; src=&quot;/src/main.ts&quot;&gt;&lt;/script&gt;
+    &lt;!-- 引用客户端入口文件 --&gt;
+    &lt;script type=&quot;module&quot; src=&quot;/src/entry-client.ts&quot; &gt;&lt;/script&gt;
+    &lt;script&gt;
+      // 服务端获取的数据统一挂载到window上
+      window.__INITIAL_STATE__ = &#39;&lt;!--pinia-state--&gt;&#39;
+    &lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3 id="2-服务端启动文件"><a href="#2-服务端启动文件" class="headerlink" title="2. 服务端启动文件"></a>2. 服务端启动文件</h3><ul>
+<li>创建项目后，就开始编写服务端启动文件，也就是项目根路径下的server.js文件</li>
+<li>这个文件的功能是启动一个node服务，然后根据请求，读取html文件，处理资源后把注释进行替换，最后把html发送给客户端</li>
+</ul>
+<pre><code class="js">import fs from &#39;fs&#39;
+import path from &#39;path&#39;
+import &#123; fileURLToPath &#125; from &#39;url&#39;
+import express from &#39;express&#39;
+
+import &#123; createRequire &#125; from &#39;module&#39;;
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url);
+const resolve = (p) =&gt; path.resolve(__dirname, p);
+
+const createServer = async () =&gt; &#123;
+  // 创建node服务
+  const app = express()
+
+  /**
+   * @官方解释
+   * 以中间件模式创建vite应用，这将禁用vite自身的HTML服务逻辑
+   * 并让上级服务器接管
+   */
+  const vite = await require(&#39;vite&#39;).createServer(&#123;
+    server: &#123;
+      middlewareMode: true,
+    &#125;,
+    appType: &#39;custom&#39;
+  &#125;);
+  app.use(vite.middlewares);
+  
+  app.use(&#39;*&#39;, async (req, res, next) =&gt; &#123;
+    const url = req.originalUrl
+    try &#123;
+      // 读取index.html
+      let template = fs.readFileSync(
+        resolve(&#39;index.html&#39;),
+        &#39;utf-8&#39;
+      )
+      // 应用vite html转换，会注入vite HMR
+      template = await vite.transformIndexHtml(url, template)
+
+      // 加载服务端入口
+      const render = (await vite.ssrLoadModule(&#39;/src/entry-server.js&#39;)).render
+      const [ appHtml, piniaState ] = await render(url)
+
+      // 替换处理过后的模版
+      const html = template
+        .replace(`&lt;!--ssr-outlet--&gt;`, appHtml)
+        .replace(`&lt;!--pinia-state--&gt;`, piniaState)
+      res.status(200).set(&#123; &#39;Content-Type&#39;: &#39;text/html&#39; &#125;).end(html)
+    &#125; catch (error) &#123;
+      vite?.ssrFixStacktrace(error)
+      next(e)
+    &#125;
+  &#125;)
+
+  // 监听5100端口
+  app.listen(5100)
+&#125;
+
+createServer();
+</code></pre>
+<h3 id="3-服务端入口文件"><a href="#3-服务端入口文件" class="headerlink" title="3. 服务端入口文件"></a>3. 服务端入口文件</h3><ul>
+<li>服务端入口文件主要是调用SSR的renderToString和收集需要发送的资源和数据</li>
+</ul>
+<pre><code class="js">import &#123; renderToString &#125; from &#39;vue/server-renderer&#39;
+import &#123; createApp &#125; from &#39;./main&#39;
+
+export async function render(url, manifest) &#123;
+  const &#123; app, router, pinia &#125; = createApp()
+
+  router.push(url)
+  await router.isReady()
+
+  const ctx = &#123;&#125;
+  const html = await renderToString(app, ctx)
+  return [html, JSON.stringify(pinia.state.value)]
+&#125;
+</code></pre>
+<h3 id="4-客户端入口文件"><a href="#4-客户端入口文件" class="headerlink" title="4. 客户端入口文件"></a>4. 客户端入口文件</h3><ul>
+<li>客户端入口文件主要用于挂载节点和初始化数据</li>
+</ul>
+<pre><code class="js">import &#123; createApp &#125; from &#39;./main&#39;
+
+const &#123; app, router, pinia &#125; = createApp()
+
+router.isReady().then(() =&gt; &#123;
+  if (window.__INITIAL_STATE__) &#123;
+    pinia.state.value = JSON.parse(window.__INITIAL_STATE__);
+  &#125;
+
+  app.mount(&#39;#app&#39;)
+&#125;)
+</code></pre>
+<h3 id="5-组件和页面"><a href="#5-组件和页面" class="headerlink" title="5. 组件和页面"></a>5. 组件和页面</h3><ul>
+<li>组件和页面获取数据主要有两种方式，一种是增加一个<code>asyncData</code>选项，然后在enter-server.js的逻辑中增加遍历当前组件的逻辑，统一触发<code>asyncData</code>，但是现在都是用<code>script setup</code>的方式写业务代码，所以有点麻烦，</li>
+</ul>
+<pre><code class="js">&lt;script&gt;
+  export defualt &#123;
+    asyncData() &#123;
+      // 服务端获取数据逻辑
+    &#125;
+  &#125;
+&lt;/script&gt;
+
+&lt;script setup lang=&#39;ts&#39;&gt;
+  ...
+&lt;/script&gt;
+</code></pre>
+<ul>
+<li>另一种就是hook的方式，通过<code>import.meta.env.SSR</code>的方式进行判断</li>
+<li>对于数据具体存储方式，大概有三种，一种是存在vuex或者pinia这种全局状态库中，一种是存在context上下文中，还有一种是自定义数据</li>
+</ul>
+<h3 id="6-生产环境"><a href="#6-生产环境" class="headerlink" title="6. 生产环境"></a>6. 生产环境</h3><h4 id="6-1-pacnakge-json"><a href="#6-1-pacnakge-json" class="headerlink" title="6.1 pacnakge.json"></a>6.1 pacnakge.json</h4><ul>
+<li>增加构建脚本</li>
+</ul>
+<pre><code class="diff">&quot;scripts&quot;: &#123;
+  &quot;dev&quot;: &quot;node server&quot;,
++ &quot;build&quot;: &quot;npm run build:client &amp;&amp; npm run build:server&quot;,
++  &quot;build:client&quot;: &quot;vite build --ssrManifest --outDir dist/client&quot;,
++  &quot;build:server&quot;: &quot;vite build --ssr src/entry-server.js --outDir dist/server&quot;,
++  &quot;serve&quot;: &quot;cross-env NODE_ENV=production node server&quot;
+&#125;,
+</code></pre>
+<h4 id="6-2-服务端运行文件"><a href="#6-2-服务端运行文件" class="headerlink" title="6.2 服务端运行文件"></a>6.2 服务端运行文件</h4><ul>
+<li>针对生产环境，需要启动静态资源服务，引用路径需要改为dist目录下</li>
+</ul>
+<pre><code class="diff">import fs from &#39;fs&#39;
+import path from &#39;path&#39;
+import &#123; fileURLToPath &#125; from &#39;url&#39;
+import express from &#39;express&#39;
+
+import &#123; createRequire &#125; from &#39;module&#39;;
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url);
+const resolve = (p) =&gt; path.resolve(__dirname, p);
+
+const createServer = async (isProd = process.env.NODE_ENV === &#39;production&#39;) =&gt; &#123;
+  const app = express()
+
+-  const vite = await require(&#39;vite&#39;).createServer(&#123;
+-    server: &#123;
+-      middlewareMode: true,
+-    &#125;,
+-    appType: &#39;custom&#39;
+-  &#125;);
+-  app.use(vite.middlewares);
+
++  let vite;
++  if (isProd) &#123;
++    app.use(require(&#39;compression&#39;)());
++    app.use(
++      require(&#39;serve-static&#39;)(resolve(&#39;./dist/client&#39;), &#123;
++        index: false
++      &#125;)
++    );
++  &#125; else &#123;
++    vite = await require(&#39;vite&#39;).createServer(&#123;
++      server: &#123;
++        middlewareMode: true,
++      &#125;,
++      appType: &#39;custom&#39;
++    &#125;);
++    app.use(vite.middlewares);
++  &#125;
+   // 通过bulid --ssrManifest命令生成的静态资源映射需要在生产环境下引用
++  const manifest = isProd ? fs.readFileSync(resolve(&#39;./dist/client/ssr-manifest.json&#39;), &#39;utf-8&#39;) :&#123;&#125;
+  
+  app.use(&#39;*&#39;, async (req, res, next) =&gt; &#123;
+    const url = req.originalUrl
+    try &#123;
+-      let template = fs.readFileSync(
+-        resolve(&#39;index.html&#39;),
+-        &#39;utf-8&#39;
+-      )
+-      template = await vite.transformIndexHtml(url, template)
+-      const render = (await vite.ssrLoadModule(&#39;/src/entry-server.js&#39;)).render
+-      const [ appHtml, piniaState ] = await render(url)
+
++      let template, render
++      if (isProd) &#123;
++        template = fs.readFileSync(resolve(&#39;./dist/client/index.html&#39;), &#39;utf-8&#39;)
++        render = (await import(&#39;./dist/server/entry-server.js&#39;)).render
++      &#125; else &#123;
++        template = fs.readFileSync(
++          resolve(&#39;index.html&#39;),
++          &#39;utf-8&#39;
++        )
++        template = await vite.transformIndexHtml(url, template)
++        render = (await vite.ssrLoadModule(&#39;/src/entry-server.js&#39;)).render
++      &#125;
++      const [ appHtml, preloadLinks, piniaState ] = await render(url, manifest)
+      const html = template
+        .replace(`&lt;!--preload-links--&gt;`, preloadLinks)
+        .replace(`&lt;!--ssr-outlet--&gt;`, appHtml)
++        .replace(`&lt;!--pinia-state--&gt;`, piniaState)
+      res.status(200).set(&#123; &#39;Content-Type&#39;: &#39;text/html&#39; &#125;).end(html)
+    &#125; catch (error) &#123;
+      vite?.ssrFixStacktrace(error)
+      next()
+    &#125;
+  &#125;)
+
+  app.listen(5100)
+&#125;
+
+createServer();
+</code></pre>
+<h4 id="6-3-服务端入口文件"><a href="#6-3-服务端入口文件" class="headerlink" title="6.3 服务端入口文件"></a>6.3 服务端入口文件</h4><ul>
+<li>服务端入口文件主要是增加了构建时生成的静态资源映射处理的逻辑</li>
+</ul>
+<pre><code class="diff">import &#123; basename &#125; from &#39;path&#39;
+import &#123; renderToString &#125; from &#39;vue/server-renderer&#39;
+import &#123; createApp &#125; from &#39;./main&#39;
+
+export async function render(url, manifest) &#123;
+  const &#123; app, router, pinia &#125; = createApp()
+
+  router.push(url)
+  await router.isReady()
+
+  const ctx = &#123;&#125;
+  const html = await renderToString(app, ctx)
++  const preloadLinks = renderPreloadLinks(ctx.modules, manifest)
++  return [html, preloadLinks, JSON.stringify(pinia.state.value)]
+&#125;
+
+ function renderPreloadLinks(modules, manifest) &#123;
+   let links = &#39;&#39;
+   const seen = new Set()
+   modules.forEach((id) =&gt; &#123;
+     const files = manifest[id]
+     if (files) &#123;
+       files.forEach((file) =&gt; &#123;
+         if (!seen.has(file)) &#123;
+           seen.add(file)
+           const filename = basename(file)
+           if (manifest[filename]) &#123;
+             for (const depFile of manifest[filename]) &#123;
+               links += renderPreloadLink(depFile)
+               seen.add(depFile)
+             &#125;
+           &#125;
+           links += renderPreloadLink(file)
+         &#125;
+       &#125;)
+     &#125;
+   &#125;)
+   return links
+ &#125;
+ 
+ function renderPreloadLink(file) &#123;
+   if (file.endsWith(&#39;.js&#39;)) &#123;
+     return `&lt;link rel=&quot;modulepreload&quot; crossorigin href=&quot;$&#123;file&#125;&quot;&gt;`
+   &#125; else if (file.endsWith(&#39;.css&#39;)) &#123;
+     return `&lt;link rel=&quot;stylesheet&quot; href=&quot;$&#123;file&#125;&quot;&gt;`
+   &#125; else if (file.endsWith(&#39;.woff&#39;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff&quot; crossorigin&gt;`
+   &#125; else if (file.endsWith(&#39;.woff2&#39;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&gt;`
+   &#125; else if (file.endsWith(&#39;.gif&#39;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/gif&quot;&gt;`
+   &#125; else if (file.endsWith(&#39;.jpg&#39;) || file.endsWith(&#39;.jpeg&#39;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/jpeg&quot;&gt;`
+   &#125; else if (file.endsWith(&#39;.png&#39;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/png&quot;&gt;`
+   &#125; else &#123;
+     return &#39;&#39;
+   &#125;
+ &#125;
+</code></pre>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/LHRUN/vue-ssr">repo</a></li>
+</ul>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://vuejs.org/guide/scaling-up/ssr.html">Server-Side Rendering</a></li>
+</ul>
+
+    </div>
+
+</div>
+                <div class="footer">
+    <span>Copyright © 2022 LH&#39;BLOG</span>
+</div>
+
+
+<link rel="stylesheet" href="/css/a11y-dark.min.css">
+
+
+<script src="/js/highlight.min.js"></script>
+
+
+<script src="/js/highlightjs-line-numbers.js"></script>
+
+
+<script>
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+</script>
+
+            </div>
+        </div>
+    </body>
+</html>
