@@ -1,49 +1,6 @@
-<!DOCTYPE html>
-<html>
-    <head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
-    <link rel="alternate icon" type="image/png" href="/img/favicon.png">
-    <title>LH&#39;BLOG | </title>
-    
-<link rel="stylesheet" href="/css/reset.css">
-
-    
-<link rel="stylesheet" href="/css/style.css">
-
-    
-<link rel="stylesheet" href="/css/markdown.css">
-
-    
-<link rel="stylesheet" href="/css/fonts.css">
-
-<meta name="generator" content="Hexo 6.2.0"></head>
-    <body>
-        <div class="paper">
-            <div class="paper-main">
-                
-                    <div class="post-header">
-    <a class="logo" href="/">LH&#39;BLOG</a>
-    <a class="go-home" href="/">
-        <svg width="8" height="14" viewBox="0 0 8 14">
-            <path d="M7 1L1 7l6 6" stroke="#000" stroke-width="2" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </a>
-</div>
-                
-                <div class="post-main">
-
-    
-        <div class="post-main-title">
-            解析Vue3patch核心算法patchKeyedChildren
-        </div>
-        <div class="post-meta">
-            2022-08-25
-        </div>
-    
-
-    <div class="post-md">
-        <h3 id="解析Vue3patch核心算法patchKeyedChildren"><a href="#解析Vue3patch核心算法patchKeyedChildren" class="headerlink" title="解析Vue3patch核心算法patchKeyedChildren"></a>解析Vue3patch核心算法patchKeyedChildren</h3><ul>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>解析Vue3patch核心算法patchKeyedChildren · LH'BLOG</title><meta name="description" content="解析Vue3patch核心算法patchKeyedChildren
+locate：runtime-core &amp;gt; renderer &amp;gt; baseCreateRenderer &amp;gt; patchKeyedChildren
+patchKeyedChildren是patch算法中较为复杂的一段"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>解析Vue3patch核心算法patchKeyedChildren</a></h3></div><div class="post-content"><p><h3 id="解析Vue3patch核心算法patchKeyedChildren"><a href="#解析Vue3patch核心算法patchKeyedChildren" class="headerlink" title="解析Vue3patch核心算法patchKeyedChildren"></a>解析Vue3patch核心算法patchKeyedChildren</h3><ul>
 <li>locate：<code>runtime-core &gt; renderer &gt; baseCreateRenderer &gt; patchKeyedChildren</code></li>
 <li>patchKeyedChildren是patch算法中较为复杂的一段，更是vue技术栈面试的高频点，最初我是在vue3.0 beta版本时大概看过源码，后来在《vue设计与分析》中看了霍春阳大佬的解析，本篇就简要分析一下做个记录</li>
 <li>首先patchKeyedChildren是在子列表对比并且有key的情况会进入，并且逻辑大致分为5步，这个看源码官方注释就可以看出</li>
@@ -240,30 +197,4 @@ for (i = toBePatched - 1; i &gt;= 0; i--) &#123;
   &#125;
 &#125;
 </code></pre>
-
-    </div>
-
-</div>
-                <div class="footer">
-    <span>Copyright © 2022 LH&#39;BLOG</span>
-</div>
-
-
-<link rel="stylesheet" href="/css/a11y-dark.min.css">
-
-
-<script src="/js/highlight.min.js"></script>
-
-
-<script src="/js/highlightjs-line-numbers.js"></script>
-
-
-<script>
-    hljs.initHighlightingOnLoad();
-    hljs.initLineNumbersOnLoad();
-</script>
-
-            </div>
-        </div>
-    </body>
-</html>
+</p><div class="tip">本文采用CC-BY-SA-3.0协议，转载请注明出处<br>作者: LH_R</div></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2022-08-25</span><i class="fa fa-tag"></i><a class="tag" href="/tags/Vue3/" title="Vue3">Vue3 </a><i class="fa fa-tag"></i><a class="tag" href="/tags/Vue/" title="Vue">Vue </a><span class="leancloud_visitors"></span><span>大约1377个字, 4分钟35秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,http://example.com/2022/08/25/解析Vue3patch核心算法patchKeyedChildren/,LH'BLOG,解析Vue3patch核心算法patchKeyedChildren,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2022/08/27/Vue3-Vite3-SSR%E5%9F%BA%E6%9C%AC%E6%90%AD%E5%BB%BA/" title="Vue3+Vite3 SSR基本搭建">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2022/08/24/pnpm%E7%9A%84node-modules%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/" title="pnpm的node_modules结构设计">下一篇</a></li></ul></div><script src="/js/visitors.js"></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
