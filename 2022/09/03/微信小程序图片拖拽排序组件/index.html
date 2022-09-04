@@ -1,0 +1,354 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>微信小程序图片拖拽排序组件 · LH'BLOG</title><meta name="description" content="前言
+图片拖拽排序是一个比较常用的组件，常用于发帖或者评论等内容上传模块，我借鉴了《一款优雅的小程序拖拽排序组件实现》这篇文章的拖拽思路，并封装成wx-drag-img发布到npm
+实现原理：每个图片初始化我都会封装成一个拖拽的数据结构，然后通过触发touch事件，改变transform位置，从而达"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%89%8D%E8%A8%80"><span class="toclist-number">1.</span> <span class="toclist-text">前言</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#WXML"><span class="toclist-number">2.</span> <span class="toclist-text">WXML</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%9B%BE%E7%89%87%E4%B8%8A%E4%BC%A0"><span class="toclist-number">3.</span> <span class="toclist-text">图片上传</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E5%9B%BE%E7%89%87%E5%88%A0%E9%99%A4"><span class="toclist-number">3.1.</span> <span class="toclist-text">图片删除</span></a></li></ol></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%9B%BE%E7%89%87%E6%8B%96%E6%8B%BD"><span class="toclist-number">4.</span> <span class="toclist-text">图片拖拽</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toclist-number">4.1.</span> <span class="toclist-text">初始化</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#longPress"><span class="toclist-number">4.2.</span> <span class="toclist-text">longPress</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#touchMove"><span class="toclist-number">4.3.</span> <span class="toclist-text">touchMove</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#touchEnd"><span class="toclist-number">4.4.</span> <span class="toclist-text">touchEnd</span></a></li></ol></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E6%80%BB%E7%BB%93"><span class="toclist-number">5.</span> <span class="toclist-text">总结</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toclist-number">6.</span> <span class="toclist-text">参考资料</span></a></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>微信小程序图片拖拽排序组件</a></h3></div><div class="post-content"><p><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
+<li>图片拖拽排序是一个比较常用的组件，常用于发帖或者评论等内容上传模块，我借鉴了<a target="_blank" rel="noopener" href="https://www.cnblogs.com/haha1212/p/11562944.html">《一款优雅的小程序拖拽排序组件实现》</a>这篇文章的拖拽思路，并封装成<a target="_blank" rel="noopener" href="https://github.com/LHRUN/wx-drag-img">wx-drag-img</a>发布到npm</li>
+<li>实现原理：每个图片初始化我都会封装成一个拖拽的数据结构，然后通过触发touch事件，改变transform位置，从而达到拖拽效果</li>
+<li>功能包括图片上传拖拽删除，源码和npm地址我会贴在结尾，如果感觉好的话，欢迎star</li>
+<li>我会在下面逐步分析这个组件的实现思路</li>
+<li>使用了以下变量</li>
+</ul>
+<pre><code class="ts">// 拖拽数据结构
+interface IDragImg &#123;
+  src: string; // 图片路径
+  key: number; // 
+  id: number; // for循环遍历使用, 不会改变, 创建时自增id
+  tranX: number; // x轴位移距离
+  tranY: number; // y轴位移距离
+&#125;
+
+// props
+&#123;
+  previewSize // 图片大小
+  defaultImgList // 初始化图片数组
+  maxCount // 图片上传数量限制
+  columns // 列数
+  gap // 图片间隔
+  deleteStyle // 删除样式
+&#125;
+
+data: &#123;
+  dragImgList: IDragImg[],
+  containerRes: &#123;
+    top: 0, // 容器距离页面顶部距离 px
+    left: 0, // 容器距离页面左边距离 px
+    width: 0, // 容器宽度 px
+    height: 0, // 容器高度 px
+  &#125;, // 拖拽容器属性
+  currentKey: -1, // 正在拖拽图片的key
+  currentIndex: -1, // 正在拖拽图片的index
+  tranX: 0, // 正在拖拽图片移动的x距离
+  tranY: 0, // 正在拖拽图片移动的y距离
+  uploadPosition: &#123; // upload上传图标位移距离
+    tranX: 0,
+    tranY: 0,
+  &#125;
+&#125;,
+</code></pre>
+<h2 id="WXML"><a href="#WXML" class="headerlink" title="WXML"></a>WXML</h2><pre><code class="html">&lt;view style=&quot;width: &#123;&#123;containerRes.width&#125;&#125;px; height: &#123;&#123;containerRes.height&#125;&#125;px;&quot; class=&quot;drag-container&quot;&gt;
+  &lt;view
+    wx:for=&quot;&#123;&#123;dragImgList&#125;&#125;&quot;
+    wx:key=&quot;id&quot;
+    style=&quot;transform: translate(&#123;&#123;index === currentIndex ? tranX : item.tranX&#125;&#125;px, &#123;&#123;index === currentIndex ? tranY : item.tranY&#125;&#125;px); z-index: &#123;&#123;index === currentIndex ? 10 : 1&#125;&#125;; width: &#123;&#123;previewSize&#125;&#125;px; height: &#123;&#123;previewSize&#125;&#125;px;&quot;
+    class=&quot;drag-item drag-item-transition&quot;
+    mark:index=&quot;&#123;&#123;index&#125;&#125;&quot;
+    mark:key=&quot;&#123;&#123;item.key&#125;&#125;&quot;
+    catch:longpress=&quot;longPress&quot;
+    catch:touchmove=&quot;touchMove&quot;
+    catch:touchend=&quot;touchEnd&quot;
+  &gt;
+    &lt;image class=&quot;drag-item-img&quot; src=&quot;&#123;&#123;item.src&#125;&#125;&quot;/&gt;
+    &lt;!-- 删除图标 --&gt;
+    &lt;view catch:tap=&quot;deleteImg&quot; mark:key=&quot;&#123;&#123;item.key&#125;&#125;&quot; class=&quot;drag-item-delete&quot;&gt;
+      &lt;view class=&quot;drag-item-delete_default&quot; style=&quot;&#123;&#123;deleteStyle&#125;&#125;&quot;&gt;x&lt;/view&gt;
+    &lt;/view&gt;
+  &lt;/view&gt;
+
+  &lt;!-- 上传图片 --&gt;
+  &lt;view
+    bindtap=&quot;uploadImage&quot;
+    class=&quot;drag-item drag-upload&quot;
+    hidden=&quot;&#123;&#123;dragImgList.length >= maxCount&#125;&#125;&quot;
+    style=&quot;transform: translate(&#123;&#123;uploadPosition.tranX&#125;&#125;px, &#123;&#123;uploadPosition.tranY&#125;&#125;px); width: &#123;&#123;previewSize&#125;&#125;px; height: &#123;&#123;previewSize&#125;&#125;px;&quot;
+  &gt;
+    &lt;view class=&quot;drag-upload_solt&quot;&gt;
+      &lt;slot name=&quot;upload&quot;&gt;&lt;/slot&gt;
+    &lt;/view&gt;
+    &lt;view class=&quot;drag-upload_default&quot;&gt;
+      &lt;text&gt;+&lt;/text&gt;
+    &lt;/view&gt;
+  &lt;/view&gt;
+&lt;/view&gt;
+</code></pre>
+<h2 id="图片上传"><a href="#图片上传" class="headerlink" title="图片上传"></a>图片上传</h2><ul>
+<li>图片上传很简单，就是初始化上传的图片，然后拼接到现有图片，最后修改上传图标位置即可</li>
+<li>点击上传区域回调函数<code>uploadImage</code></li>
+</ul>
+<pre><code class="js">/**
+ * 上传图片
+ */
+async uploadImage() &#123;
+  let &#123; dragImgList, maxCount &#125; = this.data;
+  try &#123;
+    const res = await wx.chooseMedia(&#123;
+      count: maxCount - dragImgList.length,
+      mediaType: [&#39;image&#39;],
+    &#125;);
+    // 获取上传图片数据后需要初始化图片拽结构
+    const imgList = this.getDragImgList(res?.tempFiles?.map((&#123; tempFilePath &#125;) =&gt; tempFilePath) || [], false);
+    dragImgList = dragImgList.concat(imgList);
+    // 修改上传区域位置
+    this.setUploaPosition(dragImgList.length);
+    this.setData(&#123;
+      dragImgList,
+    &#125;);
+    this.updateEvent(dragImgList);
+  &#125; catch (error) &#123;
+    console.log(error);
+  &#125;
+&#125;,
+</code></pre>
+<ul>
+<li>上传后需要初始化拖拽的数据结构</li>
+</ul>
+<pre><code class="js">/**
+ * 根据图片列表生成拖拽列表数据结构
+ * @param list 图片src列表
+ * @param init 是否是初始化
+ */
+ getDragImgList(list, init = true) &#123;
+  let &#123; dragImgList, previewSize, columns, gap &#125; = this.data;
+  return list.map((item, index) =&gt; &#123;
+    const i = (init ? 0 : dragImgList.length) + index;
+    return &#123;
+      tranX: (previewSize + gap) * (i % columns),
+      tranY: Math.floor(i / columns) * (previewSize + gap),
+      src: item,
+      id: i,
+      key: i,
+    &#125;;
+  &#125;);
+&#125;,
+</code></pre>
+<ul>
+<li>修改上传区域位置</li>
+</ul>
+<pre><code class="js">/**
+ * 修改上传区域位置
+ * @param listLength 数组长度
+ */
+setUploaPosition(listLength) &#123;
+  const &#123; previewSize, columns, gap &#125; = this.data;
+  const uploadPosition = &#123;
+    tranX: listLength % columns * (previewSize + gap),
+    tranY: Math.floor(listLength / columns) * (previewSize + gap),
+  &#125;;
+  const &#123; width, height &#125; = this.getContainerRect(listLength);
+  this.setData(&#123;
+    uploadPosition,
+    [&#39;containerRes.width&#39;]: width,
+    [&#39;containerRes.height&#39;]: height,
+  &#125;);
+&#125;,
+</code></pre>
+<ul>
+<li>图片数量改变后就要重新获取容器宽高了</li>
+</ul>
+<pre><code class="js">/**
+ * 改变图片数量后获取容器宽高
+ * @parma listLength 数组长度
+ */
+getContainerRect(listLength) &#123;
+  const &#123; columns, previewSize, maxCount, gap &#125; = this.data;
+  const number = listLength === maxCount ? listLength : listLength + 1;
+  const row = Math.ceil(number / columns)
+  return &#123;
+    width: columns * previewSize + (columns - 1) * gap,
+    height: row * previewSize + gap * (row - 1),
+  &#125;;
+&#125;,
+</code></pre>
+<ul>
+<li>updateEvent</li>
+</ul>
+<pre><code class="js">/**
+ * updateEvent
+ * @describe 上传删除拖拽后触发事件把列表数据发给页面
+ */
+updateEvent(dragImgList) &#123;
+  const list = [...dragImgList].sort((a, b) =&gt; a.key - b.key).map((item) =&gt; item.src);
+    this.triggerEvent(&#39;updateImageList&#39;, &#123;
+      list,
+  &#125;);
+&#125;,
+</code></pre>
+<h3 id="图片删除"><a href="#图片删除" class="headerlink" title="图片删除"></a>图片删除</h3><ul>
+<li>首先从图片列表中删除所需图片，然后修改列表，把大于所选图片key的key全部减一，最后计算剩余图片位置和上传图标位置</li>
+</ul>
+<pre><code class="js">/**
+ * 删除图片
+ */
+deleteImg(e) &#123;
+  const key = e.mark.key;
+  const list = this.data.dragImgList.filter((item) =&gt; item.key !== key);
+  // 大于删除图片key的key全部减1
+  list.forEach((item) =&gt; &#123;
+    item.key &gt; key &amp;&amp; item.key--;
+  &#125;);
+  // 获取
+  this.getListPosition(list);
+  this.setUploaPosition(list.length);
+&#125;,
+</code></pre>
+<pre><code class="js">/**
+ * 计算数组的位移位置
+ * @param list 拖拽图片数组
+ */
+getListPosition(list) &#123;
+  const &#123; previewSize, columns, gap &#125; = this.data;
+  const dragImgList = list.map((item) =&gt; &#123;
+    item.tranX = (previewSize + gap) * (item.key % columns);
+    item.tranY = Math.floor(item.key / columns) * (previewSize + gap);
+    return item;
+  &#125;)
+  this.setData(&#123;
+    dragImgList,
+  &#125;);
+  this.updateEvent(dragImgList);
+&#125;,
+</code></pre>
+<h2 id="图片拖拽"><a href="#图片拖拽" class="headerlink" title="图片拖拽"></a>图片拖拽</h2><h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><ul>
+<li>初始化只需获取容器的位置信息即可，因为拖拽组件不一定是在页面的左上角，所以需要知道容器的位置信息</li>
+</ul>
+<pre><code class="js">lifetimes: &#123;
+  ready() &#123;
+    this.createSelectorQuery()
+      .select(&quot;.drag-container&quot;)
+      .boundingClientRect((&#123; top, left &#125;) =&gt; &#123;
+        this.setData(&#123;
+          [&#39;containerRes.top&#39;]: top,
+          [&#39;containerRes.left&#39;]: left,
+        &#125;);
+      &#125;).exec();
+  &#125;
+&#125;,
+</code></pre>
+<h3 id="longPress"><a href="#longPress" class="headerlink" title="longPress"></a>longPress</h3><ul>
+<li>这里采用longPress，而不是touchStart的原因，一是为了优化体验，二是touchStart与删除按钮冲突</li>
+</ul>
+<pre><code class="js">/**
+ * 长按图片
+ */
+longPress(e) &#123;
+  const index = e.mark.index;
+  const &#123; pageX, pageY &#125; = e.touches[0];
+  const &#123; previewSize, containerRes: &#123; top, left &#125; &#125; = this.data;
+  this.setData(&#123;
+    currentIndex: index,
+    tranX: pageX - previewSize / 2 - left,
+    tranY: pageY - previewSize / 2 - top,
+  &#125;);
+&#125;,
+</code></pre>
+<h3 id="touchMove"><a href="#touchMove" class="headerlink" title="touchMove"></a>touchMove</h3><ul>
+<li>touchMove首先计算出位移距离，然后根据位移距离求出停放位置的key，如果不一样就修改位置</li>
+<li>touchMove</li>
+</ul>
+<pre><code class="js">/**
+ * touchMove
+ */
+touchMove(e) &#123;
+  // 如果currentIndex &lt; 0，说明并没有触发longPress
+  if (this.data.currentIndex &lt; 0) &#123;
+    return;
+  &#125;
+  const &#123; pageX, pageY &#125; = e.touches[0];
+  const &#123; previewSize, containerRes: &#123; top, left &#125; &#125; = this.data;
+  const tranX = pageX - previewSize / 2 - left;
+  const tranY = pageY - previewSize / 2 - top;
+  this.setData(&#123;
+    tranX,
+    tranY
+  &#125;);
+  // 对比当前移动的key和停放位置的key，如果不一样就修改位置
+  const currentKey = e.mark.key;
+  const moveKey = this.getMoveKey(tranX, tranY);
+
+  // 当移动的key和正在停放位置的key相等，就无须处理
+  if (currentKey === moveKey || this.data.currentKey === currentKey) &#123;
+    return;
+  &#125;
+  this.data.currentKey = currentKey;
+  this.replace(currentKey, moveKey);
+&#125;,
+</code></pre>
+<ul>
+<li>getMoveKey</li>
+</ul>
+<pre><code class="js">/**
+ * 计算移动中的key
+ * @param tranX 正在拖拽图片的tranX
+ * @param tranY 正在拖拽图片的tranY
+ */
+getMoveKey(tranX, tranY) &#123;
+  const &#123; dragImgList: list, previewSize, columns &#125; = this.data;
+  const _getPositionNumber = (drag, limit) =&gt; &#123;
+    const positionNumber = Math.round(drag / previewSize);
+    return positionNumber &gt;= limit ? limit - 1 : positionNumber &lt; 0 ? 0 : positionNumber;
+  &#125;
+  const endKey = columns * _getPositionNumber(tranY, Math.ceil(list.length / columns)) + _getPositionNumber(tranX, columns);
+  return endKey &gt;= list.length ? list.length - 1 : endKey;
+&#125;,
+</code></pre>
+<ul>
+<li>replace</li>
+</ul>
+<pre><code class="js">/**
+ * 生成拖拽后的新数组
+ * @param start 拖拽起始的key
+ * @param end 拖拽结束的key
+ */
+replace(start, end) &#123;
+  const dragImgList = this.data.dragImgList;
+  dragImgList.forEach((item) =&gt; &#123;
+    if (start &lt; end) &#123;
+      if (item.key &gt; start &amp;&amp; item.key &lt;= end) item.key--;
+      else if (item.key === start) item.key = end;
+    &#125; else if (start &gt; end) &#123;
+      if (item.key &gt;= end &amp;&amp; item.key &lt; start) item.key++;
+      else if (item.key === start) item.key = end;
+    &#125;
+  &#125;);
+  this.getListPosition(dragImgList);
+&#125;,
+</code></pre>
+<h3 id="touchEnd"><a href="#touchEnd" class="headerlink" title="touchEnd"></a>touchEnd</h3><ul>
+<li>touchEnd用于重置数据</li>
+</ul>
+<pre><code class="js">/**
+ * touchEnd
+ */
+touchEnd() &#123;
+  this.setData(&#123;
+    tranX: 0,
+    tranY: 0,
+    currentIndex: -1,
+  &#125;);
+  this.data.currentKey = -1;
+&#125;,
+</code></pre>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/LHRUN/wx-drag-img">repo</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.npmjs.com/package/wx-drag-img">npm</a></li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/haha1212/p/11562944.html">一款优雅的小程序拖拽排序组件实现</a></li>
+</ul>
+</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2022-09-03</span><i class="fa fa-tag"></i><a class="tag" href="/tags/微信小程序/" title="微信小程序">微信小程序 </a><span class="leancloud_visitors"></span><span>大约1715个字, 5分钟43秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,http://example.com/2022/09/03/微信小程序图片拖拽排序组件/,LH'BLOG,微信小程序图片拖拽排序组件,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/" title="React源码分析之diff核心算法">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2022/08/31/Vue3%E6%A8%A1%E7%89%88%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" title="Vue3模版编译原理">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
+var disqus_identifier = '2022/09/03/微信小程序图片拖拽排序组件/';
+var disqus_title = '微信小程序图片拖拽排序组件';
+var disqus_url = 'http://example.com/2022/09/03/微信小程序图片拖拽排序组件/';
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
