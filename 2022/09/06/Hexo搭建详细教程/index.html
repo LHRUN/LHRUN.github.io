@@ -1,0 +1,159 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>Hexo搭建详细教程 · LH'BLOG</title><meta name="description" content="初始化Hexo
+首先需要以下安装环境，直接在官网下载即可
+
+
+Node.js
+Git
+
+
+环境准备好后，安装Hexonpm install -g hexo-cli
+安装后在指定文件夹创建项目
+
+hexo init &amp;lt;folder&amp;gt;
+cd &amp;lt;folder&amp;gt;
+npm instal"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96Hexo"><span class="toclist-number">1.</span> <span class="toclist-text">初始化Hexo</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E9%83%A8%E7%BD%B2%E5%88%B0Github"><span class="toclist-number">2.</span> <span class="toclist-text">部署到Github</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#SSH-github-Actions%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2"><span class="toclist-number">3.</span> <span class="toclist-text">SSH + github Actions自动部署</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E8%B0%B7%E6%AD%8C%E6%94%B6%E5%BD%95"><span class="toclist-number">4.</span> <span class="toclist-text">谷歌收录</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E6%B7%BB%E5%8A%A0%E7%AB%99%E7%82%B9%E5%9C%B0%E5%9B%BE"><span class="toclist-number">4.1.</span> <span class="toclist-text">添加站点地图</span></a></li></ol></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>Hexo搭建详细教程</a></h3></div><div class="post-content"><p><h2 id="初始化Hexo"><a href="#初始化Hexo" class="headerlink" title="初始化Hexo"></a>初始化Hexo</h2><ol>
+<li>首先需要以下安装环境，直接在官网下载即可</li>
+</ol>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://nodejs.org/en/">Node.js</a></li>
+<li><a target="_blank" rel="noopener" href="https://git-scm.com/">Git</a></li>
+</ul>
+<ol start="2">
+<li>环境准备好后，安装Hexo<code>npm install -g hexo-cli</code></li>
+<li>安装后在指定文件夹创建项目</li>
+</ol>
+<pre><code class="sh">hexo init &lt;folder&gt;
+cd &lt;folder&gt;
+npm install
+</code></pre>
+<ol start="4">
+<li>选择主题</li>
+</ol>
+<ul>
+<li><p>Hexo初始化成功后，然后需要选择一个漂亮的主题，这个推荐直接在官网上找，<a target="_blank" rel="noopener" href="https://hexo.io/themes/">主题</a><br><img src="https://img-blog.csdnimg.cn/60988327e65c46ec8becc25b8591c650.png#pic_center" alt="在这里插入图片描述"></p>
+</li>
+<li><p>选择主题后下载到项目themes文件夹</p>
+</li>
+<li><p>然后修改根目录下的_config.yml文件<code>theme: &#39;主题名,也就是themes文件夹里的名字&#39;</code></p>
+</li>
+</ul>
+<ol start="5">
+<li>hexo最常用的有以下几个命令</li>
+</ol>
+<ul>
+<li>启动服务：<code>hexo server</code>或<code>hexo s</code></li>
+<li>新建文章：<code>hexo new &quot;文章名字&quot;</code></li>
+<li>新建静态页面：<code>hexo new page &quot;页面名字&quot;</code></li>
+<li>生成public文件夹：<code>hexo generate</code>或<code>hexo g</code></li>
+<li>清除public文件夹：<code>hexo clean</code></li>
+<li>部署：<code>hexo deploy</code>或<code>hexo d</code></li>
+</ul>
+<h2 id="部署到Github"><a href="#部署到Github" class="headerlink" title="部署到Github"></a>部署到Github</h2><p>Github有免费提供搭建静态网站的功能，所以hexo推荐直接放到GitHub Page，按照以下步骤进行部署。  </p>
+<ol>
+<li>首先新建一个源码repo，建议选择Private，这个用来放hexo项目代码，不对外开放</li>
+<li>本地仓库运行以下命令提交代码</li>
+</ol>
+<ul>
+<li><code>git init</code>：git初始化</li>
+<li><code>git add .</code>: 将所有代码添加到暂存区</li>
+<li><code>git commit -m &quot;first commit&quot;</code>：提交本次commit</li>
+<li><code>git remote add origin &#39;远程仓库地址&#39;</code>：添加远程仓库地址</li>
+<li><code>git push -u origin main</code>：推送代码</li>
+</ul>
+<ol start="3">
+<li>然后再新建一个仓库，名字为<code>github名字.github.io</code>，这个仓库用于放部署后的代码</li>
+<li>安装Hexo部署插件<code>npm install hexo-deployer-git</code></li>
+<li>修改根目录下的<code>_config.yml</code></li>
+</ol>
+<pre><code class="yml">deploy:
+  type: git
+  repo: 部署仓库地址
+  branch: main
+</code></pre>
+<ol start="6">
+<li>最后执行<code>hexo deploy</code>命令就可以在<code>github名字.github.io</code>看到博客了</li>
+</ol>
+<h2 id="SSH-github-Actions自动部署"><a href="#SSH-github-Actions自动部署" class="headerlink" title="SSH + github Actions自动部署"></a>SSH + github Actions自动部署</h2><ul>
+<li><strong>Github Actions</strong>是github专用的持续集成脚本，用于自动执行工作流程，<strong>SSH</strong>可以通过建立密钥免密登录，这两个结合就能达到自动部署的效果</li>
+</ul>
+<ol>
+<li><p>首先通过ssh-keygen生成密钥，<code>ssh-keygen -t rsa -C &quot;Github 的邮箱地址&quot;</code></p>
+</li>
+<li><p>然后github配置ssh，配置路径：<code>github -&gt; Settings –&gt; SSH and GPG keys</code><br> <img src="https://img-blog.csdnimg.cn/277cd5e70dad47a5af70a9ce9dc06f5a.jpeg#pic_center" alt="在这里插入图片描述"></p>
+</li>
+<li><p>git仓库添加密钥私有变量，配置路径：<code>repo -&gt; Settings -&gt; Secrets</code>，点击<code>New repository secret</code>，name可以自定义，主要是接下来的deploy.yaml文件需要使用，Secret填写你生成的密钥<br><img src="https://img-blog.csdnimg.cn/10897de98a7f44a2b3171371b71b91ac.jpeg#pic_center" alt="在这里插入图片描述"></p>
+</li>
+<li><p>然后根目录下新建<code>.github/workflows/deploy.yaml</code>，并填写以下内容</p>
+</li>
+</ol>
+<pre><code class="yml">name: Deploy
+on:
+  push:
+    branches: [你需要自动化部署的分支]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository main branch
+        uses: actions/checkout@main
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: Setup Hexo Dependencies
+        run: |
+          npm install hexo-cli -g
+          npm install
+      - name: Setup Deploy
+        env:
+          HEXO_DEPLOY_PRIVATE_KEY: $&#123;&#123; secrets.'你上一步自定义的变量名' &#125;&#125;
+        run: |
+          mkdir -p ~/.ssh/
+          echo &quot;$HEXO_DEPLOY_PRIVATE_KEY&quot; &gt; ~/.ssh/id_rsa 
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com &gt;&gt; ~/.ssh/known_hosts
+      - name: Setup Git Infomation
+        run: |
+          git config --global user.name &quot;git名字&quot;
+          git config --global user.email &quot;git邮箱&quot;
+      - name: Deploy Hexo
+        run: |
+          hexo clean
+          hexo generate 
+          hexo deploy    
+</code></pre>
+<ol start="6">
+<li>然后把代码push上去的时候，就可以在仓库的<strong>Actions</strong>上看自动工作流程的情况</li>
+</ol>
+<h2 id="谷歌收录"><a href="#谷歌收录" class="headerlink" title="谷歌收录"></a>谷歌收录</h2><ol>
+<li><p>首先在<a target="_blank" rel="noopener" href="https://www.google.com/webmasters/tools/home?hl=zh-CN">Google Search Console</a>登录谷歌账号</p>
+</li>
+<li><p>然后在网址前缀中填写网址，下载验证文件到主题文件夹的source目录<br><img src="https://img-blog.csdnimg.cn/68c9ef2e3f4c42ec8ca29f46f01905d4.jpeg#pic_center" alt="在这里插入图片描述"></p>
+</li>
+<li><p>下载后再重新部署一下，最后点击验证</p>
+</li>
+</ol>
+<h3 id="添加站点地图"><a href="#添加站点地图" class="headerlink" title="添加站点地图"></a>添加站点地图</h3><p>站点地图是一种文件，您可以在其中提供与您网站中的网页、视频或其他文件有关的信息，还可以说明这些内容之间的关系。Google 等搜索引擎会读取此文件，以便更高效地抓取您的网站。站点地图会告诉 Google 您认为网站中的哪些网页和文件比较重要，还会提供与这些文件有关的重要信息。</p>
+<ol>
+<li>安装站点地图插件<code>npm install hexo-generator-sitemap --save</code></li>
+<li>在hexo根目录的_config.yml修改以下内容</li>
+</ol>
+<pre><code class="yml">url: 博客地址
+sitemap:
+ path: sitemap.xml
+</code></pre>
+<ol start="3">
+<li><p>然后部署博客，输入<code>博客地址/sitemap.xml</code>能看见以下内容<br><img src="https://img-blog.csdnimg.cn/74745ec1ca3e4d06a06ba512ddb5e3f1.png#pic_center" alt="在这里插入图片描述"></p>
+</li>
+<li><p>最后在<strong>Google Search Console</strong>上的站点地图上点击提交<br><img src="https://img-blog.csdnimg.cn/371a45539f694c08a207367d47d25d88.jpeg#pic_center" alt="在这里插入图片描述"></p>
+</li>
+</ol>
+</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2022-09-06</span><i class="fa fa-tag"></i><a class="tag" href="/tags/Hexo/" title="Hexo">Hexo </a><span class="leancloud_visitors"></span><span>大约1091个字, 3分钟38秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2022/09/06/Hexo搭建详细教程/,LH'BLOG,Hexo搭建详细教程,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="next pagbuttons"><a class="btn" role="navigation" href="/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/" title="React源码分析之diff核心算法">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
+var disqus_identifier = '2022/09/06/Hexo搭建详细教程/';
+var disqus_title = 'Hexo搭建详细教程';
+var disqus_url = 'https://lhrun.github.io/2022/09/06/Hexo搭建详细教程/';
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
