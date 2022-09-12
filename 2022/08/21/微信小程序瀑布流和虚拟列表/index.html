@@ -1,191 +1,305 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>微信小程序瀑布流和虚拟列表 · LH'BLOG</title><meta name="description" content="微信小程序瀑布流和虚拟列表首先声明虽然本篇是写的微信小程序的案例，但是也可用于H5，思路是想通的，只是有些api的差异，最后会贴代码片段
-虚拟列表
-一般在做长列表优化时，特别是面试时，虚拟列表就是个高频词。这个名词听起来很高级，其实原理很简单
-虚拟列表就是将需要渲染的数组数据改造成二维数组，然后通过"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%80%91%E5%B8%83%E6%B5%81%E5%92%8C%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8"><span class="toclist-number">1.</span> <span class="toclist-text">微信小程序瀑布流和虚拟列表</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8"><span class="toclist-number">1.1.</span> <span class="toclist-text">虚拟列表</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E7%80%91%E5%B8%83%E6%B5%81"><span class="toclist-number">1.2.</span> <span class="toclist-text">瀑布流</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E7%80%91%E5%B8%83%E6%B5%81%E7%BB%93%E5%90%88%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8"><span class="toclist-number">1.3.</span> <span class="toclist-text">瀑布流结合虚拟列表</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E6%80%BB%E7%BB%93"><span class="toclist-number">1.4.</span> <span class="toclist-text">总结</span></a></li></ol></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>微信小程序瀑布流和虚拟列表</a></h3></div><div class="post-content"><p><h2 id="微信小程序瀑布流和虚拟列表"><a href="#微信小程序瀑布流和虚拟列表" class="headerlink" title="微信小程序瀑布流和虚拟列表"></a>微信小程序瀑布流和虚拟列表</h2><p>首先声明虽然本篇是写的微信小程序的案例，但是也可用于H5，思路是想通的，只是有些api的差异，最后会贴代码片段<br><img src="https://img-blog.csdnimg.cn/40f9275783f14ed4a2a020ec733b3043.gif#pic_center" alt="example"></p>
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>微信小程序瀑布流和虚拟列表 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">
+                            微信小程序
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/%E7%80%91%E5%B8%83%E6%B5%81/">
+                            瀑布流
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8/">
+                            虚拟列表
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                微信小程序瀑布流和虚拟列表
+            
+            
+        </div>
+        <span class="post-date">
+            8月 21, 2022
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/11/vXAhDI.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="微信小程序瀑布流和虚拟列表"><a href="#微信小程序瀑布流和虚拟列表" class="headerlink" title="微信小程序瀑布流和虚拟列表"></a>微信小程序瀑布流和虚拟列表</h2><p>首先声明虽然本篇是写的微信小程序的案例，但是也可用于H5，思路是想通的，只是有些api的差异，最后会贴代码片段<br><img src="https://img-blog.csdnimg.cn/40f9275783f14ed4a2a020ec733b3043.gif#pic_center" alt="example"></p>
 <h3 id="虚拟列表"><a href="#虚拟列表" class="headerlink" title="虚拟列表"></a>虚拟列表</h3><ul>
 <li>一般在做长列表优化时，特别是面试时，虚拟列表就是个高频词。这个名词听起来很高级，其实原理很简单</li>
 <li>虚拟列表就是将需要渲染的数组数据改造成二维数组，然后通过监听DOM在合适的地方切换为占位元素，达到长列表无限滚动时减少DOM的优化</li>
-<li>JS</li>
+<li>JS <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 处理占位元素，就是在获取新的数据后</span></span><br><span class="line"><span class="comment"> * 通过SelectQuery获取当前数据的实际高度，然后把这个高度设置到占位元素上</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">getCurrentItemHeight</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> query = <span class="variable language_">this</span>.<span class="title function_">createSelectorQuery</span>();</span><br><span class="line">  <span class="keyword">const</span> &#123; virtualId &#125; = <span class="variable language_">this</span>.<span class="property">data</span></span><br><span class="line">  query.<span class="title function_">select</span>(<span class="string">`#<span class="subst">$&#123;virtualId&#125;</span>`</span>).<span class="title function_">boundingClientRect</span>()</span><br><span class="line">  query.<span class="title function_">exec</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">      <span class="attr">height</span>: res[<span class="number">0</span>].<span class="property">height</span></span><br><span class="line">    &#125;, <span class="variable language_">this</span>.<span class="title function_">observePage</span>())</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 监听元素与页面的相交</span></span><br><span class="line"><span class="comment"> * 可以选择指定元素为参照区域，也可以选择页面为参照元素，只是API不同</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@doc</span> https://developers.weixin.qq.com/miniprogram/dev/api/wxml/IntersectionObserver.html</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">observePage</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; virtualId, observeDistance, wrapId &#125; = <span class="variable language_">this</span>.<span class="property">data</span></span><br><span class="line">  <span class="keyword">let</span> <span class="title class_">IntersectionObserver</span> = wx.<span class="title function_">createIntersectionObserver</span>(<span class="variable language_">this</span>);</span><br><span class="line">  (wrapId ? <span class="title class_">IntersectionObserver</span>.<span class="title function_">relativeTo</span>(<span class="string">`#<span class="subst">$&#123;wrapId&#125;</span>`</span>) : <span class="title class_">IntersectionObserver</span>.<span class="title function_">relativeToViewport</span>(&#123; <span class="attr">top</span>: observeDistance, <span class="attr">bottom</span>: observeDistance &#125;))</span><br><span class="line">  .<span class="title function_">observe</span>(<span class="string">`#<span class="subst">$&#123;virtualId&#125;</span>`</span>, <span class="function">(<span class="params">&#123; intersectionRatio &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">      <span class="attr">isShow</span>: intersectionRatio &gt; <span class="number">0</span>,</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>html<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;view id=<span class="string">&quot;&#123;&#123;virtualId&#125;&#125;&quot;</span>&gt;</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">block</span> <span class="attr">wx:if</span>=<span class="string">&quot;&#123;&#123;isShow&#125;&#125;&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">slot</span>&gt;</span><span class="tag">&lt;/<span class="name">slot</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">block</span>&gt;</span></span></span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">view</span> <span class="attr">wx:else</span> <span class="attr">style</span>=<span class="string">&quot;height: &#123;&#123; height &#125;&#125;px&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">view</span>&gt;</span></span></span><br><span class="line">&lt;/view&gt;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">/**
- * 处理占位元素，就是在获取新的数据后
- * 通过SelectQuery获取当前数据的实际高度，然后把这个高度设置到占位元素上
- */
-getCurrentItemHeight() &#123;
-  const query = this.createSelectorQuery();
-  const &#123; virtualId &#125; = this.data
-  query.select(`#$&#123;virtualId&#125;`).boundingClientRect()
-  query.exec((res) =&gt; &#123;
-    this.setData(&#123;
-      height: res[0].height
-    &#125;, this.observePage())
-  &#125;)
-&#125;
-
-/**
- * 监听元素与页面的相交
- * 可以选择指定元素为参照区域，也可以选择页面为参照元素，只是API不同
- * @doc https://developers.weixin.qq.com/miniprogram/dev/api/wxml/IntersectionObserver.html
- */
-observePage() &#123;
-  const &#123; virtualId, observeDistance, wrapId &#125; = this.data
-  let IntersectionObserver = wx.createIntersectionObserver(this);
-  (wrapId ? IntersectionObserver.relativeTo(`#$&#123;wrapId&#125;`) : IntersectionObserver.relativeToViewport(&#123; top: observeDistance, bottom: observeDistance &#125;))
-  .observe(`#$&#123;virtualId&#125;`, (&#123; intersectionRatio &#125;) =&gt; &#123;
-    this.setData(&#123;
-      isShow: intersectionRatio &gt; 0,
-    &#125;)
-  &#125;)
-&#125;
-</code></pre>
-<ul>
-<li>html</li>
-</ul>
-<pre><code class="js">&lt;view id=&quot;&#123;&#123;virtualId&#125;&#125;&quot;&gt;
-  &lt;block wx:if=&quot;&#123;&#123;isShow&#125;&#125;&quot;&gt;
-    &lt;slot&gt;&lt;/slot&gt;
-  &lt;/block&gt;
-  &lt;view wx:else style=&quot;height: &#123;&#123; height &#125;&#125;px&quot;&gt;&lt;/view&gt;
-&lt;/view&gt;
-</code></pre>
 <h3 id="瀑布流"><a href="#瀑布流" class="headerlink" title="瀑布流"></a>瀑布流</h3><ul>
 <li>瀑布流，又称瀑布流式布局。视觉表现为参差不齐的多栏布局，随着页面滚动条向下滚动，这种布局还会不断加载数据块并附加至当前尾部</li>
-<li>瀑布流有多种写法，有通过纯CSS完成的，也有借助JS完成的，方法很多，但是我为了接下来能与虚拟列表相结合，就采用JS的写法，就是通过列数把每一列分为一个单独的子元素，然后会记录每一列的高度，通过判断哪一列高度最小，然后将数据push到高度最小的那一列</li>
+<li>瀑布流有多种写法，有通过纯CSS完成的，也有借助JS完成的，方法很多，但是我为了接下来能与虚拟列表相结合，就采用JS的写法，就是通过列数把每一列分为一个单独的子元素，然后会记录每一列的高度，通过判断哪一列高度最小，然后将数据push到高度最小的那一列<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取列表数据</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@describe</span> 瀑布流处理，哪列高度小，就往哪列push新数据</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">getList</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> &#123; <span class="attr">listQuery</span>: &#123; pageIndex, pageSize &#125;, columns, columnsHeight &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; pageSize; i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> height = <span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * <span class="number">100</span>)</span><br><span class="line">    <span class="keyword">const</span> item = height &lt; <span class="number">50</span> ? height + <span class="number">50</span> : height</span><br><span class="line">    <span class="keyword">const</span> position = <span class="variable language_">this</span>.<span class="title function_">computePosition</span>(columnsHeight)</span><br><span class="line">    columns[position].<span class="title function_">push</span>(item)</span><br><span class="line">    columnsHeight += item</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 在html中双重遍历columns，然后通过flex：1均匀分布</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    columns,</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">columnsHeight</span> = columnsHeight</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取高度最小列下标</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">computePosition</span>(<span class="params">heights</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> min = <span class="title class_">Math</span>.<span class="title function_">min</span>(...heights);</span><br><span class="line">  <span class="keyword">return</span> heights.<span class="title function_">findIndex</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> item === min)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">/**
- * 获取列表数据
- * @describe 瀑布流处理，哪列高度小，就往哪列push新数据
- */
-getList() &#123;
-  let &#123; listQuery: &#123; pageIndex, pageSize &#125;, columns, columnsHeight &#125; = this.data;
-  for (let i = 0; i &lt; pageSize; i++) &#123;
-    const height = Math.floor(Math.random() * 100)
-    const item = height &lt; 50 ? height + 50 : height
-    const position = this.computePosition(columnsHeight)
-    columns[position].push(item)
-    columnsHeight += item
-  &#125;
-  // 在html中双重遍历columns，然后通过flex：1均匀分布
-  this.setData(&#123;
-    columns,
-  &#125;)
-  this.data.columnsHeight = columnsHeight
-&#125;
-
-/**
- * 获取高度最小列下标
- */
-computePosition(heights) &#123;
-  const min = Math.min(...heights);
-  return heights.findIndex((item) =&gt; item === min)
-&#125;
-</code></pre>
 <h3 id="瀑布流结合虚拟列表"><a href="#瀑布流结合虚拟列表" class="headerlink" title="瀑布流结合虚拟列表"></a>瀑布流结合虚拟列表</h3><ul>
 <li>让瀑布流有虚拟滚动的能力，思路很简单，就是计算每列的偏移量，因为瀑布流被我们分成了二维数组，所以每块子元素之间就会因为列高度的不一致产生空白区域，所以需要计算这个空白区域的大小，然后通过<code>margin-top</code>移动列元素达到视觉上的瀑布流衔接效果<br><img src="https://img-blog.csdnimg.cn/070e8c72d982470ca8808ad8121e6110.png#pic_center" alt="在这里插入图片描述"></li>
 </ul>
-<pre><code class="js">getList() &#123;
-  let &#123; listQuery: &#123; pageIndex &#125;, column, columnsHeights &#125; = this.data;
-  const columns = [];
-  // 上一组的高度数据，用于计算偏移值
-  const lastHeights = [...columnsHeights];
-  // 获取数据
-  const list = this.getListData();
-  // 初始化当前屏数据
-  for (let i = 0; i &lt; column; i++ ) &#123;
-    columns.push([]);
-  &#125;
-  // 遍历新数据，分配至各列
-  for (let i = 0; i &lt; list.length; i++) &#123;
-    const position = this.computePosition(columnsHeights);
-    columns[position].push(list[i]);
-    columnsHeights[position] += Number(list[i].height);
-  &#125;
-  this.setData(&#123;
-    [`listData[$&#123;pageIndex&#125;]`]: &#123;
-      columns,
-      columnOffset: this.computeOffset(lastHeights),
-    &#125;
-  &#125;);
-  this.data.listQuery.pageIndex = pageIndex + 1;
-  this.data.columnsHeights = columnsHeights;
-&#125;,
-
-/**
- * 获取列表数据
- */
-getListData() &#123;
-  const result = []
-  for (let i = 0; i &lt; this.data.listQuery.pageSize; i++) &#123;
-    const height = Math.floor(Math.random() * 300);
-    const item = &#123;
-      height: height &lt; 150 ? height + 150 : height,
-      color: this.randomRgbColor(),
-    &#125;;
-    result.push(item);
-  &#125;
-  return result;
-&#125;,
-
-/**
- * 随机生成RGB颜色
- */
-randomRgbColor() &#123;
-  var r = Math.floor(Math.random() * 256); //随机生成256以内r值
-  var g = Math.floor(Math.random() * 256); //随机生成256以内g值
-  var b = Math.floor(Math.random() * 256); //随机生成256以内b值
-  return `rgb($&#123;r&#125;,$&#123;g&#125;,$&#123;b&#125;)`; //返回rgb(r,g,b)格式颜色
-&#125;,
-
-/**
- * 获取最小高度列下标
- */
-computePosition(heights) &#123;
-  const min = Math.min(...heights);
-  return heights.findIndex((item) =&gt; item === min);
-&#125;,
-
-/**
- * 计算偏移量
- */
-computeOffset(heights) &#123;
-  const max = Math.max(...heights);
-  return heights.map((item) =&gt; max - item);
-&#125;,
-
-onScrollLower() &#123;
-  this.getList();
-&#125;
-</code></pre>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">getList</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> &#123; <span class="attr">listQuery</span>: &#123; pageIndex &#125;, column, columnsHeights &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="keyword">const</span> columns = [];</span><br><span class="line">  <span class="comment">// 上一组的高度数据，用于计算偏移值</span></span><br><span class="line">  <span class="keyword">const</span> lastHeights = [...columnsHeights];</span><br><span class="line">  <span class="comment">// 获取数据</span></span><br><span class="line">  <span class="keyword">const</span> list = <span class="variable language_">this</span>.<span class="title function_">getListData</span>();</span><br><span class="line">  <span class="comment">// 初始化当前屏数据</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; column; i++ ) &#123;</span><br><span class="line">    columns.<span class="title function_">push</span>([]);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 遍历新数据，分配至各列</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; list.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> position = <span class="variable language_">this</span>.<span class="title function_">computePosition</span>(columnsHeights);</span><br><span class="line">    columns[position].<span class="title function_">push</span>(list[i]);</span><br><span class="line">    columnsHeights[position] += <span class="title class_">Number</span>(list[i].<span class="property">height</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    [<span class="string">`listData[<span class="subst">$&#123;pageIndex&#125;</span>]`</span>]: &#123;</span><br><span class="line">      columns,</span><br><span class="line">      <span class="attr">columnOffset</span>: <span class="variable language_">this</span>.<span class="title function_">computeOffset</span>(lastHeights),</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">listQuery</span>.<span class="property">pageIndex</span> = pageIndex + <span class="number">1</span>;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">columnsHeights</span> = columnsHeights;</span><br><span class="line">&#125;,</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取列表数据</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">getListData</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> result = []</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">listQuery</span>.<span class="property">pageSize</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> height = <span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * <span class="number">300</span>);</span><br><span class="line">    <span class="keyword">const</span> item = &#123;</span><br><span class="line">      <span class="attr">height</span>: height &lt; <span class="number">150</span> ? height + <span class="number">150</span> : height,</span><br><span class="line">      <span class="attr">color</span>: <span class="variable language_">this</span>.<span class="title function_">randomRgbColor</span>(),</span><br><span class="line">    &#125;;</span><br><span class="line">    result.<span class="title function_">push</span>(item);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;,</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 随机生成RGB颜色</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">randomRgbColor</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> r = <span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * <span class="number">256</span>); <span class="comment">//随机生成256以内r值</span></span><br><span class="line">  <span class="keyword">var</span> g = <span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * <span class="number">256</span>); <span class="comment">//随机生成256以内g值</span></span><br><span class="line">  <span class="keyword">var</span> b = <span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * <span class="number">256</span>); <span class="comment">//随机生成256以内b值</span></span><br><span class="line">  <span class="keyword">return</span> <span class="string">`rgb(<span class="subst">$&#123;r&#125;</span>,<span class="subst">$&#123;g&#125;</span>,<span class="subst">$&#123;b&#125;</span>)`</span>; <span class="comment">//返回rgb(r,g,b)格式颜色</span></span><br><span class="line">&#125;,</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取最小高度列下标</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">computePosition</span>(<span class="params">heights</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> min = <span class="title class_">Math</span>.<span class="title function_">min</span>(...heights);</span><br><span class="line">  <span class="keyword">return</span> heights.<span class="title function_">findIndex</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> item === min);</span><br><span class="line">&#125;,</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 计算偏移量</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">computeOffset</span>(<span class="params">heights</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> max = <span class="title class_">Math</span>.<span class="title function_">max</span>(...heights);</span><br><span class="line">  <span class="keyword">return</span> heights.<span class="title function_">map</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> max - item);</span><br><span class="line">&#125;,</span><br><span class="line"></span><br><span class="line"><span class="title function_">onScrollLower</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">getList</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ul>
-<li>WXML</li>
+<li>WXML<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;view&gt;</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">scroll-view</span> <span class="attr">class</span>=<span class="string">&quot;virtualScrollView&quot;</span> <span class="attr">eventhandle</span> <span class="attr">scroll-y</span> <span class="attr">bindscrolltolower</span>=<span class="string">&quot;onScrollLower&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">block</span> <span class="attr">wx:for</span>=<span class="string">&quot;&#123;&#123; listData &#125;&#125;&quot;</span> <span class="attr">wx:key</span>=<span class="string">&quot;screenIndex&quot;</span> <span class="attr">wx:for-index</span>=<span class="string">&quot;screenIndex&quot;</span> <span class="attr">wx:for-item</span>=<span class="string">&quot;screenItem&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">VirtualItem</span> <span class="attr">virtualId</span>=<span class="string">&quot;virtual_&#123;&#123;pageIndex&#125;&#125;&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">view</span> <span class="attr">class</span>=<span class="string">&quot;fall&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          <span class="tag">&lt;<span class="name">block</span> <span class="attr">wx:for</span>=<span class="string">&quot;&#123;&#123; screenItem.columns &#125;&#125;&quot;</span> <span class="attr">wx:key</span>=<span class="string">&quot;columnIndex&quot;</span> <span class="attr">wx:for-index</span>=<span class="string">&quot;columnIndex&quot;</span> <span class="attr">wx:for-item</span>=<span class="string">&quot;column&quot;</span> &gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">view</span> <span class="attr">style</span>=<span class="string">&quot;margin-top: -&#123;&#123;screenItem.columnOffset[columnIndex]&#125;&#125;px;&quot;</span> <span class="attr">class</span>=<span class="string">&quot;fallCol&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">              <span class="tag">&lt;<span class="name">view</span> <span class="attr">wx:for</span>=<span class="string">&quot;&#123;&#123;column&#125;&#125;&quot;</span> <span class="attr">style</span>=<span class="string">&quot;height: &#123;&#123; item.height &#125;&#125;px; background-color: &#123;&#123; item.color &#125;&#125;;&quot;</span> <span class="attr">wx:key</span>=<span class="string">&quot;index&quot;</span> <span class="attr">wx:for-item</span>=<span class="string">&quot;item&quot;</span> <span class="attr">wx:for-index</span>=<span class="string">&quot;index&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                screen: &#123;&#123; screenIndex &#125;&#125;, column: &#123;&#123; columnIndex &#125;&#125;</span></span><br><span class="line"><span class="language-xml">              <span class="tag">&lt;/<span class="name">view</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">view</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          <span class="tag">&lt;/<span class="name">block</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">view</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">VirtualItem</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">block</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">scroll-view</span>&gt;</span></span></span><br><span class="line">&lt;/view&gt;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">&lt;view&gt;
-  &lt;scroll-view class=&quot;virtualScrollView&quot; eventhandle scroll-y bindscrolltolower=&quot;onScrollLower&quot;&gt;
-    &lt;block wx:for=&quot;&#123;&#123; listData &#125;&#125;&quot; wx:key=&quot;screenIndex&quot; wx:for-index=&quot;screenIndex&quot; wx:for-item=&quot;screenItem&quot;&gt;
-      &lt;VirtualItem virtualId=&quot;virtual_&#123;&#123;pageIndex&#125;&#125;&quot;&gt;
-        &lt;view class=&quot;fall&quot;&gt;
-          &lt;block wx:for=&quot;&#123;&#123; screenItem.columns &#125;&#125;&quot; wx:key=&quot;columnIndex&quot; wx:for-index=&quot;columnIndex&quot; wx:for-item=&quot;column&quot; &gt;
-            &lt;view style=&quot;margin-top: -&#123;&#123;screenItem.columnOffset[columnIndex]&#125;&#125;px;&quot; class=&quot;fallCol&quot;&gt;
-              &lt;view wx:for=&quot;&#123;&#123;column&#125;&#125;&quot; style=&quot;height: &#123;&#123; item.height &#125;&#125;px; background-color: &#123;&#123; item.color &#125;&#125;;&quot; wx:key=&quot;index&quot; wx:for-item=&quot;item&quot; wx:for-index=&quot;index&quot;&gt;
-                screen: &#123;&#123; screenIndex &#125;&#125;, column: &#123;&#123; columnIndex &#125;&#125;
-              &lt;/view&gt;
-            &lt;/view&gt;
-          &lt;/block&gt;
-        &lt;/view&gt;
-      &lt;/VirtualItem&gt;
-    &lt;/block&gt;
-  &lt;/scroll-view&gt;
-&lt;/view&gt;
-</code></pre>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
 <li>代码片段：<a target="_blank" rel="noopener" href="https://developers.weixin.qq.com/s/5P3DpGmI7PBc">https://developers.weixin.qq.com/s/5P3DpGmI7PBc</a></li>
 </ul>
-</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2022-08-21</span><i class="fa fa-tag"></i><a class="tag" href="/tags/微信小程序/" title="微信小程序">微信小程序 </a><i class="fa fa-tag"></i><a class="tag" href="/tags/瀑布流/" title="瀑布流">瀑布流 </a><i class="fa fa-tag"></i><a class="tag" href="/tags/虚拟列表/" title="虚拟列表">虚拟列表 </a><span class="leancloud_visitors"></span><span>大约1234个字, 4分钟6秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2022/08/21/微信小程序瀑布流和虚拟列表/,LH'BLOG,微信小程序瀑布流和虚拟列表,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2022/08/24/pnpm%E7%9A%84node-modules%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/" title="pnpm的node_modules结构设计">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2021/09/08/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%9B%BE%E7%89%87%E4%B8%8A%E4%BC%A0-%E4%B9%9D%E5%AE%AB%E6%A0%BC%E6%8B%96%E6%8B%BD%E7%BB%84%E4%BB%B6/" title="微信小程序图片上传&amp;九宫格拖拽组件">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
-var disqus_identifier = '2022/08/21/微信小程序瀑布流和虚拟列表/';
-var disqus_title = '微信小程序瀑布流和虚拟列表';
-var disqus_url = 'https://lhrun.github.io/2022/08/21/微信小程序瀑布流和虚拟列表/';
-(function() {
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2022/08/24/pnpm%E7%9A%84node-modules%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2021/09/08/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%9B%BE%E7%89%87%E4%B8%8A%E4%BC%A0-%E4%B9%9D%E5%AE%AB%E6%A0%BC%E6%8B%96%E6%8B%BD%E7%BB%84%E4%BB%B6/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2022/08/21/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%80%91%E5%B8%83%E6%B5%81%E5%92%8C%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2022/08/21/微信小程序瀑布流和虚拟列表/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

@@ -1,52 +1,164 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>React源码分析之diff核心算法 · LH'BLOG</title><meta name="description" content="前言
-React的diff算法是在render的beginWork阶段中进行处理
-beginWork是在向下深度遍历fiber树时会对途径的每个节点进行状态处理和进行diff对比
-首先diff的入口是在reconcileChildFibers中，然后会根据type来判断使用哪种diff函数进行处理
-"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%89%8D%E8%A8%80"><span class="toclist-number">1.</span> <span class="toclist-text">前言</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#reconcileSingleElement"><span class="toclist-number">2.</span> <span class="toclist-text">reconcileSingleElement</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#reconcileChildrenArray"><span class="toclist-number">3.</span> <span class="toclist-text">reconcileChildrenArray</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E6%80%BB%E7%BB%93"><span class="toclist-number">4.</span> <span class="toclist-text">总结</span></a></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>React源码分析之diff核心算法</a></h3></div><div class="post-content"><p><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>React源码分析之diff核心算法 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/React/">
+                            React
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                React源码分析之diff核心算法
+            
+            
+        </div>
+        <span class="post-date">
+            9月 4, 2022
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/12/vXMVUA.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
 <li>React的diff算法是在render的beginWork阶段中进行处理</li>
 <li><code>beginWork</code>是在向下深度遍历fiber树时会对途径的每个节点进行状态处理和进行diff对比</li>
-<li>首先diff的入口是在<code>reconcileChildFibers</code>中，然后会根据type来判断使用哪种diff函数进行处理</li>
-</ul>
-<pre><code class="js">function reconcileChildFibers(
-  returnFiber: Fiber,
-  currentFirstChild: Fiber | null,
-  newChild: any,
-  lanes: Lanes,
-): Fiber | null &#123;
-  if (typeof newChild === &#39;object&#39; &amp;&amp; newChild !== null) &#123;
-    switch (newChild.$$typeof) &#123;
-      case REACT_ELEMENT_TYPE:
-        return placeSingleChild(
-          reconcileSingleElement(
-            returnFiber,
-            currentFirstChild,
-            newChild,
-            lanes,
-          ),
-        );··
-      case REACT_PORTAL_TYPE:
-        // ...
-      case REACT_LAZY_TYPE:
-        //...
-    &#125;
-
-    if (isArray(newChild)) &#123;
-      return reconcileChildrenArray(
-        returnFiber,
-        currentFirstChild,
-        newChild,
-        lanes,
-      );
-    &#125;
-
-    if (getIteratorFn(newChild)) &#123;
-      //...
-    &#125;
-  &#125;
-  // ...
-&#125;
-</code></pre>
-<ul>
+<li>首先diff的入口是在<code>reconcileChildFibers</code>中，然后会根据type来判断使用哪种diff函数进行处理<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">reconcileChildFibers</span>(<span class="params"></span></span><br><span class="line"><span class="params">  returnFiber: Fiber,</span></span><br><span class="line"><span class="params">  currentFirstChild: Fiber | <span class="literal">null</span>,</span></span><br><span class="line"><span class="params">  newChild: any,</span></span><br><span class="line"><span class="params">  lanes: Lanes,</span></span><br><span class="line"><span class="params"></span>): <span class="title class_">Fiber</span> | <span class="literal">null</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">typeof</span> newChild === <span class="string">&#x27;object&#x27;</span> &amp;&amp; newChild !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">switch</span> (newChild.<span class="property">$$typeof</span>) &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="attr">REACT_ELEMENT_TYPE</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="title function_">placeSingleChild</span>(</span><br><span class="line">          <span class="title function_">reconcileSingleElement</span>(</span><br><span class="line">            returnFiber,</span><br><span class="line">            currentFirstChild,</span><br><span class="line">            newChild,</span><br><span class="line">            lanes,</span><br><span class="line">          ),</span><br><span class="line">        );··</span><br><span class="line">      <span class="keyword">case</span> <span class="attr">REACT_PORTAL_TYPE</span>:</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">      <span class="keyword">case</span> <span class="attr">REACT_LAZY_TYPE</span>:</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">isArray</span>(newChild)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">reconcileChildrenArray</span>(</span><br><span class="line">        returnFiber,</span><br><span class="line">        currentFirstChild,</span><br><span class="line">        newChild,</span><br><span class="line">        lanes,</span><br><span class="line">      );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">getIteratorFn</span>(newChild)) &#123;</span><br><span class="line">      <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 <li>我在本篇会针对两种较常用的diff函数进行分析<ul>
 <li><code>reconcileSingleElement</code></li>
 <li><code>reconcileChildrenArray</code></li>
@@ -54,265 +166,36 @@ beginWork是在向下深度遍历fiber树时会对途径的每个节点进行状
 </li>
 </ul>
 <h2 id="reconcileSingleElement"><a href="#reconcileSingleElement" class="headerlink" title="reconcileSingleElement"></a>reconcileSingleElement</h2><ul>
-<li>reconcileSingleElement是针对新newChild是单节点，而oldChild单节点或者是多节点就无法确定了，所以在此diff算法中就会对旧节点进行遍历，然后删除不匹配的oldFiber</li>
+<li>reconcileSingleElement是针对新newChild是单节点，而oldChild单节点或者是多节点就无法确定了，所以在此diff算法中就会对旧节点进行遍历，然后删除不匹配的oldFiber<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">reconcileSingleElement</span>(<span class="params"></span></span><br><span class="line"><span class="params">  returnFiber: Fiber,</span></span><br><span class="line"><span class="params">  currentFirstChild: Fiber | <span class="literal">null</span>,</span></span><br><span class="line"><span class="params">  element: ReactElement</span></span><br><span class="line"><span class="params">  lanes: Lanes,</span></span><br><span class="line"><span class="params"></span>): <span class="title class_">Fiber</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> key = element.<span class="property">key</span>;</span><br><span class="line">  <span class="keyword">let</span> child = currentFirstChild;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 遍历旧节点，找到与newChild相同key的节点，不匹配的删除</span></span><br><span class="line"><span class="comment">    * 针对匹配的oldFiber, 用newChild中新节点的props来生成新的fiber节点</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">  <span class="keyword">while</span> (child !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (child.<span class="property">key</span> === key) &#123;</span><br><span class="line">      <span class="keyword">const</span> elementType = element.<span class="property">type</span>;</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">        * 通过useFiber创建一个新的Fiber</span></span><br><span class="line"><span class="comment">        * 如果element是一个Fragment，则以element.props.children建立Fiber</span></span><br><span class="line"><span class="comment">        * 将returnFiber赋给新的fiber的return字段，然后返回这个新的fiber</span></span><br><span class="line"><span class="comment">        */</span>·</span><br><span class="line">      <span class="keyword">if</span> (elementType === <span class="variable constant_">REACT_FRAGMENT_TYPE</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (child.<span class="property">tag</span> === <span class="title class_">Fragment</span>) &#123;</span><br><span class="line">          <span class="title function_">deleteRemainingChildren</span>(returnFiber, child.<span class="property">sibling</span>);</span><br><span class="line">          <span class="keyword">const</span> existing = <span class="title function_">useFiber</span>(child, element.<span class="property">props</span>.<span class="property">children</span>);</span><br><span class="line">          existing.<span class="property">return</span> = returnFiber;</span><br><span class="line">          <span class="keyword">if</span> (__DEV__) &#123;</span><br><span class="line">            existing.<span class="property">_debugSource</span> = element.<span class="property">_source</span>;</span><br><span class="line">            existing.<span class="property">_debugOwner</span> = element.<span class="property">_owner</span>;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">return</span> existing;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (</span><br><span class="line">          child.<span class="property">elementType</span> === elementType ||</span><br><span class="line">          (__DEV__</span><br><span class="line">            ? <span class="title function_">isCompatibleFamilyForHotReloading</span>(child, element)</span><br><span class="line">            : <span class="literal">false</span>) ||</span><br><span class="line">          (<span class="keyword">typeof</span> elementType === <span class="string">&#x27;object&#x27;</span> &amp;&amp;</span><br><span class="line">            elementType !== <span class="literal">null</span> &amp;&amp;</span><br><span class="line">            elementType.<span class="property">$$typeof</span> === <span class="variable constant_">REACT_LAZY_TYPE</span> &amp;&amp;</span><br><span class="line">            <span class="title function_">resolveLazy</span>(elementType) === child.<span class="property">type</span>)</span><br><span class="line">        ) &#123;</span><br><span class="line">          <span class="title function_">deleteRemainingChildren</span>(returnFiber, child.<span class="property">sibling</span>);</span><br><span class="line">          <span class="keyword">const</span> existing = <span class="title function_">useFiber</span>(child, element.<span class="property">props</span>);</span><br><span class="line">          existing.<span class="property">ref</span> = <span class="title function_">coerceRef</span>(returnFiber, child, element);</span><br><span class="line">          existing.<span class="property">return</span> = returnFiber;</span><br><span class="line">          <span class="keyword">if</span> (__DEV__) &#123;</span><br><span class="line">            existing.<span class="property">_debugSource</span> = element.<span class="property">_source</span>;</span><br><span class="line">            existing.<span class="property">_debugOwner</span> = element.<span class="property">_owner</span>;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">return</span> existing;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// Didn&#x27;t match.</span></span><br><span class="line">      <span class="title function_">deleteRemainingChildren</span>(returnFiber, child);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// key不相同就删除</span></span><br><span class="line">      <span class="title function_">deleteChild</span>(returnFiber, child);</span><br><span class="line">    &#125;</span><br><span class="line">    child = child.<span class="property">sibling</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果没有命中一个key，则通过createFiberFormElement或CreateFiberFormFragment创建一个新的fiber，然后返回</span></span><br><span class="line">  <span class="keyword">if</span> (element.<span class="property">type</span> === <span class="variable constant_">REACT_FRAGMENT_TYPE</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> created = <span class="title function_">createFiberFromFragment</span>(</span><br><span class="line">      element.<span class="property">props</span>.<span class="property">children</span>,</span><br><span class="line">      returnFiber.<span class="property">mode</span>,</span><br><span class="line">      lanes,</span><br><span class="line">      element.<span class="property">key</span>,</span><br><span class="line">    );</span><br><span class="line">    created.<span class="property">return</span> = returnFiber;</span><br><span class="line">    <span class="keyword">return</span> created;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> created = <span class="title function_">createFiberFromElement</span>(element, returnFiber.<span class="property">mode</span>, lanes);</span><br><span class="line">    created.<span class="property">ref</span> = <span class="title function_">coerceRef</span>(returnFiber, currentFirstChild, element);</span><br><span class="line">    created.<span class="property">return</span> = returnFiber;</span><br><span class="line">    <span class="keyword">return</span> created;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="ts">function reconcileSingleElement(
-  returnFiber: Fiber,
-  currentFirstChild: Fiber | null,
-  element: ReactElement
-  lanes: Lanes,
-): Fiber &#123;
-  const key = element.key;
-  let child = currentFirstChild;
-  /**
-    * 遍历旧节点，找到与newChild相同key的节点，不匹配的删除
-    * 针对匹配的oldFiber, 用newChild中新节点的props来生成新的fiber节点
-    */
-  while (child !== null) &#123;
-    if (child.key === key) &#123;
-      const elementType = element.type;
-      /**
-        * 通过useFiber创建一个新的Fiber
-        * 如果element是一个Fragment，则以element.props.children建立Fiber
-        * 将returnFiber赋给新的fiber的return字段，然后返回这个新的fiber
-        */·
-      if (elementType === REACT_FRAGMENT_TYPE) &#123;
-        if (child.tag === Fragment) &#123;
-          deleteRemainingChildren(returnFiber, child.sibling);
-          const existing = useFiber(child, element.props.children);
-          existing.return = returnFiber;
-          if (__DEV__) &#123;
-            existing._debugSource = element._source;
-            existing._debugOwner = element._owner;
-          &#125;
-          return existing;
-        &#125;
-      &#125; else &#123;
-        if (
-          child.elementType === elementType ||
-          (__DEV__
-            ? isCompatibleFamilyForHotReloading(child, element)
-            : false) ||
-          (typeof elementType === &#39;object&#39; &amp;&amp;
-            elementType !== null &amp;&amp;
-            elementType.$$typeof === REACT_LAZY_TYPE &amp;&amp;
-            resolveLazy(elementType) === child.type)
-        ) &#123;
-          deleteRemainingChildren(returnFiber, child.sibling);
-          const existing = useFiber(child, element.props);
-          existing.ref = coerceRef(returnFiber, child, element);
-          existing.return = returnFiber;
-          if (__DEV__) &#123;
-            existing._debugSource = element._source;
-            existing._debugOwner = element._owner;
-          &#125;
-          return existing;
-        &#125;
-      &#125;
-      // Didn&#39;t match.
-      deleteRemainingChildren(returnFiber, child);
-      break;
-    &#125; else &#123;
-      // key不相同就删除
-      deleteChild(returnFiber, child);
-    &#125;
-    child = child.sibling;
-  &#125;
-
-  // 如果没有命中一个key，则通过createFiberFormElement或CreateFiberFormFragment创建一个新的fiber，然后返回
-  if (element.type === REACT_FRAGMENT_TYPE) &#123;
-    const created = createFiberFromFragment(
-      element.props.children,
-      returnFiber.mode,
-      lanes,
-      element.key,
-    );
-    created.return = returnFiber;
-    return created;
-  &#125; else &#123;
-    const created = createFiberFromElement(element, returnFiber.mode, lanes);
-    created.ref = coerceRef(returnFiber, currentFirstChild, element);
-    created.return = returnFiber;
-    return created;
-  &#125;
-&#125;
-</code></pre>
 <h2 id="reconcileChildrenArray"><a href="#reconcileChildrenArray" class="headerlink" title="reconcileChildrenArray"></a>reconcileChildrenArray</h2><ul>
-<li>针对<code>newChild</code>是多节点的情况就需要调用<code>reconcileChildrenArray</code>进行diff操作</li>
-<li>多节点会有四种可能性的变化：删除、新增、位移、更新</li>
-<li><code>reconcileChildrenArray</code>针对这四种变化，首先会处理的是更新，当出现无法匹配的情况时，就会根据遍历的情况来判断是否处理删除或者新增，然后最后会根据情况处理位移</li>
-<li>因为fiber是单向链表，所以<code>reconcileChildrenArray</code>的遍历不是双端遍历</li>
-<li>首先第一轮遍历，是处理节点更新</li>
-</ul>
-<pre><code class="ts">for (; oldFiber !== null &amp;&amp; newIdx &lt; newChildren.length; newIdx++) &#123;
-  // newChildren遍历完了，oldFiber没有遍历完，中断遍历
-  if (oldFiber.index &gt; newIdx) &#123;
-    nextOldFiber = oldFiber;
-    oldFiber = null;
-  &#125; else &#123;
-    // 记录oldFiber的下一个节点
-    nextOldFiber = oldFiber.sibling;
-  &#125;
-  // 更新节点，如果节点没有匹配上，就会返回null
-  const newFiber = updateSlot(
-    returnFiber,
-    oldFiber,
-    newChildren[newIdx],
-    lanes,
-  );
-  // newFiber为null说明节点没有匹配上，中断遍历
-  if (newFiber === null) &#123;
-    // oldFiber为null说明oldFiber也遍历完了
-    if (oldFiber === null) &#123;
-      oldFiber = nextOldFiber;
-    &#125;
-    break;
-  &#125;
-
-  /**
-   * shouldTrackSideEffects为true表示是更新过程
-   * mountChildFibers = ChildReconciler(false);
-   * reconcileChildFibers = ChildReconciler(true);
-   * ChildReconciler接收的就是shouldTrackSideEffects
-   */
-  if (shouldTrackSideEffects) &#123;
-    if (oldFiber &amp;&amp; newFiber.alternate === null) &#123;
-      // 新节点没有现有节点，需要删除
-      deleteChild(returnFiber, oldFiber);
-    &#125;
-  &#125;
-  // 记录固定节点的位置
-  lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
-
-  // 将新节点拼接成以sibling为指针的单向链表
-  if (previousNewFiber === null) &#123;
-    resultingFirstChild = newFiber;
-  &#125; else &#123;
-    previousNewFiber.sibling = newFiber;
-  &#125;
-  previousNewFiber = newFiber;
-  oldFiber = nextOldFiber;
-&#125;
-</code></pre>
+<li><p>针对<code>newChild</code>是多节点的情况就需要调用<code>reconcileChildrenArray</code>进行diff操作</p>
+</li>
+<li><p>多节点会有四种可能性的变化：删除、新增、位移、更新</p>
+</li>
+<li><p><code>reconcileChildrenArray</code>针对这四种变化，首先会处理的是更新，当出现无法匹配的情况时，就会根据遍历的情况来判断是否处理删除或者新增，然后最后会根据情况处理位移</p>
+</li>
+<li><p>因为fiber是单向链表，所以<code>reconcileChildrenArray</code>的遍历不是双端遍历</p>
+</li>
+<li><p>首先第一轮遍历，是处理节点更新</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (; oldFiber !== <span class="literal">null</span> &amp;&amp; newIdx &lt; newChildren.<span class="property">length</span>; newIdx++) &#123;</span><br><span class="line">  <span class="comment">// newChildren遍历完了，oldFiber没有遍历完，中断遍历</span></span><br><span class="line">  <span class="keyword">if</span> (oldFiber.<span class="property">index</span> &gt; newIdx) &#123;</span><br><span class="line">    nextOldFiber = oldFiber;</span><br><span class="line">    oldFiber = <span class="literal">null</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 记录oldFiber的下一个节点</span></span><br><span class="line">    nextOldFiber = oldFiber.<span class="property">sibling</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 更新节点，如果节点没有匹配上，就会返回null</span></span><br><span class="line">  <span class="keyword">const</span> newFiber = <span class="title function_">updateSlot</span>(</span><br><span class="line">    returnFiber,</span><br><span class="line">    oldFiber,</span><br><span class="line">    newChildren[newIdx],</span><br><span class="line">    lanes,</span><br><span class="line">  );</span><br><span class="line">  <span class="comment">// newFiber为null说明节点没有匹配上，中断遍历</span></span><br><span class="line">  <span class="keyword">if</span> (newFiber === <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">// oldFiber为null说明oldFiber也遍历完了</span></span><br><span class="line">    <span class="keyword">if</span> (oldFiber === <span class="literal">null</span>) &#123;</span><br><span class="line">      oldFiber = nextOldFiber;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * shouldTrackSideEffects为true表示是更新过程</span></span><br><span class="line"><span class="comment">   * mountChildFibers = ChildReconciler(false);</span></span><br><span class="line"><span class="comment">   * reconcileChildFibers = ChildReconciler(true);</span></span><br><span class="line"><span class="comment">   * ChildReconciler接收的就是shouldTrackSideEffects</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">if</span> (shouldTrackSideEffects) &#123;</span><br><span class="line">    <span class="keyword">if</span> (oldFiber &amp;&amp; newFiber.<span class="property">alternate</span> === <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 新节点没有现有节点，需要删除</span></span><br><span class="line">      <span class="title function_">deleteChild</span>(returnFiber, oldFiber);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 记录固定节点的位置</span></span><br><span class="line">  lastPlacedIndex = <span class="title function_">placeChild</span>(newFiber, lastPlacedIndex, newIdx);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 将新节点拼接成以sibling为指针的单向链表</span></span><br><span class="line">  <span class="keyword">if</span> (previousNewFiber === <span class="literal">null</span>) &#123;</span><br><span class="line">    resultingFirstChild = newFiber;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    previousNewFiber.<span class="property">sibling</span> = newFiber;</span><br><span class="line">  &#125;</span><br><span class="line">  previousNewFiber = newFiber;</span><br><span class="line">  oldFiber = nextOldFiber;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>遍历完匹配的节点后，就判断新节点是否遍历完，如果遍历完，那么剩余的oldFiber都是要删除的</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (newIdx === newChildren.<span class="property">length</span>) &#123;</span><br><span class="line">  <span class="title function_">deleteRemainingChildren</span>(returnFiber, oldFiber);</span><br><span class="line">  <span class="keyword">if</span> (<span class="title function_">getIsHydrating</span>()) &#123;</span><br><span class="line">    <span class="keyword">const</span> numberOfForks = newIdx;</span><br><span class="line">    <span class="title function_">pushTreeFork</span>(returnFiber, numberOfForks);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> resultingFirstChild;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果新旧点没有遍历完，就判断旧fiber链是否遍历完，如果遍历完那么剩余的新节点全部作为新fiber插入</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (oldFiber === <span class="literal">null</span>) &#123;</span><br><span class="line">  <span class="keyword">for</span> (; newIdx &lt; newChildren.<span class="property">length</span>; newIdx++) &#123;</span><br><span class="line">    <span class="comment">// 创建新fiber节点</span></span><br><span class="line">    <span class="keyword">const</span> newFiber = <span class="title function_">createChild</span>(returnFiber, newChildren[newIdx], lanes);</span><br><span class="line">    <span class="keyword">if</span> (newFiber === <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 记录固定节点</span></span><br><span class="line">    lastPlacedIndex = <span class="title function_">placeChild</span>(newFiber, lastPlacedIndex, newIdx);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将新fiber拼接成以sibling为指针的单向链表</span></span><br><span class="line">    <span class="keyword">if</span> (previousNewFiber === <span class="literal">null</span>) &#123;</span><br><span class="line">      resultingFirstChild = newFiber;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      previousNewFiber.<span class="property">sibling</span> = newFiber;</span><br><span class="line">    &#125;</span><br><span class="line">    previousNewFiber = newFiber;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="title function_">getIsHydrating</span>()) &#123;</span><br><span class="line">    <span class="keyword">const</span> numberOfForks = newIdx;</span><br><span class="line">    <span class="title function_">pushTreeFork</span>(returnFiber, numberOfForks);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> resultingFirstChild;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行到这一步，说明新旧节点都没有遍历完，就说明存在有位移的未知序列</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 首先创建一个以oldFiber key为键，值为oldFiber的map</span></span><br><span class="line"><span class="keyword">const</span> existingChildren = <span class="title function_">mapRemainingChildren</span>(returnFiber, oldFiber);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (; newIdx &lt; newChildren.<span class="property">length</span>; newIdx++) &#123;</span><br><span class="line">  <span class="comment">// 然后根据map中的oldFiber创建新fiber</span></span><br><span class="line">  <span class="keyword">const</span> newFiber = <span class="title function_">updateFromMap</span>(</span><br><span class="line">    existingChildren,</span><br><span class="line">    returnFiber,</span><br><span class="line">    newIdx,</span><br><span class="line">    newChildren[newIdx],</span><br><span class="line">    lanes,</span><br><span class="line">  );</span><br><span class="line">  <span class="keyword">if</span> (newFiber !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (shouldTrackSideEffects) &#123;</span><br><span class="line">      <span class="keyword">if</span> (newFiber.<span class="property">alternate</span> !== <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果newFiber.alternate不为null，说明是根据oldFiber创建的，那么就需要在map中删除oldFiber</span></span><br><span class="line">        existingChildren.<span class="title function_">delete</span>(</span><br><span class="line">          newFiber.<span class="property">key</span> === <span class="literal">null</span> ? newIdx : newFiber.<span class="property">key</span>,</span><br><span class="line">        );</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 根据lastPlacedIndex判断是否移动节点</span></span><br><span class="line">    lastPlacedIndex = <span class="title function_">placeChild</span>(newFiber, lastPlacedIndex, newIdx);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将新fiber拼接成以sibling为指针的单向链表</span></span><br><span class="line">    <span class="keyword">if</span> (previousNewFiber === <span class="literal">null</span>) &#123;</span><br><span class="line">      resultingFirstChild = newFiber;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      previousNewFiber.<span class="property">sibling</span> = newFiber;</span><br><span class="line">    &#125;</span><br><span class="line">    previousNewFiber = newFiber;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (shouldTrackSideEffects) &#123;</span><br><span class="line">  <span class="comment">// 删除剩余的oldFiber</span></span><br><span class="line">  existingChildren.<span class="title function_">forEach</span>(<span class="function"><span class="params">child</span> =&gt;</span> <span class="title function_">deleteChild</span>(returnFiber, child));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>移动节点的核心是在<code>placeChild</code>这个函数中，如果当前正在遍历的节点的oldIndex是在<code>lastPlacedIndex</code>的右边，就说明它的位置没变化，因为旧节点中就处于右边，新节点中也处于右边。</p>
 <ul>
-<li>遍历完匹配的节点后，就判断新节点是否遍历完，如果遍历完，那么剩余的oldFiber都是要删除的</li>
-</ul>
-<pre><code class="ts">if (newIdx === newChildren.length) &#123;
-  deleteRemainingChildren(returnFiber, oldFiber);
-  if (getIsHydrating()) &#123;
-    const numberOfForks = newIdx;
-    pushTreeFork(returnFiber, numberOfForks);
-  &#125;
-  return resultingFirstChild;
-&#125;
-</code></pre>
-<ul>
-<li>如果新旧点没有遍历完，就判断旧fiber链是否遍历完，如果遍历完那么剩余的新节点全部作为新fiber插入</li>
-</ul>
-<pre><code class="ts">if (oldFiber === null) &#123;
-  for (; newIdx &lt; newChildren.length; newIdx++) &#123;
-    // 创建新fiber节点
-    const newFiber = createChild(returnFiber, newChildren[newIdx], lanes);
-    if (newFiber === null) &#123;
-      continue;
-    &#125;
-
-    // 记录固定节点
-    lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
-
-    // 将新fiber拼接成以sibling为指针的单向链表
-    if (previousNewFiber === null) &#123;
-      resultingFirstChild = newFiber;
-    &#125; else &#123;
-      previousNewFiber.sibling = newFiber;
-    &#125;
-    previousNewFiber = newFiber;
-  &#125;
-  if (getIsHydrating()) &#123;
-    const numberOfForks = newIdx;
-    pushTreeFork(returnFiber, numberOfForks);
-  &#125;
-  return resultingFirstChild;
-&#125;
-</code></pre>
-<ul>
-<li>执行到这一步，说明新旧节点都没有遍历完，就说明存在有位移的未知序列</li>
-</ul>
-<pre><code class="ts">// 首先创建一个以oldFiber key为键，值为oldFiber的map
-const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
-
-for (; newIdx &lt; newChildren.length; newIdx++) &#123;
-  // 然后根据map中的oldFiber创建新fiber
-  const newFiber = updateFromMap(
-    existingChildren,
-    returnFiber,
-    newIdx,
-    newChildren[newIdx],
-    lanes,
-  );
-  if (newFiber !== null) &#123;
-    if (shouldTrackSideEffects) &#123;
-      if (newFiber.alternate !== null) &#123;
-        // 如果newFiber.alternate不为null，说明是根据oldFiber创建的，那么就需要在map中删除oldFiber
-        existingChildren.delete(
-          newFiber.key === null ? newIdx : newFiber.key,
-        );
-      &#125;
-    &#125;
-
-    // 根据lastPlacedIndex判断是否移动节点
-    lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
-
-    // 将新fiber拼接成以sibling为指针的单向链表
-    if (previousNewFiber === null) &#123;
-      resultingFirstChild = newFiber;
-    &#125; else &#123;
-      previousNewFiber.sibling = newFiber;
-    &#125;
-    previousNewFiber = newFiber;
-  &#125;
-&#125;
-
-if (shouldTrackSideEffects) &#123;
-  // 删除剩余的oldFiber
-  existingChildren.forEach(child =&gt; deleteChild(returnFiber, child));
-&#125;
-</code></pre>
-<ul>
-<li>移动节点的核心是在<code>placeChild</code>这个函数中，如果当前正在遍历的节点的oldIndex是在<code>lastPlacedIndex</code>的右边，就说明它的位置没变化，因为旧节点中就处于右边，新节点中也处于右边。<ul>
 <li>例如：old：A -&gt; B -&gt; C -&gt; D，new：D -&gt; A -&gt; B -&gt; C</li>
 <li>遍历到D时，<code>lastPlacedIndex = D的oldIndex = 3</code></li>
-<li>然后遍历到A时，A的<code>oldIndex</code>为0，小于3，说明A在旧序列中肯定不是D的右边，所以A肯定产生了位移</li>
+<li>然后遍历到A时，A的<code>oldIndex</code>为0，小于3，说明A在旧序列中肯定不是D的右边，所以A肯定产生了位移<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">placeChild</span>(<span class="params"></span></span><br><span class="line"><span class="params">  newFiber: Fiber,</span></span><br><span class="line"><span class="params">  lastPlacedIndex: number,</span></span><br><span class="line"><span class="params">  newIndex: number,</span></span><br><span class="line"><span class="params"></span>): number &#123;</span><br><span class="line">  newFiber.<span class="property">index</span> = newIndex;</span><br><span class="line">  <span class="keyword">if</span> (!shouldTrackSideEffects) &#123;</span><br><span class="line">    newFiber.<span class="property">flags</span> |= <span class="title class_">Forked</span>;</span><br><span class="line">    <span class="keyword">return</span> lastPlacedIndex;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> current = newFiber.<span class="property">alternate</span>;</span><br><span class="line">  <span class="keyword">if</span> (current !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> oldIndex = current.<span class="property">index</span>;</span><br><span class="line">    <span class="keyword">if</span> (oldIndex &lt; lastPlacedIndex) &#123;</span><br><span class="line">      <span class="comment">// 小于lastPlacedIndex 产生了位移</span></span><br><span class="line">      newFiber.<span class="property">flags</span> |= <span class="title class_">Placement</span> | <span class="title class_">PlacementDEV</span>;</span><br><span class="line">      <span class="keyword">return</span> lastPlacedIndex;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 没有位移，返回当前的oldIndex</span></span><br><span class="line">      <span class="keyword">return</span> oldIndex;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    newFiber.<span class="property">flags</span> |= <span class="title class_">Placement</span> | <span class="title class_">PlacementDEV</span>;</span><br><span class="line">    <span class="keyword">return</span> lastPlacedIndex;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
 </li>
 </ul>
-<pre><code class="js">function placeChild(
-  newFiber: Fiber,
-  lastPlacedIndex: number,
-  newIndex: number,
-): number &#123;
-  newFiber.index = newIndex;
-  if (!shouldTrackSideEffects) &#123;
-    newFiber.flags |= Forked;
-    return lastPlacedIndex;
-  &#125;
-  const current = newFiber.alternate;
-  if (current !== null) &#123;
-    const oldIndex = current.index;
-    if (oldIndex &lt; lastPlacedIndex) &#123;
-      // 小于lastPlacedIndex 产生了位移
-      newFiber.flags |= Placement | PlacementDEV;
-      return lastPlacedIndex;
-    &#125; else &#123;
-      // 没有位移，返回当前的oldIndex
-      return oldIndex;
-    &#125;
-  &#125; else &#123;
-    newFiber.flags |= Placement | PlacementDEV;
-    return lastPlacedIndex;
-  &#125;
-&#125;
-</code></pre>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
 <li>针对单节点的diff，会遍历oldFiber链，如果有匹配的fiber，就以匹配的生成新fiber，如果没有就新建一个fiber，然后删除不匹配的fiber</li>
 <li>针对多节点diff<ul>
@@ -322,12 +205,118 @@ if (shouldTrackSideEffects) &#123;
 </ul>
 </li>
 </ul>
-</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2022-09-04</span><i class="fa fa-tag"></i><a class="tag" href="/tags/React/" title="React">React </a><span class="leancloud_visitors"></span><span>大约1640个字, 5分钟28秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2022/09/04/React源码分析之diff核心算法/,LH'BLOG,React源码分析之diff核心算法,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2022/09/06/Hexo%E6%90%AD%E5%BB%BA%E5%9F%BA%E6%93%8D%E9%85%8D%E7%BD%AE/" title="Hexo搭建详细教程">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2022/09/03/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%9B%BE%E7%89%87%E6%8B%96%E6%8B%BD%E6%8E%92%E5%BA%8F%E7%BB%84%E4%BB%B6/" title="微信小程序图片拖拽排序组件">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
-var disqus_identifier = '2022/09/04/React源码分析之diff核心算法/';
-var disqus_title = 'React源码分析之diff核心算法';
-var disqus_url = 'https://lhrun.github.io/2022/09/04/React源码分析之diff核心算法/';
-(function() {
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2022/09/06/Hexo%E6%90%AD%E5%BB%BA%E5%9F%BA%E6%93%8D%E9%85%8D%E7%BD%AE/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2022/09/03/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%9B%BE%E7%89%87%E6%8B%96%E6%8B%BD%E6%8E%92%E5%BA%8F%E7%BB%84%E4%BB%B6/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2022/09/04/React源码分析之diff核心算法/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

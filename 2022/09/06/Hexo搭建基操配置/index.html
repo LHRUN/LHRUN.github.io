@@ -1,17 +1,161 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>Hexo搭建详细教程 · LH'BLOG</title><meta name="description" content="初始化Hexo
-首先需要以下安装环境，直接在官网下载即可
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
 
 
-Node.js
-Git
 
 
-环境准备好后，安装Hexo npm install -g hexo-cli
-安装后在指定文件夹创建项目
 
-hexo init &amp;lt;folder&amp;gt;
-cd &amp;lt;folder&amp;gt;
-npm insta"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96Hexo"><span class="toclist-number">1.</span> <span class="toclist-text">初始化Hexo</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E9%83%A8%E7%BD%B2%E5%88%B0Github"><span class="toclist-number">2.</span> <span class="toclist-text">部署到Github</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#SSH-github-Actions%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2"><span class="toclist-number">3.</span> <span class="toclist-text">SSH + github Actions自动部署</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E8%B0%B7%E6%AD%8C%E6%94%B6%E5%BD%95"><span class="toclist-number">4.</span> <span class="toclist-text">谷歌收录</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E6%B7%BB%E5%8A%A0%E7%AB%99%E7%82%B9%E5%9C%B0%E5%9B%BE"><span class="toclist-number">4.1.</span> <span class="toclist-text">添加站点地图</span></a></li></ol></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#Disqus%E8%AF%84%E8%AE%BA"><span class="toclist-number">5.</span> <span class="toclist-text">Disqus评论</span></a></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>Hexo搭建详细教程</a></h3></div><div class="post-content"><p><h2 id="初始化Hexo"><a href="#初始化Hexo" class="headerlink" title="初始化Hexo"></a>初始化Hexo</h2><ol>
+
+
+<title>Hexo搭建详细教程 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Hexo/">
+                            Hexo
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                Hexo搭建详细教程
+            
+            
+        </div>
+        <span class="post-date">
+            9月 6, 2022
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/11/vXAy4O.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="初始化Hexo"><a href="#初始化Hexo" class="headerlink" title="初始化Hexo"></a>初始化Hexo</h2><ol>
 <li>首先需要以下安装环境，直接在官网下载即可</li>
 </ol>
 <ul>
@@ -20,13 +164,7 @@ npm insta"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width
 </ul>
 <ol start="2">
 <li>环境准备好后，安装Hexo <code>npm install -g hexo-cli</code></li>
-<li>安装后在指定文件夹创建项目</li>
-</ol>
-<pre><code class="sh">hexo init &lt;folder&gt;
-cd &lt;folder&gt;
-npm install
-</code></pre>
-<ol start="4">
+<li>安装后在指定文件夹创建项目<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hexo init &lt;folder&gt;</span><br><span class="line"><span class="built_in">cd</span> &lt;folder&gt;</span><br><span class="line">npm install</span><br></pre></td></tr></table></figure></li>
 <li>选择主题</li>
 </ol>
 <ul>
@@ -65,14 +203,7 @@ npm install
 <ol start="3">
 <li>然后再新建一个仓库，名字为 <code>github名字.github.io</code>，这个仓库用于放部署后的代码</li>
 <li>安装Hexo部署插件 <code>npm install hexo-deployer-git</code></li>
-<li>修改根目录下的 <code>_config.yml</code></li>
-</ol>
-<pre><code class="yml">deploy:
-  type: git
-  repo: 部署仓库地址
-  branch: main
-</code></pre>
-<ol start="6">
+<li>修改根目录下的 <code>_config.yml</code><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">部署仓库地址</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">main</span></span><br></pre></td></tr></table></figure></li>
 <li>最后执行<code>hexo deploy</code>命令就可以在<code>github名字.github.io</code>看到博客了</li>
 </ol>
 <h2 id="SSH-github-Actions自动部署"><a href="#SSH-github-Actions自动部署" class="headerlink" title="SSH + github Actions自动部署"></a>SSH + github Actions自动部署</h2><ul>
@@ -86,46 +217,9 @@ npm install
 <li><p>git仓库添加密钥私有变量，配置路径：<code>repo -&gt; Settings -&gt; Secrets</code>，点击<code>New repository secret</code>，name可以自定义，主要是接下来的deploy.yaml文件需要使用，Secret填写你生成的密钥<br><img src="https://img-blog.csdnimg.cn/10897de98a7f44a2b3171371b71b91ac.jpeg#pic_center" alt="在这里插入图片描述"></p>
 </li>
 <li><p>然后根目录下新建<code>.github/workflows/deploy.yaml</code>，并填写以下内容</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">Deploy</span></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">push:</span></span><br><span class="line">    <span class="attr">branches:</span> [<span class="string">你需要自动化部署的分支</span>]</span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">build:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Checkout</span> <span class="string">Repository</span> <span class="string">main</span> <span class="string">branch</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">actions/checkout@main</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Node</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">actions/setup-node@v1</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">node-version:</span> <span class="number">14.</span><span class="string">x</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Hexo</span> <span class="string">Dependencies</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          npm install hexo-cli -g</span></span><br><span class="line"><span class="string">          npm install</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Deploy</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">          <span class="attr">HEXO_DEPLOY_PRIVATE_KEY:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.&#x27;你上一步自定义的变量名&#x27;</span> <span class="string">&#125;&#125;</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          mkdir -p ~/.ssh/</span></span><br><span class="line"><span class="string">          echo &quot;$HEXO_DEPLOY_PRIVATE_KEY&quot; &gt; ~/.ssh/id_rsa </span></span><br><span class="line"><span class="string">          chmod 600 ~/.ssh/id_rsa</span></span><br><span class="line"><span class="string">          ssh-keyscan github.com &gt;&gt; ~/.ssh/known_hosts</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Git</span> <span class="string">Infomation</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          git config --global user.name &quot;git名字&quot;</span></span><br><span class="line"><span class="string">          git config --global user.email &quot;git邮箱&quot;</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Deploy</span> <span class="string">Hexo</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          hexo clean</span></span><br><span class="line"><span class="string">          hexo generate </span></span><br><span class="line"><span class="string">          hexo deploy    </span></span><br></pre></td></tr></table></figure></li>
+<li><p>然后把代码push上去的时候，就可以在仓库的<strong>Actions</strong>上看自动工作流程的情况</p>
 </li>
-</ol>
-<pre><code class="yml">name: Deploy
-on:
-  push:
-    branches: [你需要自动化部署的分支]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository main branch
-        uses: actions/checkout@main
-      - name: Setup Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
-      - name: Setup Hexo Dependencies
-        run: |
-          npm install hexo-cli -g
-          npm install
-      - name: Setup Deploy
-        env:
-          HEXO_DEPLOY_PRIVATE_KEY: $&#123;&#123; secrets.'你上一步自定义的变量名' &#125;&#125;
-        run: |
-          mkdir -p ~/.ssh/
-          echo &quot;$HEXO_DEPLOY_PRIVATE_KEY&quot; &gt; ~/.ssh/id_rsa 
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan github.com &gt;&gt; ~/.ssh/known_hosts
-      - name: Setup Git Infomation
-        run: |
-          git config --global user.name &quot;git名字&quot;
-          git config --global user.email &quot;git邮箱&quot;
-      - name: Deploy Hexo
-        run: |
-          hexo clean
-          hexo generate 
-          hexo deploy    
-</code></pre>
-<ol start="6">
-<li>然后把代码push上去的时候，就可以在仓库的<strong>Actions</strong>上看自动工作流程的情况</li>
 </ol>
 <h2 id="谷歌收录"><a href="#谷歌收录" class="headerlink" title="谷歌收录"></a>谷歌收录</h2><ol>
 <li><p>首先在<a target="_blank" rel="noopener" href="https://www.google.com/webmasters/tools/home?hl=zh-CN">Google Search Console</a>登录谷歌账号</p>
@@ -137,14 +231,10 @@ jobs:
 </ol>
 <h3 id="添加站点地图"><a href="#添加站点地图" class="headerlink" title="添加站点地图"></a>添加站点地图</h3><p>站点地图是一种文件，您可以在其中提供与您网站中的网页、视频或其他文件有关的信息，还可以说明这些内容之间的关系。Google 等搜索引擎会读取此文件，以便更高效地抓取您的网站。站点地图会告诉 Google 您认为网站中的哪些网页和文件比较重要，还会提供与这些文件有关的重要信息。</p>
 <ol>
-<li>安装站点地图插件 <code>npm install hexo-generator-sitemap --save</code></li>
-<li>在hexo根目录的_config.yml修改以下内容</li>
-</ol>
-<pre><code class="yml">url: 博客地址
-sitemap:
- path: sitemap.xml
-</code></pre>
-<ol start="3">
+<li><p>安装站点地图插件 <code>npm install hexo-generator-sitemap --save</code></p>
+</li>
+<li><p>在hexo根目录的_config.yml修改以下内容</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">url:</span> <span class="string">博客地址</span></span><br><span class="line"><span class="attr">sitemap:</span></span><br><span class="line"> <span class="attr">path:</span> <span class="string">sitemap.xml</span></span><br></pre></td></tr></table></figure></li>
 <li><p>然后部署博客，输入<code>博客地址/sitemap.xml</code>能看见以下内容<br><img src="https://img-blog.csdnimg.cn/74745ec1ca3e4d06a06ba512ddb5e3f1.png#pic_center" alt="在这里插入图片描述"></p>
 </li>
 <li><p>最后在<strong>Google Search Console</strong>上的站点地图上点击提交<br><img src="https://img-blog.csdnimg.cn/371a45539f694c08a207367d47d25d88.jpeg#pic_center" alt="在这里插入图片描述"></p>
@@ -156,12 +246,118 @@ sitemap:
 <li>然后在进入表单页按照提示进行填写即可，但是有两个地方需要注意，<code>Website Name</code>这个是你的专属网址的名字，需要记住，还有就是在“Select Plan”记得选“Basic”</li>
 <li>最后修改_config.yml中把shortname替换为你在创建时的名字，一般现在的主题都带的有评论模版，如果没有就需要自己添加了，这个不同的主题不太相同，可以看下官方的安装模版进行修改<br><img src="https://img-blog.csdnimg.cn/d1dc79115212411383a8dbd11971aaee.jpeg#pic_center" alt="在这里插入图片描述"></li>
 </ol>
-</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2022-09-06</span><i class="fa fa-tag"></i><a class="tag" href="/tags/Hexo/" title="Hexo">Hexo </a><span class="leancloud_visitors"></span><span>大约1307个字, 4分钟21秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2022/09/06/Hexo搭建基操配置/,LH'BLOG,Hexo搭建详细教程,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/" title="微信小程序前端登录模块设计">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/" title="React源码分析之diff核心算法">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
-var disqus_identifier = '2022/09/06/Hexo搭建基操配置/';
-var disqus_title = 'Hexo搭建详细教程';
-var disqus_url = 'https://lhrun.github.io/2022/09/06/Hexo搭建基操配置/';
-(function() {
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2022/09/06/Hexo%E6%90%AD%E5%BB%BA%E5%9F%BA%E6%93%8D%E9%85%8D%E7%BD%AE/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2022/09/06/Hexo搭建基操配置/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

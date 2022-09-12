@@ -1,152 +1,300 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>微信小程序单指拖拽和双指缩放旋转 · LH'BLOG</title><meta name="description" content="前言小程序单指拖拽和双指操作是一个比较常用的功能，效果如下图
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-实现这三个功能，主要用三个触摸事件touchstart、touchmove、touchend
+    <meta name="author" content="songlh">
 
-&amp;lt;view style=&amp;quot;height: 100vh; width: 100vw&amp;quot;&amp;gt;
-  &amp;lt;image"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%89%8D%E8%A8%80"><span class="toclist-number">1.</span> <span class="toclist-text">前言</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%8D%95%E6%8C%87%E6%8B%96%E6%8B%BD"><span class="toclist-number">2.</span> <span class="toclist-text">单指拖拽</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%8F%8C%E6%8C%87%E7%BC%A9%E6%94%BE"><span class="toclist-number">3.</span> <span class="toclist-text">双指缩放</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%8F%8C%E6%8C%87%E6%97%8B%E8%BD%AC"><span class="toclist-number">4.</span> <span class="toclist-text">双指旋转</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E6%80%BB%E7%BB%93"><span class="toclist-number">4.1.</span> <span class="toclist-text">总结</span></a></li></ol></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>微信小程序单指拖拽和双指缩放旋转</a></h3></div><div class="post-content"><p><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>小程序单指拖拽和双指操作是一个比较常用的功能，效果如下图<br><img src="https://img-blog.csdnimg.cn/babbbc7162d241e9b0fb01e0b18531eb.gif#pic_center" alt="在这里插入图片描述"></p>
+
+
+
+
+
+
+<title>微信小程序单指拖拽和双指缩放旋转 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">
+                            微信小程序
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                微信小程序单指拖拽和双指缩放旋转
+            
+            
+        </div>
+        <span class="post-date">
+            8月 21, 2021
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/11/vXAoUf.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>小程序单指拖拽和双指操作是一个比较常用的功能，效果如下图<br><img src="https://img-blog.csdnimg.cn/babbbc7162d241e9b0fb01e0b18531eb.gif#pic_center" alt="在这里插入图片描述"></p>
 <ul>
-<li>实现这三个功能，主要用三个触摸事件<code>touchstart</code>、<code>touchmove</code>、<code>touchend</code></li>
+<li>实现这三个功能，主要用三个触摸事件<code>touchstart</code>、<code>touchmove</code>、<code>touchend</code><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">view</span> <span class="attr">style</span>=<span class="string">&quot;height: 100vh; width: 100vw&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">image</span></span></span><br><span class="line"><span class="tag">    <span class="attr">src</span>=<span class="string">&quot;...&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">style</span>=<span class="string">&quot;transform: translate(&#123;&#123;translateX&#125;&#125;px, &#123;&#123;translateY&#125;&#125;px) scale(&#123;&#123;scale&#125;&#125;) rotate(&#123;&#123;rotate&#125;&#125;deg);&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">catch:touchstart</span>=<span class="string">&quot;touchStart&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">catch:touchmove</span>=<span class="string">&quot;touchMove&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">catch:touchend</span>=<span class="string">&quot;touchEnd&quot;</span></span></span><br><span class="line"><span class="tag">  /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">view</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>用了以下变量<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Page</span>(&#123;</span><br><span class="line">  <span class="attr">data</span>: &#123;</span><br><span class="line">    <span class="attr">translateX</span>: <span class="number">0</span>, <span class="comment">// 位移x坐标 单位px</span></span><br><span class="line">    <span class="attr">translateY</span>: <span class="number">0</span>, <span class="comment">// 位移y坐标 单位px</span></span><br><span class="line">    <span class="attr">distance</span>: <span class="number">0</span>, <span class="comment">// 双指接触点距离</span></span><br><span class="line">    <span class="attr">scale</span>: <span class="number">1</span>, <span class="comment">// 缩放倍数</span></span><br><span class="line">    <span class="attr">rotate</span>: <span class="number">0</span>, <span class="comment">// 旋转角度</span></span><br><span class="line">    <span class="attr">oldRotate</span>: <span class="number">0</span>, <span class="comment">// 上一次旋转停止后的角度</span></span><br><span class="line">    <span class="attr">startMove</span>: &#123; <span class="comment">// 起始位移距离</span></span><br><span class="line">      <span class="attr">x</span>: <span class="number">0</span>,</span><br><span class="line">      <span class="attr">y</span>: <span class="number">0</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">startTouches</span>: [] <span class="comment">// 起始点touch数组</span></span><br><span class="line">  &#125;,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="html">&lt;view style=&quot;height: 100vh; width: 100vw&quot;&gt;
-  &lt;image
-    src=&quot;...&quot;
-    style=&quot;transform: translate(&#123;&#123;translateX&#125;&#125;px, &#123;&#123;translateY&#125;&#125;px) scale(&#123;&#123;scale&#125;&#125;) rotate(&#123;&#123;rotate&#125;&#125;deg);&quot;
-    catch:touchstart=&quot;touchStart&quot;
-    catch:touchmove=&quot;touchMove&quot;
-    catch:touchend=&quot;touchEnd&quot;
-  /&gt;
-&lt;/view&gt;
-</code></pre>
-<ul>
-<li>用了以下变量</li>
-</ul>
-<pre><code class="ts">Page(&#123;
-  data: &#123;
-    translateX: 0, // 位移x坐标 单位px
-    translateY: 0, // 位移y坐标 单位px
-    distance: 0, // 双指接触点距离
-    scale: 1, // 缩放倍数
-    rotate: 0, // 旋转角度
-    oldRotate: 0, // 上一次旋转停止后的角度
-    startMove: &#123; // 起始位移距离
-      x: 0,
-      y: 0,
-    &#125;,
-    startTouches: [] // 起始点touch数组
-  &#125;,
-&#125;)
-</code></pre>
 <h2 id="单指拖拽"><a href="#单指拖拽" class="headerlink" title="单指拖拽"></a>单指拖拽</h2><ul>
 <li>实现单指拖拽比较简单，只需要记录移动的点坐标，然后减去起始点坐标，就可以求出相对页面的移动距离</li>
-<li><code>touchstart</code></li>
+<li><code>touchstart</code><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">touchStart</span>(<span class="params">e</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> touches = e.<span class="property">touches</span></span><br><span class="line">  <span class="keyword">const</span> &#123; translateX, translateY &#125; = <span class="variable language_">this</span>.<span class="property">data</span></span><br><span class="line">  <span class="keyword">const</span> &#123; pageX, pageY &#125; = touches[<span class="number">0</span>]</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">startMove</span> = &#123;</span><br><span class="line">    <span class="attr">x</span>: pageX - translateX,</span><br><span class="line">    <span class="attr">y</span>: pageY - translateY</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">startTouches</span> = touches</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
+<li><code>touchmove</code><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">touchMove</span>(<span class="params">e</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> touches = e.<span class="property">touches</span></span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">pageX</span>: onePageX, <span class="attr">pageY</span>: onePageY &#125; = touches[<span class="number">0</span>]</span><br><span class="line">  <span class="keyword">const</span> &#123; startMove &#125; = <span class="variable language_">this</span>.<span class="property">data</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    <span class="attr">translateX</span>: onePageX - startMove.<span class="property">x</span>,</span><br><span class="line">    <span class="attr">translateY</span>: onePageY - startMove.<span class="property">y</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="ts">touchStart(e) &#123;
-  const touches = e.touches
-  const &#123; translateX, translateY &#125; = this.data
-  const &#123; pageX, pageY &#125; = touches[0]
-  this.data.startMove = &#123;
-    x: pageX - translateX,
-    y: pageY - translateY
-  &#125;
-  this.data.startTouches = touches
-&#125;,
-</code></pre>
-<ul>
-<li><code>touchmove</code></li>
-</ul>
-<pre><code class="ts">touchMove(e) &#123;
-  const touches = e.touches
-  const &#123; pageX: onePageX, pageY: onePageY &#125; = touches[0]
-  const &#123; startMove &#125; = this.data
-  this.setData(&#123;
-    translateX: onePageX - startMove.x,
-    translateY: onePageY - startMove.y
-  &#125;)
-&#125;
-</code></pre>
 <h2 id="双指缩放"><a href="#双指缩放" class="headerlink" title="双指缩放"></a>双指缩放</h2><ul>
 <li>双指缩放的原理是根据两点坐标求出距离(勾股定理)，然后在用移动坐标的距离比就可以求出缩放倍数</li>
-<li><code>touchmove</code></li>
-</ul>
-<pre><code class="js">touchMove(e) &#123;
-  const touches = e.touches
-  const &#123; pageX: onePageX, pageY: onePageY &#125; = touches[0]
-  const &#123; startMove, scale, distance: oldDistance, startTouches &#125; = this.data
-  if (touches.length === 2 &amp;&amp; startTouches.length === 2) &#123;
-      // 双指缩放
-    const &#123; pageX: twoPageX, pageY: twoPageY &#125; = touches[1]
-    // 求出当前双指距离
-    const distance = Math.sqrt((twoPageX - onePageX) ** 2 + (twoPageY - onePageY) ** 2)
-    this.data.distance = distance
-    this.setData(&#123;
-      scale: scale * (distance / (oldDistance || distance))
-    &#125;)
-  &#125; else if (startTouches.length !== 2) &#123;
-      // 单指拖拽
-    this.setData(&#123;
-      translateX: onePageX - startMove.x,
-      translateY: onePageY - startMove.y
-    &#125;)
-  &#125;
-&#125;
-</code></pre>
-<ul>
+<li><code>touchmove</code><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">touchMove</span>(<span class="params">e</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> touches = e.<span class="property">touches</span></span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">pageX</span>: onePageX, <span class="attr">pageY</span>: onePageY &#125; = touches[<span class="number">0</span>]</span><br><span class="line">  <span class="keyword">const</span> &#123; startMove, scale, <span class="attr">distance</span>: oldDistance, startTouches &#125; = <span class="variable language_">this</span>.<span class="property">data</span></span><br><span class="line">  <span class="keyword">if</span> (touches.<span class="property">length</span> === <span class="number">2</span> &amp;&amp; startTouches.<span class="property">length</span> === <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="comment">// 双指缩放</span></span><br><span class="line">    <span class="keyword">const</span> &#123; <span class="attr">pageX</span>: twoPageX, <span class="attr">pageY</span>: twoPageY &#125; = touches[<span class="number">1</span>]</span><br><span class="line">    <span class="comment">// 求出当前双指距离</span></span><br><span class="line">    <span class="keyword">const</span> distance = <span class="title class_">Math</span>.<span class="title function_">sqrt</span>((twoPageX - onePageX) ** <span class="number">2</span> + (twoPageY - onePageY) ** <span class="number">2</span>)</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">distance</span> = distance</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">      <span class="attr">scale</span>: scale * (distance / (oldDistance || distance))</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (startTouches.<span class="property">length</span> !== <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="comment">// 单指拖拽</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">      <span class="attr">translateX</span>: onePageX - startMove.<span class="property">x</span>,</span><br><span class="line">      <span class="attr">translateY</span>: onePageY - startMove.<span class="property">y</span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 <li><code>startTouches.length !== 2</code>这个判断的原因是防止图片跳动，因为如果你两个手指触摸，然后离开一个手指，我是禁止拖拽的，只有双指都离开后再次触摸才能单指拖拽</li>
 </ul>
 <h2 id="双指旋转"><a href="#双指旋转" class="headerlink" title="双指旋转"></a>双指旋转</h2><ul>
 <li>双指旋转的原理是根据三角函数求出起始点的角度，然后再求出移动坐标的角度，相减然后加上上一次旋转的角度就等于你当前所需的选择角度</li>
 <li><code>touchmove</code></li>
 </ul>
-<pre><code class="ts">touchMove(e) &#123;
-  const touches = e.touches
-  const &#123; pageX: onePageX, pageY: onePageY &#125; = touches[0]
-  const &#123; startMove, scale, distance: oldDistance, startTouches, oldRotate &#125; = this.data
-  if (touches.length === 2 &amp;&amp; startTouches.length === 2) &#123;
-    const &#123; pageX: twoPageX, pageY: twoPageY &#125; = touches[1]
-    const distance = Math.sqrt((twoPageX - onePageX) ** 2 + (twoPageY - onePageY) ** 2)
-+   let rotate = this.getAngle(touches[0], touches[1]) - this.getAngle(startTouches[0], startTouches[1]) + oldRotate
-    // 如果大于360度，就减去360
-+   rotate = rotate &gt; 360 ? rotate - 360 : rotate
-    this.data.distance = distance
-    this.setData(&#123;
-      scale: scale * (distance / (oldDistance || distance)),
-+     rotate
-    &#125;)
-  &#125; else if (startTouches.length !== 2) &#123;
-    this.setData(&#123;
-      translateX: onePageX - startMove.x,
-      translateY: onePageY - startMove.y
-    &#125;)
-  &#125;
-&#125;,
-</code></pre>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">touchMove</span>(<span class="params">e</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> touches = e.<span class="property">touches</span></span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">pageX</span>: onePageX, <span class="attr">pageY</span>: onePageY &#125; = touches[<span class="number">0</span>]</span><br><span class="line">  <span class="keyword">const</span> &#123; startMove, scale, <span class="attr">distance</span>: oldDistance, startTouches, oldRotate &#125; = <span class="variable language_">this</span>.<span class="property">data</span></span><br><span class="line">  <span class="keyword">if</span> (touches.<span class="property">length</span> === <span class="number">2</span> &amp;&amp; startTouches.<span class="property">length</span> === <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; <span class="attr">pageX</span>: twoPageX, <span class="attr">pageY</span>: twoPageY &#125; = touches[<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">const</span> distance = <span class="title class_">Math</span>.<span class="title function_">sqrt</span>((twoPageX - onePageX) ** <span class="number">2</span> + (twoPageY - onePageY) ** <span class="number">2</span>)</span><br><span class="line">+   <span class="keyword">let</span> rotate = <span class="variable language_">this</span>.<span class="title function_">getAngle</span>(touches[<span class="number">0</span>], touches[<span class="number">1</span>]) - <span class="variable language_">this</span>.<span class="title function_">getAngle</span>(startTouches[<span class="number">0</span>], startTouches[<span class="number">1</span>]) + oldRotate</span><br><span class="line">  <span class="comment">// 如果大于360度，就减去360</span></span><br><span class="line">+   rotate = rotate &gt; <span class="number">360</span> ? rotate - <span class="number">360</span> : rotate</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">distance</span> = distance</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">      <span class="attr">scale</span>: scale * (distance / (oldDistance || distance)),</span><br><span class="line">+     rotate</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (startTouches.<span class="property">length</span> !== <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">      <span class="attr">translateX</span>: onePageX - startMove.<span class="property">x</span>,</span><br><span class="line">      <span class="attr">translateY</span>: onePageY - startMove.<span class="property">y</span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
 <ul>
-<li><code>getAngle</code></li>
+<li><code>getAngle</code><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">getAngle</span>(<span class="params">p1, p2</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> x = p1.<span class="property">pageX</span> - p2.<span class="property">pageX</span></span><br><span class="line">  <span class="keyword">const</span> y = p1.<span class="property">pageY</span>- p2.<span class="property">pageY</span></span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">Math</span>.<span class="title function_">atan2</span>(y, x) * <span class="number">180</span> / <span class="title class_">Math</span>.<span class="property">PI</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><code>touchend</code><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">touchEnd</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 保存当前旋转角度</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">oldRotate</span> = <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">rotate</span></span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="ts">getAngle(p1, p2) &#123;
-  const x = p1.pageX - p2.pageX
-  const y = p1.pageY- p2.pageY
-  return Math.atan2(y, x) * 180 / Math.PI
-&#125;
-</code></pre>
-<ul>
-<li><code>touchend</code></li>
-</ul>
-<pre><code class="ts">touchEnd() &#123;
-  // 保存当前旋转角度
-  this.data.oldRotate = this.data.rotate
-&#125;,
-</code></pre>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
 <li>代码片段<code>https://developers.weixin.qq.com/s/0nS1tImU7Rs5</code></li>
 <li>H5原理一致，只需改一下语法即可</li>
 </ul>
-</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2021-08-21</span><i class="fa fa-tag"></i><a class="tag" href="/tags/微信小程序/" title="微信小程序">微信小程序 </a><span class="leancloud_visitors"></span><span>大约704个字, 2分钟20秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2021/08/21/微信小程序单指拖拽和双指缩放旋转/,LH'BLOG,微信小程序单指拖拽和双指缩放旋转,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2021/09/08/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%9B%BE%E7%89%87%E4%B8%8A%E4%BC%A0-%E4%B9%9D%E5%AE%AB%E6%A0%BC%E6%8B%96%E6%8B%BD%E7%BB%84%E4%BB%B6/" title="微信小程序图片上传&amp;九宫格拖拽组件">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2021/08/01/%E8%A7%A3%E6%9E%90reactive-vue3%E5%93%8D%E5%BA%94%E5%BC%8F/" title="vue3响应式分析">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
-var disqus_identifier = '2021/08/21/微信小程序单指拖拽和双指缩放旋转/';
-var disqus_title = '微信小程序单指拖拽和双指缩放旋转';
-var disqus_url = 'https://lhrun.github.io/2021/08/21/微信小程序单指拖拽和双指缩放旋转/';
-(function() {
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2021/09/08/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%9B%BE%E7%89%87%E4%B8%8A%E4%BC%A0-%E4%B9%9D%E5%AE%AB%E6%A0%BC%E6%8B%96%E6%8B%BD%E7%BB%84%E4%BB%B6/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2021/08/01/%E8%A7%A3%E6%9E%90reactive-vue3%E5%93%8D%E5%BA%94%E5%BC%8F/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2021/08/21/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%8D%95%E6%8C%87%E6%8B%96%E6%8B%BD%E5%92%8C%E5%8F%8C%E6%8C%87%E7%BC%A9%E6%94%BE%E6%97%8B%E8%BD%AC/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2021/08/21/微信小程序单指拖拽和双指缩放旋转/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

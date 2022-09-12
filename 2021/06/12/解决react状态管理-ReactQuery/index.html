@@ -1,6 +1,167 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>解决react状态管理---React Query · LH'BLOG</title><meta name="description" content="什么是React Query
-react-query是一个适用于react hooks的请求库，它可以为任何类型的异步数据提供React状态管理功能，使React中的获取、缓存、同步和更新服务器数据变得轻而易举
-react-query与一些传统的状态管理库如redux,mobx不同，它是负责管理服务"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFReact-Query"><span class="toclist-number">1.</span> <span class="toclist-text">什么是React Query</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E5%88%9D%E6%AD%A5%E4%BD%BF%E7%94%A8"><span class="toclist-number">2.</span> <span class="toclist-text">初步使用</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#Devtools"><span class="toclist-number">2.1.</span> <span class="toclist-text">Devtools</span></a></li></ol></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5"><span class="toclist-number">3.</span> <span class="toclist-text">增删改查</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#useQuery"><span class="toclist-number">3.1.</span> <span class="toclist-text">useQuery</span></a></li><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#useMutation"><span class="toclist-number">3.2.</span> <span class="toclist-text">useMutation</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-5"><a class="toclist-link" href="#%E4%BE%8B%EF%BC%9A%E7%94%A8%E7%AC%AC%E4%BA%8C%E4%B8%AA%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E4%B9%90%E8%A7%82%E6%9B%B4%E6%96%B0"><span class="toclist-number">3.2.1.</span> <span class="toclist-text">例：用第二个参数配置乐观更新</span></a></li></ol></li></ol></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E6%80%BB%E7%BB%93"><span class="toclist-number">4.</span> <span class="toclist-text">总结</span></a></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>解决react状态管理---React Query</a></h3></div><div class="post-content"><p><p><img src="https://img-blog.csdnimg.cn/20210612171112847.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDcxOTI1OA==,size_16,color_FFFFFF,t_70#pic_center" alt="React Query"></p>
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>解决react状态管理---React Query | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/React/">
+                            React
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/ReactQuery/">
+                            ReactQuery
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                解决react状态管理---React Query
+            
+            
+        </div>
+        <span class="post-date">
+            6月 12, 2021
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/11/vXALvj.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <p><img src="https://img-blog.csdnimg.cn/20210612171112847.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDcxOTI1OA==,size_16,color_FFFFFF,t_70#pic_center" alt="React Query"></p>
 <h3 id="什么是React-Query"><a href="#什么是React-Query" class="headerlink" title="什么是React Query"></a>什么是React Query</h3><ul>
 <li><code>react-query</code>是一个适用于react hooks的请求库，它可以为任何类型的异步数据提供React状态管理功能，使React中的获取、缓存、同步和更新服务器数据变得轻而易举</li>
 <li><code>react-query</code>与一些传统的状态管理库如redux,mobx不同，它是负责管理服务器与客户端之间的状态，一些用户交互的中间状态，如loading状态，错误信息等都是通过hooks直接返回</li>
@@ -8,120 +169,25 @@ react-query与一些传统的状态管理库如redux,mobx不同，它是负责�
 </ul>
 <h3 id="初步使用"><a href="#初步使用" class="headerlink" title="初步使用"></a>初步使用</h3><ol>
 <li><code>yarn add react-query</code> or <code>npm i react-query</code>安装react-query</li>
-<li>使用<code>QueryClientProvider</code>组件连接并提供一个<code>QueryClient</code>到你的应用程序</li>
+<li>使用<code>QueryClientProvider</code>组件连接并提供一个<code>QueryClient</code>到你的应用程序<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">QueryClient</span>, <span class="title class_">QueryClientProvider</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query&#x27;</span></span><br><span class="line"></span><br><span class="line">&lt;<span class="title class_">QueryClientProvider</span> client=&#123;<span class="keyword">new</span> <span class="title class_">QueryClient</span>()&#125;&gt;</span><br><span class="line">  &#123; ... &#125;</span><br><span class="line">&lt;/<span class="title class_">QueryClientProvider</span>&gt;</span><br></pre></td></tr></table></figure></li>
 </ol>
-<pre><code class="js">import &#123; QueryClient, QueryClientProvider &#125; from &#39;react-query&#39;
-
-&lt;QueryClientProvider client=&#123;new QueryClient()&#125;&gt;
-  &#123; ... &#125;
-&lt;/QueryClientProvider&gt;
-</code></pre>
 <h4 id="Devtools"><a href="#Devtools" class="headerlink" title="Devtools"></a>Devtools</h4><ul>
 <li><code>yarn add react-query-devtools</code> or <code>npm i --save react-query-devtools</code>安装Devtools</li>
 <li><code>react-query-devtools</code>是与<code>react-query</code>相匹配的开发工具</li>
-<li>可在开发中实时查看缓存，手动获取和删除查询等等</li>
+<li>可在开发中实时查看缓存，手动获取和删除查询等等<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">ReactQueryDevtools</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query-devtools&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">App</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;&gt;</span>    </span></span><br><span class="line"><span class="language-xml">      &#123; ... &#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">ReactQueryDevtools</span> <span class="attr">initialIsOpen</span>=<span class="string">&#123;true&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">import &#123; ReactQueryDevtools &#125; from &#39;react-query-devtools&#39;
-
-const App = () =&gt; &#123;
-  return (
-    &lt;&gt;    
-      &#123; ... &#125;
-      &lt;ReactQueryDevtools initialIsOpen=&#123;true&#125; /&gt;
-    &lt;/&gt;
-  );
-&#125;;
-</code></pre>
 <h3 id="增删改查"><a href="#增删改查" class="headerlink" title="增删改查"></a>增删改查</h3><ul>
 <li>react-query最常用的两个hook，查询(<code>useQuery</code>)、增删改(<code>useMutation</code>)</li>
 </ul>
 <h4 id="useQuery"><a href="#useQuery" class="headerlink" title="useQuery"></a>useQuery</h4><ul>
-<li><code>useQuery</code>：在<code>React Query</code>中，查询是对某些异步数据源的声明性依赖。查询可以与任何基于Promise的方法(GET)一起使用，从服务器获取数据</li>
+<li><code>useQuery</code>：在<code>React Query</code>中，查询是对某些异步数据源的声明性依赖。查询可以与任何基于Promise的方法(GET)一起使用，从服务器获取数据<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">useTodos</span> = (<span class="params">param</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 第一个参数是QueryKey，是查询的关键，是一个独一无二的key，并在之后的增删改中需要，</span></span><br><span class="line"><span class="comment">   *   如果需要动态的QueryKey，可以使用数组的方式，如[&#x27;todos&#x27;, params]</span></span><br><span class="line"><span class="comment">   * 第二个参数是用于获取数据的异步函数</span></span><br><span class="line"><span class="comment">   * useQuery的响应返回就是获取到的数据和一些中间状态，如isLoading，error，isIdle...</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">useQuery</span>(<span class="string">&#x27;todos&#x27;</span>, <span class="function">() =&gt;</span></span><br><span class="line">    <span class="title function_">request</span>(<span class="string">&#x27;todos&#x27;</span>, &#123; <span class="attr">data</span>: param &#125;)</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在UI组件调用</span></span><br><span class="line"><span class="keyword">const</span> &#123; isLoading, error, <span class="attr">data</span>: todos &#125; = <span class="title function_">useTodos</span>()</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">const useTodos = (param) =&gt; &#123;
-  const request = useHttp()
-
-  /**
-   * 第一个参数是QueryKey，是查询的关键，是一个独一无二的key，并在之后的增删改中需要，
-   * 	如果需要动态的QueryKey，可以使用数组的方式，如[&#39;todos&#39;, params]
-   * 第二个参数是用于获取数据的异步函数
-   * useQuery的响应返回就是获取到的数据和一些中间状态，如isLoading，error，isIdle...
-   */
-  return useQuery(&#39;todos&#39;, () =&gt;
-    request(&#39;todos&#39;, &#123; data: param &#125;)
-  )
-&#125;
-
-// 在UI组件调用
-const &#123; isLoading, error, data: todos &#125; = useTodos()
-</code></pre>
 <h4 id="useMutation"><a href="#useMutation" class="headerlink" title="useMutation"></a>useMutation</h4><ul>
-<li><code>useMutation</code>：常用于创建&#x2F;更新&#x2F;删除数据或执行服务器副作用</li>
+<li><code>useMutation</code>：常用于创建&#x2F;更新&#x2F;删除数据或执行服务器副作用<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">useAddTodo</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 第一个参数是执行操作的异步函数，在返回的mutate中触发</span></span><br><span class="line"><span class="comment">   * 第二个参数是执行成功或者失败的一些配置函数，可用于一些处理缓存的操作，例如乐观更新</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">useMutation</span>(</span><br><span class="line">    <span class="function">(<span class="params">data</span>) =&gt;</span></span><br><span class="line">      <span class="title function_">request</span>(<span class="string">`todos`</span>, &#123;</span><br><span class="line">        data,</span><br><span class="line">        <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">      &#125;),</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="title function_">onSuccess</span>(<span class="params"></span>)&#123;&#125;</span><br><span class="line">      <span class="title function_">onError</span>(<span class="params"></span>)&#123;&#125;</span><br><span class="line">      <span class="title function_">onSettled</span>(<span class="params"></span>)&#123;&#125;</span><br><span class="line">      ...</span><br><span class="line">    &#125;</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 操作组件调用</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">TodosAddBtn</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="keyword">const</span> &#123; mutateAsync, isLoading, error &#125; = <span class="title function_">useAddTodo</span>()</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> mutateAsync(todoData)&#125;&gt;add<span class="tag">&lt;/<span class="name">Button</span>&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">const useAddTodo = () =&gt; &#123;
-  const request = useHttp()
-
-  /**
-   * 第一个参数是执行操作的异步函数，在返回的mutate中触发
-   * 第二个参数是执行成功或者失败的一些配置函数，可用于一些处理缓存的操作，例如乐观更新
-   */
-  return useMutation(
-    (data) =&gt;
-      request(`todos`, &#123;
-        data,
-        method: &#39;POST&#39;,
-      &#125;),
-    &#123;
-      onSuccess()&#123;&#125;
-      onError()&#123;&#125;
-      onSettled()&#123;&#125;
-      ...
-    &#125;
-  )
-&#125;
-
-// 操作组件调用
-const TodosAddBtn = () =&gt; &#123;
-  ...
-  const &#123; mutateAsync, isLoading, error &#125; = useAddTodo()
-  return &lt;Button onClick=&#123;() =&gt; mutateAsync(todoData)&#125;&gt;add&lt;/Button&gt;
-&#125;
-</code></pre>
 <h5 id="例：用第二个参数配置乐观更新"><a href="#例：用第二个参数配置乐观更新" class="headerlink" title="例：用第二个参数配置乐观更新"></a>例：用第二个参数配置乐观更新</h5><ul>
-<li>乐观更新就是在一些请求或者数据处理没有结束的时候，提前给用户显示理想的结果，如果失败就回滚更新</li>
+<li>乐观更新就是在一些请求或者数据处理没有结束的时候，提前给用户显示理想的结果，如果失败就回滚更新<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">useAddConfig</span> = (<span class="params">queryKey</span>) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 获取当前QueryClient的实例</span></span><br><span class="line">  <span class="keyword">const</span> queryClient = <span class="title function_">useQueryClient</span>()</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="comment">// 当mutate被调用时触发</span></span><br><span class="line">    <span class="keyword">async</span> <span class="title function_">onMutate</span>(<span class="params">target</span>) &#123;</span><br><span class="line">      <span class="comment">// 获取当前数据快照，用于错误时回滚更新</span></span><br><span class="line">      <span class="keyword">const</span> previousItems = queryClient.<span class="title function_">getQueryData</span>(queryKey)</span><br><span class="line">      <span class="comment">// 乐观更新为新值</span></span><br><span class="line">      queryClient.<span class="title function_">setQueryData</span>(queryKey, <span class="function">(<span class="params">old</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="function">(<span class="params">target, old</span>) =&gt;</span> (old ? [...old, target] : [])</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 这个返回值会作为最后一个参数传递给onError和onSettled</span></span><br><span class="line">      <span class="keyword">return</span> &#123; previousItems &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// 成功回调 清除缓存</span></span><br><span class="line">    <span class="attr">onSuccess</span>: <span class="function">() =&gt;</span> queryClient.<span class="title function_">invalidateQueries</span>(queryKey),</span><br><span class="line">    <span class="comment">// 失败回调</span></span><br><span class="line">    <span class="title function_">onError</span>(<span class="params">error, newItem, context</span>) &#123;</span><br><span class="line">      <span class="comment">// 当前queryKey的数据回滚</span></span><br><span class="line">      queryClient.<span class="title function_">setQueryData</span>(</span><br><span class="line">        queryKey,</span><br><span class="line">        context.<span class="property">previousItems</span></span><br><span class="line">      )</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// 无论错误或者成功都会触发，此例子没有使用</span></span><br><span class="line">    <span class="title function_">onSettled</span>(<span class="params"></span>) &#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">const useAddConfig = (queryKey) =&gt; &#123;
-  // 获取当前QueryClient的实例
-  const queryClient = useQueryClient()
-  
-  return &#123;
-    // 当mutate被调用时触发
-    async onMutate(target) &#123;
-      // 获取当前数据快照，用于错误时回滚更新
-      const previousItems = queryClient.getQueryData(queryKey)
-      // 乐观更新为新值
-      queryClient.setQueryData(queryKey, (old) =&gt; &#123;
-        return (target, old) =&gt; (old ? [...old, target] : [])
-      &#125;)
-
-      // 这个返回值会作为最后一个参数传递给onError和onSettled
-      return &#123; previousItems &#125;
-    &#125;,
-    // 成功回调 清除缓存
-    onSuccess: () =&gt; queryClient.invalidateQueries(queryKey),
-    // 失败回调
-    onError(error, newItem, context) &#123;
-      // 当前queryKey的数据回滚
-      queryClient.setQueryData(
-        queryKey,
-        context.previousItems
-      )
-    &#125;,
-    // 无论错误或者成功都会触发，此例子没有使用
-    onSettled() &#123;&#125;
-  &#125;
-&#125;
-</code></pre>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
 <li>本地&#x2F;客户端中间状态<ul>
 <li>redux与react-query都可，没有较大的优缺点</li>
@@ -132,12 +198,118 @@ const TodosAddBtn = () =&gt; &#123;
 </ul>
 </li>
 </ul>
-</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2021-06-12</span><i class="fa fa-tag"></i><a class="tag" href="/tags/React/" title="React">React </a><i class="fa fa-tag"></i><a class="tag" href="/tags/ReactQuery/" title="ReactQuery">ReactQuery </a><span class="leancloud_visitors"></span><span>大约897个字, 2分钟59秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2021/06/12/解决react状态管理-ReactQuery/,LH'BLOG,解决react状态管理---React Query,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2021/07/17/%E8%A7%A3%E6%9E%90nextTick-vue3%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" title="解析nextTick---vue3任务调度">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2021/06/10/H5%E8%B7%B3%E8%BD%AC%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/" title="H5跳转微信小程序">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
-var disqus_identifier = '2021/06/12/解决react状态管理-ReactQuery/';
-var disqus_title = '解决react状态管理---React Query';
-var disqus_url = 'https://lhrun.github.io/2021/06/12/解决react状态管理-ReactQuery/';
-(function() {
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2021/07/17/%E8%A7%A3%E6%9E%90nextTick-vue3%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2021/06/10/H5%E8%B7%B3%E8%BD%AC%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2021/06/12/%E8%A7%A3%E5%86%B3react%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86-ReactQuery/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2021/06/12/解决react状态管理-ReactQuery/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

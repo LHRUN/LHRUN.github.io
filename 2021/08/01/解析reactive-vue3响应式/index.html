@@ -1,10 +1,167 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>vue3响应式分析 · LH'BLOG</title><meta name="description" content="vue3响应式分析
-首先对vue3响应式分析之前，需要对前置知识Proxy和Reflect有所了解，，关于这两个知识我推荐看阮一峰老师的ES6入门教程
-vue3的响应式我是以reactive为入口进行梳理，流程如下图
-源码位置：reactivity/src/...，分四部分解析
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
 
 
-reactive"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#vue3%E5%93%8D%E5%BA%94%E5%BC%8F%E5%88%86%E6%9E%90"><span class="toclist-number">1.</span> <span class="toclist-text">vue3响应式分析</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#reactive"><span class="toclist-number">1.1.</span> <span class="toclist-text">reactive</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#baseHandler"><span class="toclist-number">1.2.</span> <span class="toclist-text">baseHandler</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#get"><span class="toclist-number">1.2.1.</span> <span class="toclist-text">get</span></a></li><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#set"><span class="toclist-number">1.2.2.</span> <span class="toclist-text">set</span></a></li><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#deleteProperty%E3%80%81has%E2%80%A6"><span class="toclist-number">1.2.3.</span> <span class="toclist-text">deleteProperty、has…</span></a></li></ol></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#collectionHandlers"><span class="toclist-number">1.3.</span> <span class="toclist-text">collectionHandlers</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#get-1"><span class="toclist-number">1.3.1.</span> <span class="toclist-text">get</span></a></li><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#size"><span class="toclist-number">1.3.2.</span> <span class="toclist-text">size</span></a></li><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#set-1"><span class="toclist-number">1.3.3.</span> <span class="toclist-text">set</span></a></li><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#has%E3%80%81clear%E2%80%A6"><span class="toclist-number">1.3.4.</span> <span class="toclist-text">has、clear…</span></a></li></ol></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#effect"><span class="toclist-number">1.4.</span> <span class="toclist-text">effect</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#effect-1"><span class="toclist-number">1.4.1.</span> <span class="toclist-text">effect</span></a></li><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#track"><span class="toclist-number">1.4.2.</span> <span class="toclist-text">track</span></a></li><li class="toclist-item toclist-level-4"><a class="toclist-link" href="#trigger"><span class="toclist-number">1.4.3.</span> <span class="toclist-text">trigger</span></a></li></ol></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E6%80%BB%E7%BB%93"><span class="toclist-number">1.5.</span> <span class="toclist-text">总结</span></a></li></ol></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>vue3响应式分析</a></h3></div><div class="post-content"><p><h2 id="vue3响应式分析"><a href="#vue3响应式分析" class="headerlink" title="vue3响应式分析"></a>vue3响应式分析</h2><ol>
+
+
+
+
+
+<title>vue3响应式分析 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Vue3/">
+                            Vue3
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Vue/">
+                            Vue
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                vue3响应式分析
+            
+            
+        </div>
+        <span class="post-date">
+            8月 1, 2021
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/11/vXAHPS.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="vue3响应式分析"><a href="#vue3响应式分析" class="headerlink" title="vue3响应式分析"></a>vue3响应式分析</h2><ol>
 <li>首先对vue3响应式分析之前，需要对前置知识<code>Proxy</code>和<code>Reflect</code>有所了解，，关于这两个知识我推荐看阮一峰老师的<a target="_blank" rel="noopener" href="https://es6.ruanyifeng.com/#README">ES6入门教程</a></li>
 <li>vue3的响应式我是以reactive为入口进行梳理，流程如下图<br><img src="https://img-blog.csdnimg.cn/83a41b1d8a3044d6b8135850ea972ed1.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDcxOTI1OA==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></li>
 <li>源码位置：<code>reactivity/src/...</code>，分四部分解析</li>
@@ -19,322 +176,29 @@ reactive"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=
 <li>如果不想看源码解析，可以直接看总结🐶</li>
 </ol>
 <h3 id="reactive"><a href="#reactive" class="headerlink" title="reactive"></a>reactive</h3><ul>
-<li><code>reactive</code>：将一个JS对象转为具有响应式的proxy实例</li>
+<li><code>reactive</code>：将一个JS对象转为具有响应式的proxy实例<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">reactive</span>(<span class="params">target: <span class="built_in">object</span></span>) &#123;</span><br><span class="line">    <span class="comment">// 如果是只读数据，就直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (target &amp;&amp; (target <span class="keyword">as</span> <span class="title class_">Target</span>)[<span class="title class_">ReactiveFlags</span>.<span class="property">IS_READONLY</span>]) &#123;</span><br><span class="line">      <span class="keyword">return</span> target</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">createReactiveObject</span>(</span><br><span class="line">      target,</span><br><span class="line">      <span class="literal">false</span>,</span><br><span class="line">      mutableHandlers,</span><br><span class="line">      mutableCollectionHandlers,</span><br><span class="line">      reactiveMap</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><code>createReactiveObject</code><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createReactiveObject</span>(<span class="params"></span></span><br><span class="line"><span class="params">    target: Target, <span class="comment">// 源对象</span></span></span><br><span class="line"><span class="params">    isReadonly: <span class="built_in">boolean</span>, <span class="comment">// 是否只读</span></span></span><br><span class="line"><span class="params">    baseHandlers: ProxyHandler&lt;<span class="built_in">any</span>&gt;, <span class="comment">// 基本类型的handlers</span></span></span><br><span class="line"><span class="params">    collectionHandlers: ProxyHandler&lt;<span class="built_in">any</span>&gt;, <span class="comment">// 主要针对(set、map、weakSet、weakMap)的handlers</span></span></span><br><span class="line"><span class="params">    proxyMap: <span class="built_in">WeakMap</span>&lt;Target, <span class="built_in">any</span>&gt;</span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 如果不是一个对象，直接返回，并且在开发环境发出警告</span></span><br><span class="line">    <span class="keyword">if</span> (!<span class="title function_">isObject</span>(target)) &#123;</span><br><span class="line">      <span class="keyword">if</span> (__DEV__) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">warn</span>(<span class="string">`value cannot be made reactive: <span class="subst">$&#123;<span class="built_in">String</span>(target)&#125;</span>`</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> target</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果已经是响应式，直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">      target[<span class="title class_">ReactiveFlags</span>.<span class="property">RAW</span>] &amp;&amp;</span><br><span class="line">      !(isReadonly &amp;&amp; target[<span class="title class_">ReactiveFlags</span>.<span class="property">IS_REACTIVE</span>])</span><br><span class="line">    ) &#123;</span><br><span class="line">      <span class="keyword">return</span> target</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果目标对象已经存在代理，直接返回</span></span><br><span class="line">    <span class="keyword">const</span> existingProxy = proxyMap.<span class="title function_">get</span>(target)</span><br><span class="line">    <span class="keyword">if</span> (existingProxy) &#123;</span><br><span class="line">      <span class="keyword">return</span> existingProxy</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果类型值不是Object、Array、Map、Set、WeakMap、WeakSet的，直接返回</span></span><br><span class="line">    <span class="keyword">const</span> targetType = <span class="title function_">getTargetType</span>(target)</span><br><span class="line">    <span class="keyword">if</span> (targetType === <span class="title class_">TargetType</span>.<span class="property">INVALID</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> target</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 根据不同的类型值赋予不同的handlers，就是我之前图上画的分开处理</span></span><br><span class="line">    <span class="comment">/* </span></span><br><span class="line"><span class="comment">      把set、Map这种数据与基础数据分开处理，是因为Map、Set中存储的数据必须通过this进行访问</span></span><br><span class="line"><span class="comment">      但是被proxy劫持后，this就变成了proxy，</span></span><br><span class="line"><span class="comment">      所以需要特殊处理，把劫持方法进行重写</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="title class_">Proxy</span>(</span><br><span class="line">      target,</span><br><span class="line">      targetType === <span class="title class_">TargetType</span>.<span class="property">COLLECTION</span> ? collectionHandlers : baseHandlers</span><br><span class="line">    )</span><br><span class="line">    proxyMap.<span class="title function_">set</span>(target, proxy)</span><br><span class="line">    <span class="keyword">return</span> proxy</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="ts">export function reactive(target: object) &#123;
-    // 如果是只读数据，就直接返回
-    if (target &amp;&amp; (target as Target)[ReactiveFlags.IS_READONLY]) &#123;
-      return target
-    &#125;
-    return createReactiveObject(
-      target,
-      false,
-      mutableHandlers,
-      mutableCollectionHandlers,
-      reactiveMap
-    )
-&#125;
-</code></pre>
-<ul>
-<li><code>createReactiveObject</code></li>
-</ul>
-<pre><code class="ts">function createReactiveObject(
-    target: Target, // 源对象
-    isReadonly: boolean, // 是否只读
-    baseHandlers: ProxyHandler&lt;any&gt;, // 基本类型的handlers
-    collectionHandlers: ProxyHandler&lt;any&gt;, // 主要针对(set、map、weakSet、weakMap)的handlers
-    proxyMap: WeakMap&lt;Target, any&gt;
-) &#123;
-  // 如果不是一个对象，直接返回，并且在开发环境发出警告
-    if (!isObject(target)) &#123;
-      if (__DEV__) &#123;
-        console.warn(`value cannot be made reactive: $&#123;String(target)&#125;`)
-      &#125;
-      return target
-    &#125;
-    // 如果已经是响应式，直接返回
-    if (
-      target[ReactiveFlags.RAW] &amp;&amp;
-      !(isReadonly &amp;&amp; target[ReactiveFlags.IS_REACTIVE])
-    ) &#123;
-      return target
-    &#125;
-
-    // 如果目标对象已经存在代理，直接返回
-    const existingProxy = proxyMap.get(target)
-    if (existingProxy) &#123;
-      return existingProxy
-    &#125;
-
-    // 如果类型值不是Object、Array、Map、Set、WeakMap、WeakSet的，直接返回
-    const targetType = getTargetType(target)
-    if (targetType === TargetType.INVALID) &#123;
-      return target
-    &#125;
-
-    // 根据不同的类型值赋予不同的handlers，就是我之前图上画的分开处理
-    /* 
-      把set、Map这种数据与基础数据分开处理，是因为Map、Set中存储的数据必须通过this进行访问
-      但是被proxy劫持后，this就变成了proxy，
-      所以需要特殊处理，把劫持方法进行重写
-     */
-    const proxy = new Proxy(
-      target,
-      targetType === TargetType.COLLECTION ? collectionHandlers : baseHandlers
-    )
-    proxyMap.set(target, proxy)
-    return proxy
-  &#125;
-</code></pre>
 <h3 id="baseHandler"><a href="#baseHandler" class="headerlink" title="baseHandler"></a>baseHandler</h3><p><code>baseHandler</code>主要分析reactive的处理器对象<code>mutableHandlers</code></p>
-<pre><code class="ts">// 对get set delete has onwKeys做了拦截处理
-export const mutableHandlers: ProxyHandler&lt;object&gt; = &#123;
-  get,
-  set,
-  deleteProperty,
-  has,
-  ownKeys
-&#125;
-</code></pre>
-<h4 id="get"><a href="#get" class="headerlink" title="get"></a>get</h4><pre><code class="ts">function createGetter(isReadonly = false, shallow = false) &#123;
-  return function get(target: Target, key: string | symbol, receiver: object) &#123;
-    // 访问标志位时的逻辑处理
-    if (key === ReactiveFlags.IS_REACTIVE) &#123;
-      return !isReadonly
-    &#125; else if (key === ReactiveFlags.IS_READONLY) &#123;
-      return isReadonly
-    &#125; else if (
-      key === ReactiveFlags.RAW &amp;&amp;
-      receiver ===
-        (isReadonly
-          ? shallow
-            ? shallowReadonlyMap
-            : readonlyMap
-          : shallow
-            ? shallowReactiveMap
-            : reactiveMap
-        ).get(target)
-    ) &#123;
-      return target
-    &#125;
-
-    const targetIsArray = isArray(target)
-
-    // 如果target是数组并且key属于一些数组的原始方法，即触发拦截
-    if (!isReadonly &amp;&amp; targetIsArray &amp;&amp; hasOwn(arrayInstrumentations, key)) &#123;
-      return Reflect.get(arrayInstrumentations, key, receiver)
-    &#125;
-
-    const res = Reflect.get(target, key, receiver)
-
-    // 如果key是symbol的内置方法，或者是原型对象，直接返回
-    if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) &#123;
-      return res
-    &#125;
-
-    // 只读对象不收集依赖，因为不会触发依赖更新
-    if (!isReadonly) &#123;
-      track(target, TrackOpTypes.GET, key)
-    &#125;
-
-    // 浅层响应立即返回，不递归转化
-    if (shallow) &#123;
-      return res
-    &#125;
-
-    // 如果是ref对象(数组除外)，返回真正的值，
-    if (isRef(res)) &#123;
-      const shouldUnwrap = !targetIsArray || !isIntegerKey(key)
-      return shouldUnwrap ? res.value : res
-    &#125;
-
-    if (isObject(res)) &#123;
-      // 由于proxy只能代理一层，所以target[key]的值如果是对象，就继续对其进行代理
-      return isReadonly ? readonly(res) : reactive(res)
-    &#125;
-    return res
-  &#125;
-&#125;
-</code></pre>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对get set delete has onwKeys做了拦截处理</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="attr">mutableHandlers</span>: <span class="title class_">ProxyHandler</span>&lt;<span class="built_in">object</span>&gt; = &#123;</span><br><span class="line">  get,</span><br><span class="line">  set,</span><br><span class="line">  deleteProperty,</span><br><span class="line">  has,</span><br><span class="line">  ownKeys</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="get"><a href="#get" class="headerlink" title="get"></a>get</h4><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createGetter</span>(<span class="params">isReadonly = <span class="literal">false</span>, shallow = <span class="literal">false</span></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span> <span class="title function_">get</span>(<span class="params">target: Target, key: <span class="built_in">string</span> | <span class="built_in">symbol</span>, receiver: <span class="built_in">object</span></span>) &#123;</span><br><span class="line">    <span class="comment">// 访问标志位时的逻辑处理</span></span><br><span class="line">    <span class="keyword">if</span> (key === <span class="title class_">ReactiveFlags</span>.<span class="property">IS_REACTIVE</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> !isReadonly</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (key === <span class="title class_">ReactiveFlags</span>.<span class="property">IS_READONLY</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> isReadonly</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (</span><br><span class="line">      key === <span class="title class_">ReactiveFlags</span>.<span class="property">RAW</span> &amp;&amp;</span><br><span class="line">      receiver ===</span><br><span class="line">        (isReadonly</span><br><span class="line">          ? shallow</span><br><span class="line">            ? shallowReadonlyMap</span><br><span class="line">            : readonlyMap</span><br><span class="line">          : shallow</span><br><span class="line">            ? shallowReactiveMap</span><br><span class="line">            : reactiveMap</span><br><span class="line">        ).<span class="title function_">get</span>(target)</span><br><span class="line">    ) &#123;</span><br><span class="line">      <span class="keyword">return</span> target</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> targetIsArray = <span class="title function_">isArray</span>(target)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果target是数组并且key属于一些数组的原始方法，即触发拦截</span></span><br><span class="line">    <span class="keyword">if</span> (!isReadonly &amp;&amp; targetIsArray &amp;&amp; <span class="title function_">hasOwn</span>(arrayInstrumentations, key)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="title class_">Reflect</span>.<span class="title function_">get</span>(arrayInstrumentations, key, receiver)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> res = <span class="title class_">Reflect</span>.<span class="title function_">get</span>(target, key, receiver)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果key是symbol的内置方法，或者是原型对象，直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">isSymbol</span>(key) ? builtInSymbols.<span class="title function_">has</span>(key) : <span class="title function_">isNonTrackableKeys</span>(key)) &#123;</span><br><span class="line">      <span class="keyword">return</span> res</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只读对象不收集依赖，因为不会触发依赖更新</span></span><br><span class="line">    <span class="keyword">if</span> (!isReadonly) &#123;</span><br><span class="line">      <span class="title function_">track</span>(target, <span class="title class_">TrackOpTypes</span>.<span class="property">GET</span>, key)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 浅层响应立即返回，不递归转化</span></span><br><span class="line">    <span class="keyword">if</span> (shallow) &#123;</span><br><span class="line">      <span class="keyword">return</span> res</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果是ref对象(数组除外)，返回真正的值，</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">isRef</span>(res)) &#123;</span><br><span class="line">      <span class="keyword">const</span> shouldUnwrap = !targetIsArray || !<span class="title function_">isIntegerKey</span>(key)</span><br><span class="line">      <span class="keyword">return</span> shouldUnwrap ? res.<span class="property">value</span> : res</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">isObject</span>(res)) &#123;</span><br><span class="line">      <span class="comment">// 由于proxy只能代理一层，所以target[key]的值如果是对象，就继续对其进行代理</span></span><br><span class="line">      <span class="keyword">return</span> isReadonly ? <span class="title function_">readonly</span>(res) : <span class="title function_">reactive</span>(res)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>数组方法拦截: 对数组的两种原生方法进行了拦截</p>
 <ul>
 <li>遍历查找的方法：includes、indexOf、lastIndexOf</li>
-<li>改变数组长度的方法：push、pop、shift、unshift、splice</li>
+<li>改变数组长度的方法：push、pop、shift、unshift、splice<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createArrayInstrumentations</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="attr">instrumentations</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="title class_">Function</span>&gt; = &#123;&#125;</span><br><span class="line">    ;([<span class="string">&#x27;includes&#x27;</span>, <span class="string">&#x27;indexOf&#x27;</span>, <span class="string">&#x27;lastIndexOf&#x27;</span>] <span class="keyword">as</span> <span class="keyword">const</span>).<span class="title function_">forEach</span>(<span class="function"><span class="params">key</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> method = <span class="title class_">Array</span>.<span class="property"><span class="keyword">prototype</span></span>[key] <span class="keyword">as</span> <span class="built_in">any</span></span><br><span class="line">      instrumentations[key] = <span class="keyword">function</span>(<span class="params"><span class="variable language_">this</span>: <span class="built_in">unknown</span>[], ...args: <span class="built_in">unknown</span>[]</span>) &#123;</span><br><span class="line">        <span class="comment">// 这一步是为了取原始实例，因为当前的this是receiver</span></span><br><span class="line">        <span class="keyword">const</span> arr = <span class="title function_">toRaw</span>(<span class="variable language_">this</span>)</span><br><span class="line">        <span class="comment">// 搜集依赖</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = <span class="variable language_">this</span>.<span class="property">length</span>; i &lt; l; i++) &#123;</span><br><span class="line">          <span class="title function_">track</span>(arr, <span class="title class_">TrackOpTypes</span>.<span class="property">GET</span>, i + <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 触发方法，如果没有找到对应的值，就取原始值再遍历</span></span><br><span class="line">        <span class="keyword">const</span> res = method.<span class="title function_">apply</span>(arr, args)</span><br><span class="line">        <span class="keyword">if</span> (res === -<span class="number">1</span> || res === <span class="literal">false</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> method.<span class="title function_">apply</span>(arr, args.<span class="title function_">map</span>(toRaw))</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="keyword">return</span> res</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="comment">/* </span></span><br><span class="line"><span class="comment">      因为改变数组长度的方法，执行期间会触发length的get和set</span></span><br><span class="line"><span class="comment">      就回导致无限循环track和trigger</span></span><br><span class="line"><span class="comment">      所以就用pauseTracking()禁用依赖收集，触发方法后，</span></span><br><span class="line"><span class="comment">      再用resetTracking()恢复track</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    ;([<span class="string">&#x27;push&#x27;</span>, <span class="string">&#x27;pop&#x27;</span>, <span class="string">&#x27;shift&#x27;</span>, <span class="string">&#x27;unshift&#x27;</span>, <span class="string">&#x27;splice&#x27;</span>] <span class="keyword">as</span> <span class="keyword">const</span>).<span class="title function_">forEach</span>(<span class="function"><span class="params">key</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> method = <span class="title class_">Array</span>.<span class="property"><span class="keyword">prototype</span></span>[key] <span class="keyword">as</span> <span class="built_in">any</span></span><br><span class="line">      instrumentations[key] = <span class="keyword">function</span>(<span class="params"><span class="variable language_">this</span>: <span class="built_in">unknown</span>[], ...args: <span class="built_in">unknown</span>[]</span>) &#123;</span><br><span class="line">        <span class="title function_">pauseTracking</span>()</span><br><span class="line">        <span class="keyword">const</span> res = method.<span class="title function_">apply</span>(<span class="variable language_">this</span>, args)</span><br><span class="line">        <span class="title function_">resetTracking</span>()</span><br><span class="line">        <span class="keyword">return</span> res</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">return</span> instrumentations</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="ts">function createArrayInstrumentations() &#123;
-    const instrumentations: Record&lt;string, Function&gt; = &#123;&#125;
-    ;([&#39;includes&#39;, &#39;indexOf&#39;, &#39;lastIndexOf&#39;] as const).forEach(key =&gt; &#123;
-      const method = Array.prototype[key] as any
-      instrumentations[key] = function(this: unknown[], ...args: unknown[]) &#123;
-        // 这一步是为了取原始实例，因为当前的this是receiver
-        const arr = toRaw(this)
-        // 搜集依赖
-        for (let i = 0, l = this.length; i &lt; l; i++) &#123;
-          track(arr, TrackOpTypes.GET, i + &#39;&#39;)
-        &#125;
-        // 触发方法，如果没有找到对应的值，就取原始值再遍历
-        const res = method.apply(arr, args)
-        if (res === -1 || res === false) &#123;
-          return method.apply(arr, args.map(toRaw))
-        &#125; else &#123;
-          return res
-        &#125;
-      &#125;
-    &#125;)
-    /* 
-      因为改变数组长度的方法，执行期间会触发length的get和set
-      就回导致无限循环track和trigger
-      所以就用pauseTracking()禁用依赖收集，触发方法后，
-      再用resetTracking()恢复track
-     */
-    ;([&#39;push&#39;, &#39;pop&#39;, &#39;shift&#39;, &#39;unshift&#39;, &#39;splice&#39;] as const).forEach(key =&gt; &#123;
-      const method = Array.prototype[key] as any
-      instrumentations[key] = function(this: unknown[], ...args: unknown[]) &#123;
-        pauseTracking()
-        const res = method.apply(this, args)
-        resetTracking()
-        return res
-      &#125;
-    &#125;)
-    return instrumentations
-&#125;
-</code></pre>
-<h4 id="set"><a href="#set" class="headerlink" title="set"></a>set</h4><pre><code class="ts">function createSetter(shallow = false) &#123;
-  return function set(
-    target: object,
-    key: string | symbol,
-    value: unknown,
-    receiver: object
-  ): boolean &#123;
-    let oldValue = (target as any)[key]
-    if (!shallow) &#123;
-      value = toRaw(value)
-      oldValue = toRaw(oldValue)
-      // 如果原来的值是ref，但新的值不是，则将新的值赋给oldValue.value
-      if (!isArray(target) &amp;&amp; isRef(oldValue) &amp;&amp; !isRef(value)) &#123;
-        oldValue.value = value
-        return true
-      &#125;
-    &#125; else &#123;
-      // in shallow mode, objects are set as-is regardless of reactive or not
-    &#125;
-
-    const hadKey =
-      isArray(target) &amp;&amp; isIntegerKey(key)
-        ? Number(key) &lt; target.length
-        : hasOwn(target, key)
-    const result = Reflect.set(target, key, value, receiver)
-    
-    // 判断receiver是当前对象的proxy实例，防止原型链上的proxy触发更新
-    if (target === toRaw(receiver)) &#123;
-      // 判断新增属性还是修改属性
-      if (!hadKey) &#123;
-        trigger(target, TriggerOpTypes.ADD, key, value)
-      &#125; else if (hasChanged(value, oldValue)) &#123;
-        trigger(target, TriggerOpTypes.SET, key, value, oldValue)
-      &#125;
-    &#125;
-    return result
-  &#125;
-&#125;
-</code></pre>
+<h4 id="set"><a href="#set" class="headerlink" title="set"></a>set</h4><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createSetter</span>(<span class="params">shallow = <span class="literal">false</span></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span> <span class="title function_">set</span>(<span class="params"></span></span><br><span class="line"><span class="params">    target: <span class="built_in">object</span>,</span></span><br><span class="line"><span class="params">    key: <span class="built_in">string</span> | <span class="built_in">symbol</span>,</span></span><br><span class="line"><span class="params">    value: <span class="built_in">unknown</span>,</span></span><br><span class="line"><span class="params">    receiver: <span class="built_in">object</span></span></span><br><span class="line"><span class="params">  </span>): <span class="built_in">boolean</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> oldValue = (target <span class="keyword">as</span> <span class="built_in">any</span>)[key]</span><br><span class="line">    <span class="keyword">if</span> (!shallow) &#123;</span><br><span class="line">      value = <span class="title function_">toRaw</span>(value)</span><br><span class="line">      oldValue = <span class="title function_">toRaw</span>(oldValue)</span><br><span class="line">      <span class="comment">// 如果原来的值是ref，但新的值不是，则将新的值赋给oldValue.value</span></span><br><span class="line">      <span class="keyword">if</span> (!<span class="title function_">isArray</span>(target) &amp;&amp; <span class="title function_">isRef</span>(oldValue) &amp;&amp; !<span class="title function_">isRef</span>(value)) &#123;</span><br><span class="line">        oldValue.<span class="property">value</span> = value</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// in shallow mode, objects are set as-is regardless of reactive or not</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> hadKey =</span><br><span class="line">      <span class="title function_">isArray</span>(target) &amp;&amp; <span class="title function_">isIntegerKey</span>(key)</span><br><span class="line">        ? <span class="title class_">Number</span>(key) &lt; target.<span class="property">length</span></span><br><span class="line">        : <span class="title function_">hasOwn</span>(target, key)</span><br><span class="line">    <span class="keyword">const</span> result = <span class="title class_">Reflect</span>.<span class="title function_">set</span>(target, key, value, receiver)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 判断receiver是当前对象的proxy实例，防止原型链上的proxy触发更新</span></span><br><span class="line">    <span class="keyword">if</span> (target === <span class="title function_">toRaw</span>(receiver)) &#123;</span><br><span class="line">      <span class="comment">// 判断新增属性还是修改属性</span></span><br><span class="line">      <span class="keyword">if</span> (!hadKey) &#123;</span><br><span class="line">        <span class="title function_">trigger</span>(target, <span class="title class_">TriggerOpTypes</span>.<span class="property">ADD</span>, key, value)</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="title function_">hasChanged</span>(value, oldValue)) &#123;</span><br><span class="line">        <span class="title function_">trigger</span>(target, <span class="title class_">TriggerOpTypes</span>.<span class="property">SET</span>, key, value, oldValue)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="deleteProperty、has…"><a href="#deleteProperty、has…" class="headerlink" title="deleteProperty、has…"></a>deleteProperty、has…</h4><ul>
 <li>deleteProperty、has、ownKeys的源码就不贴了，都是判断key的属性，然后选择触发或者收集依赖</li>
 </ul>
 <h3 id="collectionHandlers"><a href="#collectionHandlers" class="headerlink" title="collectionHandlers"></a>collectionHandlers</h3><ul>
-<li>collection主要分析reactive的重写方法对象mutableInstrumentations</li>
+<li>collection主要分析reactive的重写方法对象mutableInstrumentations<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 主要对以下原生api进行了改写</span></span><br><span class="line"><span class="keyword">const</span> <span class="attr">mutableInstrumentations</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="title class_">Function</span>&gt; = &#123;</span><br><span class="line">    <span class="title function_">get</span>(<span class="params"><span class="variable language_">this</span>: MapTypes, key: <span class="built_in">unknown</span></span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">get</span>(<span class="variable language_">this</span>, key)</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="keyword">get</span> <span class="title function_">size</span>() &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">size</span>((<span class="variable language_">this</span> <span class="keyword">as</span> <span class="built_in">unknown</span>) <span class="keyword">as</span> <span class="title class_">IterableCollections</span>)</span><br><span class="line">    &#125;,</span><br><span class="line">    has,</span><br><span class="line">    add,</span><br><span class="line">    set,</span><br><span class="line">    <span class="attr">delete</span>: deleteEntry,</span><br><span class="line">    clear,</span><br><span class="line">    <span class="attr">forEach</span>: <span class="title function_">createForEach</span>(<span class="literal">false</span>, <span class="literal">false</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="ts">// 主要对以下原生api进行了改写
-const mutableInstrumentations: Record&lt;string, Function&gt; = &#123;
-    get(this: MapTypes, key: unknown) &#123;
-      return get(this, key)
-    &#125;,
-    get size() &#123;
-      return size((this as unknown) as IterableCollections)
-    &#125;,
-    has,
-    add,
-    set,
-    delete: deleteEntry,
-    clear,
-    forEach: createForEach(false, false)
-&#125;
-</code></pre>
-<h4 id="get-1"><a href="#get-1" class="headerlink" title="get"></a>get</h4><pre><code class="ts">function get(
-    target: MapTypes,
-    key: unknown,
-    isReadonly = false,
-    isShallow = false
-) &#123;
-    // 获取原始值重新赋值给target
-    target = (target as any)[ReactiveFlags.RAW]
+<h4 id="get-1"><a href="#get-1" class="headerlink" title="get"></a>get</h4><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">get</span>(<span class="params"></span></span><br><span class="line"><span class="params">    target: MapTypes,</span></span><br><span class="line"><span class="params">    key: <span class="built_in">unknown</span>,</span></span><br><span class="line"><span class="params">    isReadonly = <span class="literal">false</span>,</span></span><br><span class="line"><span class="params">    isShallow = <span class="literal">false</span></span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 获取原始值重新赋值给target</span></span><br><span class="line">    target = (target <span class="keyword">as</span> <span class="built_in">any</span>)[<span class="title class_">ReactiveFlags</span>.<span class="property">RAW</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 对target源对象和key进一步获取原始值</span></span><br><span class="line">    <span class="keyword">const</span> rawTarget = <span class="title function_">toRaw</span>(target)</span><br><span class="line">    <span class="keyword">const</span> rawKey = <span class="title function_">toRaw</span>(key)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 当前key和原始key均进行依赖收集(track)</span></span><br><span class="line">    <span class="keyword">if</span> (key !== rawKey) &#123;</span><br><span class="line">      !isReadonly &amp;&amp; <span class="title function_">track</span>(rawTarget, <span class="title class_">TrackOpTypes</span>.<span class="property">GET</span>, key)</span><br><span class="line">    &#125;</span><br><span class="line">    !isReadonly &amp;&amp; <span class="title function_">track</span>(rawTarget, <span class="title class_">TrackOpTypes</span>.<span class="property">GET</span>, rawKey)</span><br><span class="line">    <span class="keyword">const</span> &#123; has &#125; = <span class="title function_">getProto</span>(rawTarget)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取对应的转换函数</span></span><br><span class="line">    <span class="keyword">const</span> wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive</span><br><span class="line">    <span class="comment">/* </span></span><br><span class="line"><span class="comment">      如果源对象有key对应的属性，就通过原生get方法取到值，</span></span><br><span class="line"><span class="comment">      并对该值进行响应式转换，返回转换后的响应式对象，</span></span><br><span class="line"><span class="comment">      如果没有，就去key原始值中去查找</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="keyword">if</span> (has.<span class="title function_">call</span>(rawTarget, key)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">wrap</span>(target.<span class="title function_">get</span>(key))</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (has.<span class="title function_">call</span>(rawTarget, rawKey)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">wrap</span>(target.<span class="title function_">get</span>(rawKey))</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (target !== rawTarget) &#123;</span><br><span class="line">      target.<span class="title function_">get</span>(key)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    // 对target源对象和key进一步获取原始值
-    const rawTarget = toRaw(target)
-    const rawKey = toRaw(key)
+<h4 id="size"><a href="#size" class="headerlink" title="size"></a>size</h4><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对size属性做get拦截</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">size</span>(<span class="params">target: IterableCollections, isReadonly = <span class="literal">false</span></span>) &#123;</span><br><span class="line">  target = (target <span class="keyword">as</span> <span class="built_in">any</span>)[<span class="title class_">ReactiveFlags</span>.<span class="property">RAW</span>]</span><br><span class="line">  <span class="comment">// 获取size和获取数组的length类似，都用专门的key做依赖收集</span></span><br><span class="line">  !isReadonly &amp;&amp; <span class="title function_">track</span>(<span class="title function_">toRaw</span>(target), <span class="title class_">TrackOpTypes</span>.<span class="property">ITERATE</span>, <span class="variable constant_">ITERATE_KEY</span>)</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">Reflect</span>.<span class="title function_">get</span>(target, <span class="string">&#x27;size&#x27;</span>, target)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    // 当前key和原始key均进行依赖收集(track)
-    if (key !== rawKey) &#123;
-      !isReadonly &amp;&amp; track(rawTarget, TrackOpTypes.GET, key)
-    &#125;
-    !isReadonly &amp;&amp; track(rawTarget, TrackOpTypes.GET, rawKey)
-    const &#123; has &#125; = getProto(rawTarget)
-
-    // 获取对应的转换函数
-    const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive
-    /* 
-      如果源对象有key对应的属性，就通过原生get方法取到值，
-      并对该值进行响应式转换，返回转换后的响应式对象，
-      如果没有，就去key原始值中去查找
-    */
-    if (has.call(rawTarget, key)) &#123;
-      return wrap(target.get(key))
-    &#125; else if (has.call(rawTarget, rawKey)) &#123;
-      return wrap(target.get(rawKey))
-    &#125; else if (target !== rawTarget) &#123;
-      target.get(key)
-    &#125;
-&#125;
-</code></pre>
-<h4 id="size"><a href="#size" class="headerlink" title="size"></a>size</h4><pre><code class="ts">// 对size属性做get拦截
-function size(target: IterableCollections, isReadonly = false) &#123;
-  target = (target as any)[ReactiveFlags.RAW]
-  // 获取size和获取数组的length类似，都用专门的key做依赖收集
-  !isReadonly &amp;&amp; track(toRaw(target), TrackOpTypes.ITERATE, ITERATE_KEY)
-  return Reflect.get(target, &#39;size&#39;, target)
-&#125;
-</code></pre>
-<h4 id="set-1"><a href="#set-1" class="headerlink" title="set"></a>set</h4><pre><code class="ts">function set(this: MapTypes, key: unknown, value: unknown) &#123;
-  // 获取value和this上下文的原始值
-  value = toRaw(value)
-  const target = toRaw(this)
-  const &#123; has, get &#125; = getProto(target)
-
-  /* 
-    判断源对象是否已经存在对应的key
-    1. 首先查找源对象是否已有key对应的属性
-    2. 如果没有，再查找key对应的原始值在源对象的属性是否存在
-  */
-  let hadKey = has.call(target, key)
-  if (!hadKey) &#123;
-    key = toRaw(key)
-    hadKey = has.call(target, key)
-  &#125; else if (__DEV__) &#123;
-    checkIdentityKeys(target, has, key)
-  &#125;
-
-  const oldValue = get.call(target, key)
-  target.set(key, value)
-
-  // 触发依赖，新增属性和修改属性分开进行trigger
-  if (!hadKey) &#123;
-    trigger(target, TriggerOpTypes.ADD, key, value)
-  &#125; else if (hasChanged(value, oldValue)) &#123;
-    trigger(target, TriggerOpTypes.SET, key, value, oldValue)
-  &#125;
-  return this
-&#125;
-</code></pre>
+<h4 id="set-1"><a href="#set-1" class="headerlink" title="set"></a>set</h4><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">set</span>(<span class="params"><span class="variable language_">this</span>: MapTypes, key: <span class="built_in">unknown</span>, value: <span class="built_in">unknown</span></span>) &#123;</span><br><span class="line">  <span class="comment">// 获取value和this上下文的原始值</span></span><br><span class="line">  value = <span class="title function_">toRaw</span>(value)</span><br><span class="line">  <span class="keyword">const</span> target = <span class="title function_">toRaw</span>(<span class="variable language_">this</span>)</span><br><span class="line">  <span class="keyword">const</span> &#123; has, get &#125; = <span class="title function_">getProto</span>(target)</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* </span></span><br><span class="line"><span class="comment">    判断源对象是否已经存在对应的key</span></span><br><span class="line"><span class="comment">    1. 首先查找源对象是否已有key对应的属性</span></span><br><span class="line"><span class="comment">    2. 如果没有，再查找key对应的原始值在源对象的属性是否存在</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  <span class="keyword">let</span> hadKey = has.<span class="title function_">call</span>(target, key)</span><br><span class="line">  <span class="keyword">if</span> (!hadKey) &#123;</span><br><span class="line">    key = <span class="title function_">toRaw</span>(key)</span><br><span class="line">    hadKey = has.<span class="title function_">call</span>(target, key)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (__DEV__) &#123;</span><br><span class="line">    <span class="title function_">checkIdentityKeys</span>(target, has, key)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> oldValue = get.<span class="title function_">call</span>(target, key)</span><br><span class="line">  target.<span class="title function_">set</span>(key, value)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 触发依赖，新增属性和修改属性分开进行trigger</span></span><br><span class="line">  <span class="keyword">if</span> (!hadKey) &#123;</span><br><span class="line">    <span class="title function_">trigger</span>(target, <span class="title class_">TriggerOpTypes</span>.<span class="property">ADD</span>, key, value)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="title function_">hasChanged</span>(value, oldValue)) &#123;</span><br><span class="line">    <span class="title function_">trigger</span>(target, <span class="title class_">TriggerOpTypes</span>.<span class="property">SET</span>, key, value, oldValue)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="variable language_">this</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="has、clear…"><a href="#has、clear…" class="headerlink" title="has、clear…"></a>has、clear…</h4><ul>
 <li>其余重写方法我就不上代码了，不同点是单个属性触发单个的依赖，如果是遍历所有属性的方法就触发所有依赖</li>
 </ul>
@@ -342,230 +206,17 @@ function size(target: IterableCollections, isReadonly = false) &#123;
 <li>effect文件作为响应式的核心，主要负责收集依赖，触发依赖</li>
 </ul>
 <h4 id="effect-1"><a href="#effect-1" class="headerlink" title="effect"></a>effect</h4><ul>
-<li>effect函数主要是生成收集依赖所需的依赖函数</li>
-</ul>
-<pre><code class="ts">export function effect&lt;T = any&gt;(
-    fn: () =&gt; T,
-    options: ReactiveEffectOptions = EMPTY_OBJ
-): ReactiveEffect&lt;T&gt; &#123;
-    // 如果已经是effect函数，取得原来的fn
-    if (isEffect(fn)) &#123;
-      fn = fn.raw
-    &#125;
-    const effect = createReactiveEffect(fn, options)
-
-    // 如果lazy为false，立即执行一次
-    if (!options.lazy) &#123;
-      effect()
-    &#125;
-    return effect
-&#125;
-</code></pre>
-<ul>
-<li><code>createReactiveEffect</code>：生成effect对象</li>
-</ul>
-<pre><code class="ts">function createReactiveEffect&lt;T = any&gt;(
-    fn: () =&gt; T,
-    options: ReactiveEffectOptions
-): ReactiveEffect&lt;T&gt; &#123;
-    const effect = function reactiveEffect(): unknown &#123;
-      // 没有激活，已经调用stop函数停止监听
-      if (!effect.active) &#123;
-        return fn()
-      &#125;
-      /**
-       * effectStack是一个全局的effect栈结构
-       * 设计为栈结构是因为如果effect是嵌套时，为了防止内层副作用函数覆盖外层副作用函数，在收集时只收集栈顶的，这样就不会收集到错误的副作用函数
-       */
-      if (!effectStack.includes(effect)) &#123;
-        /**
-         * 为了保证当前effect的dep是最新，因为在一些判断处理中，可能会导致一些无效的副作用函数
-         * 所以为了取消这些不必要的更新，就要清除effect依赖
-         */
-        cleanup(effect)
-        try &#123;
-          enableTracking() // 重新收集依赖
-          effectStack.push(effect)
-          activeEffect = effect
-          return fn()
-        &#125; finally &#123;
-          /* 
-            track将依赖函数activeEffect添加到对应的dep中，
-            然后将activeEffect重置为上一个effect的值
-          */
-          effectStack.pop()
-          resetTracking()
-          activeEffect = effectStack[effectStack.length - 1]
-        &#125;
-      &#125;
-    &#125; as ReactiveEffect
-    effect.id = uid++ // 自增ID
-    effect.allowRecurse = !!options.allowRecurse // 递归状态
-    effect._isEffect = true // 用于标识方法是不是effect
-    effect.active = true // 用于判断当前effect是否激活，有一个stop()来将它设为false
-    effect.raw = fn // effect的执行函数
-    effect.deps = [] // 用于收集依赖
-    effect.options = options // 创建effect传入的options
-    return effect
-&#125;
-</code></pre>
-<ul>
+<li>effect函数主要是生成收集依赖所需的依赖函数<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> effect&lt;T = <span class="built_in">any</span>&gt;(</span><br><span class="line">    <span class="attr">fn</span>: <span class="function">() =&gt;</span> T,</span><br><span class="line">    <span class="attr">options</span>: <span class="title class_">ReactiveEffectOptions</span> = <span class="variable constant_">EMPTY_OBJ</span></span><br><span class="line">): <span class="title class_">ReactiveEffect</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="comment">// 如果已经是effect函数，取得原来的fn</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">isEffect</span>(fn)) &#123;</span><br><span class="line">      fn = fn.<span class="property">raw</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> effect = <span class="title function_">createReactiveEffect</span>(fn, options)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果lazy为false，立即执行一次</span></span><br><span class="line">    <span class="keyword">if</span> (!options.<span class="property">lazy</span>) &#123;</span><br><span class="line">      <span class="title function_">effect</span>()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> effect</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><code>createReactiveEffect</code>：生成effect对象<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> createReactiveEffect&lt;T = <span class="built_in">any</span>&gt;(</span><br><span class="line">    <span class="attr">fn</span>: <span class="function">() =&gt;</span> T,</span><br><span class="line">    <span class="attr">options</span>: <span class="title class_">ReactiveEffectOptions</span></span><br><span class="line">): <span class="title class_">ReactiveEffect</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> effect = <span class="keyword">function</span> <span class="title function_">reactiveEffect</span>(<span class="params"></span>): <span class="built_in">unknown</span> &#123;</span><br><span class="line">      <span class="comment">// 没有激活，已经调用stop函数停止监听</span></span><br><span class="line">      <span class="keyword">if</span> (!effect.<span class="property">active</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="title function_">fn</span>()</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * effectStack是一个全局的effect栈结构</span></span><br><span class="line"><span class="comment">       * 设计为栈结构是因为如果effect是嵌套时，为了防止内层副作用函数覆盖外层副作用函数，在收集时只收集栈顶的，这样就不会收集到错误的副作用函数</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="keyword">if</span> (!effectStack.<span class="title function_">includes</span>(effect)) &#123;</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 为了保证当前effect的dep是最新，因为在一些判断处理中，可能会导致一些无效的副作用函数</span></span><br><span class="line"><span class="comment">         * 所以为了取消这些不必要的更新，就要清除effect依赖</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="title function_">cleanup</span>(effect)</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="title function_">enableTracking</span>() <span class="comment">// 重新收集依赖</span></span><br><span class="line">          effectStack.<span class="title function_">push</span>(effect)</span><br><span class="line">          activeEffect = effect</span><br><span class="line">          <span class="keyword">return</span> <span class="title function_">fn</span>()</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">          <span class="comment">/* </span></span><br><span class="line"><span class="comment">            track将依赖函数activeEffect添加到对应的dep中，</span></span><br><span class="line"><span class="comment">            然后将activeEffect重置为上一个effect的值</span></span><br><span class="line"><span class="comment">          */</span></span><br><span class="line">          effectStack.<span class="title function_">pop</span>()</span><br><span class="line">          <span class="title function_">resetTracking</span>()</span><br><span class="line">          activeEffect = effectStack[effectStack.<span class="property">length</span> - <span class="number">1</span>]</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">as</span> <span class="title class_">ReactiveEffect</span></span><br><span class="line">    effect.<span class="property">id</span> = uid++ <span class="comment">// 自增ID</span></span><br><span class="line">    effect.<span class="property">allowRecurse</span> = !!options.<span class="property">allowRecurse</span> <span class="comment">// 递归状态</span></span><br><span class="line">    effect.<span class="property">_isEffect</span> = <span class="literal">true</span> <span class="comment">// 用于标识方法是不是effect</span></span><br><span class="line">    effect.<span class="property">active</span> = <span class="literal">true</span> <span class="comment">// 用于判断当前effect是否激活，有一个stop()来将它设为false</span></span><br><span class="line">    effect.<span class="property">raw</span> = fn <span class="comment">// effect的执行函数</span></span><br><span class="line">    effect.<span class="property">deps</span> = [] <span class="comment">// 用于收集依赖</span></span><br><span class="line">    effect.<span class="property">options</span> = options <span class="comment">// 创建effect传入的options</span></span><br><span class="line">    <span class="keyword">return</span> effect</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 <li>activeEffect就是标记track所需的依赖函数</li>
 </ul>
 <h4 id="track"><a href="#track" class="headerlink" title="track"></a>track</h4><ul>
 <li>track就是baseHandler和collectionHandlers文件中频繁使用的收集依赖函数</li>
-<li>首先需要看一个关键变量targetMap</li>
+<li>首先需要看一个关键变量targetMap<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// targetMap是依赖管理中心，收集依赖和触发依赖都依托于这个Map数据</span></span><br><span class="line"><span class="comment">// 下面是targetMap的定义(target -&gt; key -&gt; dep)</span></span><br><span class="line"><span class="comment">// target: 监听的对象源</span></span><br><span class="line"><span class="comment">// key: 监听的键值</span></span><br><span class="line"><span class="comment">// dep：依赖函数</span></span><br><span class="line"><span class="keyword">type</span> <span class="title class_">Dep</span> = <span class="title class_">Set</span>&lt;<span class="title class_">ReactiveEffect</span>&gt;</span><br><span class="line"><span class="keyword">type</span> <span class="title class_">KeyToDepMap</span> = <span class="title class_">Map</span>&lt;<span class="built_in">any</span>, <span class="title class_">Dep</span>&gt;</span><br><span class="line"><span class="keyword">const</span> targetMap = <span class="keyword">new</span> <span class="title class_">WeakMap</span>&lt;<span class="built_in">any</span>, <span class="title class_">KeyToDepMap</span>&gt;()</span><br><span class="line"><span class="comment">// 格式大致为</span></span><br><span class="line">targetMap = &#123;</span><br><span class="line">  <span class="attr">target</span>: &#123;</span><br><span class="line">    <span class="attr">key1</span>: &#123; fn1, fn2 &#125;</span><br><span class="line">    <span class="attr">key2</span>: &#123; fn1, fn2 &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> &#123;<span class="type">target</span>&#125; 目标对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> &#123;<span class="type">type</span>&#125; 收集类型</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> &#123;<span class="type">key</span>&#125; 需要收集依赖的key</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">track</span>(<span class="params">target: <span class="built_in">object</span>, <span class="keyword">type</span>: TrackOpTypes, key: <span class="built_in">unknown</span></span>) &#123;</span><br><span class="line">    <span class="comment">// activeEffect为空，就表示当前没有依赖，就没必要做依赖收集了</span></span><br><span class="line">    <span class="keyword">if</span> (!shouldTrack || activeEffect === <span class="literal">undefined</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 获取当前依赖数据</span></span><br><span class="line">    <span class="keyword">let</span> depsMap = targetMap.<span class="title function_">get</span>(target)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!depsMap) &#123;</span><br><span class="line">      targetMap.<span class="title function_">set</span>(target, (depsMap = <span class="keyword">new</span> <span class="title class_">Map</span>()))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果当前数据中没有所属的依赖key，就重新设置一个</span></span><br><span class="line">    <span class="keyword">let</span> dep = depsMap.<span class="title function_">get</span>(key)</span><br><span class="line">    <span class="keyword">if</span> (!dep) &#123;</span><br><span class="line">      depsMap.<span class="title function_">set</span>(key, (dep = <span class="keyword">new</span> <span class="title class_">Set</span>()))</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 添加依赖函数</span></span><br><span class="line">    <span class="keyword">if</span> (!dep.<span class="title function_">has</span>(activeEffect)) &#123;</span><br><span class="line">      dep.<span class="title function_">add</span>(activeEffect)</span><br><span class="line">      activeEffect.<span class="property">deps</span>.<span class="title function_">push</span>(dep)</span><br><span class="line">      <span class="keyword">if</span> (__DEV__ &amp;&amp; activeEffect.<span class="property">options</span>.<span class="property">onTrack</span>) &#123;</span><br><span class="line">        activeEffect.<span class="property">options</span>.<span class="title function_">onTrack</span>(&#123;</span><br><span class="line">          <span class="attr">effect</span>: activeEffect,</span><br><span class="line">          target,</span><br><span class="line">          <span class="keyword">type</span>,</span><br><span class="line">          key</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="ts">// targetMap是依赖管理中心，收集依赖和触发依赖都依托于这个Map数据
-// 下面是targetMap的定义(target -&gt; key -&gt; dep)
-// target: 监听的对象源
-// key: 监听的键值
-// dep：依赖函数
-type Dep = Set&lt;ReactiveEffect&gt;
-type KeyToDepMap = Map&lt;any, Dep&gt;
-const targetMap = new WeakMap&lt;any, KeyToDepMap&gt;()
-// 格式大致为
-targetMap = &#123;
-  target: &#123;
-    key1: &#123; fn1, fn2 &#125;
-    key2: &#123; fn1, fn2 &#125;
-  &#125;
-&#125;
-</code></pre>
-<pre><code class="ts">/**
- * @param &#123;target&#125; 目标对象
- * @param &#123;type&#125; 收集类型
- * @param &#123;key&#125; 需要收集依赖的key
- */
-export function track(target: object, type: TrackOpTypes, key: unknown) &#123;
-    // activeEffect为空，就表示当前没有依赖，就没必要做依赖收集了
-    if (!shouldTrack || activeEffect === undefined) &#123;
-      return
-    &#125;
-    // 获取当前依赖数据
-    let depsMap = targetMap.get(target)
+<h4 id="trigger"><a href="#trigger" class="headerlink" title="trigger"></a>trigger</h4><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 触发依赖</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">trigger</span>(<span class="params"></span></span><br><span class="line"><span class="params">  target: <span class="built_in">object</span>,</span></span><br><span class="line"><span class="params">  <span class="keyword">type</span>: TriggerOpTypes,</span></span><br><span class="line"><span class="params">  key?: <span class="built_in">unknown</span>,</span></span><br><span class="line"><span class="params">  newValue?: <span class="built_in">unknown</span>,</span></span><br><span class="line"><span class="params">  oldValue?: <span class="built_in">unknown</span>,</span></span><br><span class="line"><span class="params">  oldTarget?: <span class="built_in">Map</span>&lt;<span class="built_in">unknown</span>, <span class="built_in">unknown</span>&gt; | <span class="built_in">Set</span>&lt;<span class="built_in">unknown</span>&gt;</span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> depsMap = targetMap.<span class="title function_">get</span>(target)</span><br><span class="line">  <span class="comment">// 如果没有收集过依赖，直接返回</span></span><br><span class="line">  <span class="keyword">if</span> (!depsMap) &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> effects = <span class="keyword">new</span> <span class="title class_">Set</span>&lt;<span class="title class_">ReactiveEffect</span>&gt;()</span><br><span class="line">  <span class="keyword">const</span> <span class="title function_">add</span> = (<span class="params">effectsToAdd: <span class="built_in">Set</span>&lt;ReactiveEffect&gt; | <span class="literal">undefined</span></span>) =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (effectsToAdd) &#123;</span><br><span class="line">      effectsToAdd.<span class="title function_">forEach</span>(<span class="function"><span class="params">effect</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 避免循环触发依赖 类似`effect(() =&gt; obj.foo++)`</span></span><br><span class="line">        <span class="keyword">if</span> (effect !== activeEffect || effect.<span class="property">allowRecurse</span>) &#123;</span><br><span class="line">          effects.<span class="title function_">add</span>(effect)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">type</span> === <span class="title class_">TriggerOpTypes</span>.<span class="property">CLEAR</span>) &#123;</span><br><span class="line">    <span class="comment">// 在清空前，将对应的依赖全部添加到局部Set</span></span><br><span class="line">    depsMap.<span class="title function_">forEach</span>(add)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (key === <span class="string">&#x27;length&#x27;</span> &amp;&amp; <span class="title function_">isArray</span>(target)) &#123;</span><br><span class="line">    <span class="comment">// 当数组的length属性变化时触发</span></span><br><span class="line">    depsMap.<span class="title function_">forEach</span>(<span class="function">(<span class="params">dep, key</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (key === <span class="string">&#x27;length&#x27;</span> || key &gt;= (newValue <span class="keyword">as</span> <span class="built_in">number</span>)) &#123;</span><br><span class="line">        <span class="title function_">add</span>(dep)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// schedule runs for SET | ADD | DELETE</span></span><br><span class="line">    <span class="comment">// 往相应队列添加依赖</span></span><br><span class="line">    <span class="keyword">if</span> (key !== <span class="built_in">void</span> <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="title function_">add</span>(depsMap.<span class="title function_">get</span>(key))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// also run for iteration key on ADD | DELETE | Map.SET</span></span><br><span class="line">    <span class="comment">// 通过不同的TriggerOpTypes将depsMap的数据取出，添加到effects</span></span><br><span class="line">    <span class="keyword">switch</span> (<span class="keyword">type</span>) &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="title class_">TriggerOpTypes</span>.<span class="property">ADD</span>:</span><br><span class="line">        <span class="keyword">if</span> (!<span class="title function_">isArray</span>(target)) &#123;</span><br><span class="line">          <span class="title function_">add</span>(depsMap.<span class="title function_">get</span>(<span class="variable constant_">ITERATE_KEY</span>))</span><br><span class="line">          <span class="keyword">if</span> (<span class="title function_">isMap</span>(target)) &#123;</span><br><span class="line">            <span class="title function_">add</span>(depsMap.<span class="title function_">get</span>(<span class="variable constant_">MAP_KEY_ITERATE_KEY</span>))</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="title function_">isIntegerKey</span>(key)) &#123;</span><br><span class="line">          <span class="comment">// new index added to array -&gt; length changes</span></span><br><span class="line">          <span class="title function_">add</span>(depsMap.<span class="title function_">get</span>(<span class="string">&#x27;length&#x27;</span>))</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">      <span class="keyword">case</span> <span class="title class_">TriggerOpTypes</span>.<span class="property">DELETE</span>:</span><br><span class="line">        <span class="keyword">if</span> (!<span class="title function_">isArray</span>(target)) &#123;</span><br><span class="line">          <span class="title function_">add</span>(depsMap.<span class="title function_">get</span>(<span class="variable constant_">ITERATE_KEY</span>))</span><br><span class="line">          <span class="keyword">if</span> (<span class="title function_">isMap</span>(target)) &#123;</span><br><span class="line">            <span class="title function_">add</span>(depsMap.<span class="title function_">get</span>(<span class="variable constant_">MAP_KEY_ITERATE_KEY</span>))</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">      <span class="keyword">case</span> <span class="title class_">TriggerOpTypes</span>.<span class="property">SET</span>:</span><br><span class="line">        <span class="keyword">if</span> (<span class="title function_">isMap</span>(target)) &#123;</span><br><span class="line">          <span class="title function_">add</span>(depsMap.<span class="title function_">get</span>(<span class="variable constant_">ITERATE_KEY</span>))</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> <span class="title function_">run</span> = (<span class="params">effect: ReactiveEffect</span>) =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (__DEV__ &amp;&amp; effect.<span class="property">options</span>.<span class="property">onTrigger</span>) &#123;</span><br><span class="line">      effect.<span class="property">options</span>.<span class="title function_">onTrigger</span>(&#123;</span><br><span class="line">        effect,</span><br><span class="line">        target,</span><br><span class="line">        key,</span><br><span class="line">        <span class="keyword">type</span>,</span><br><span class="line">        newValue,</span><br><span class="line">        oldValue,</span><br><span class="line">        oldTarget</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (effect.<span class="property">options</span>.<span class="property">scheduler</span>) &#123;</span><br><span class="line">      <span class="comment">// 如果有调度属性，就通过scheduler处理执行</span></span><br><span class="line">      effect.<span class="property">options</span>.<span class="title function_">scheduler</span>(effect)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="title function_">effect</span>()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  effects.<span class="title function_">forEach</span>(run)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    if (!depsMap) &#123;
-      targetMap.set(target, (depsMap = new Map()))
-    &#125;
-
-    // 如果当前数据中没有所属的依赖key，就重新设置一个
-    let dep = depsMap.get(key)
-    if (!dep) &#123;
-      depsMap.set(key, (dep = new Set()))
-    &#125;
-    // 添加依赖函数
-    if (!dep.has(activeEffect)) &#123;
-      dep.add(activeEffect)
-      activeEffect.deps.push(dep)
-      if (__DEV__ &amp;&amp; activeEffect.options.onTrack) &#123;
-        activeEffect.options.onTrack(&#123;
-          effect: activeEffect,
-          target,
-          type,
-          key
-        &#125;)
-      &#125;
-    &#125;
-&#125;
-</code></pre>
-<h4 id="trigger"><a href="#trigger" class="headerlink" title="trigger"></a>trigger</h4><pre><code class="ts">// 触发依赖
-export function trigger(
-  target: object,
-  type: TriggerOpTypes,
-  key?: unknown,
-  newValue?: unknown,
-  oldValue?: unknown,
-  oldTarget?: Map&lt;unknown, unknown&gt; | Set&lt;unknown&gt;
-) &#123;
-  const depsMap = targetMap.get(target)
-  // 如果没有收集过依赖，直接返回
-  if (!depsMap) &#123;
-    return
-  &#125;
-
-  const effects = new Set&lt;ReactiveEffect&gt;()
-  const add = (effectsToAdd: Set&lt;ReactiveEffect&gt; | undefined) =&gt; &#123;
-    if (effectsToAdd) &#123;
-      effectsToAdd.forEach(effect =&gt; &#123;
-        // 避免循环触发依赖 类似`effect(() =&gt; obj.foo++)`
-        if (effect !== activeEffect || effect.allowRecurse) &#123;
-          effects.add(effect)
-        &#125;
-      &#125;)
-    &#125;
-  &#125;
-
-  if (type === TriggerOpTypes.CLEAR) &#123;
-    // 在清空前，将对应的依赖全部添加到局部Set
-    depsMap.forEach(add)
-  &#125; else if (key === &#39;length&#39; &amp;&amp; isArray(target)) &#123;
-    // 当数组的length属性变化时触发
-    depsMap.forEach((dep, key) =&gt; &#123;
-      if (key === &#39;length&#39; || key &gt;= (newValue as number)) &#123;
-        add(dep)
-      &#125;
-    &#125;)
-  &#125; else &#123;
-    // schedule runs for SET | ADD | DELETE
-    // 往相应队列添加依赖
-    if (key !== void 0) &#123;
-      add(depsMap.get(key))
-    &#125;
-
-    // also run for iteration key on ADD | DELETE | Map.SET
-    // 通过不同的TriggerOpTypes将depsMap的数据取出，添加到effects
-    switch (type) &#123;
-      case TriggerOpTypes.ADD:
-        if (!isArray(target)) &#123;
-          add(depsMap.get(ITERATE_KEY))
-          if (isMap(target)) &#123;
-            add(depsMap.get(MAP_KEY_ITERATE_KEY))
-          &#125;
-        &#125; else if (isIntegerKey(key)) &#123;
-          // new index added to array -&gt; length changes
-          add(depsMap.get(&#39;length&#39;))
-        &#125;
-        break
-      case TriggerOpTypes.DELETE:
-        if (!isArray(target)) &#123;
-          add(depsMap.get(ITERATE_KEY))
-          if (isMap(target)) &#123;
-            add(depsMap.get(MAP_KEY_ITERATE_KEY))
-          &#125;
-        &#125;
-        break
-      case TriggerOpTypes.SET:
-        if (isMap(target)) &#123;
-          add(depsMap.get(ITERATE_KEY))
-        &#125;
-        break
-    &#125;
-  &#125;
-
-  const run = (effect: ReactiveEffect) =&gt; &#123;
-    if (__DEV__ &amp;&amp; effect.options.onTrigger) &#123;
-      effect.options.onTrigger(&#123;
-        effect,
-        target,
-        key,
-        type,
-        newValue,
-        oldValue,
-        oldTarget
-      &#125;)
-    &#125;
-    if (effect.options.scheduler) &#123;
-      // 如果有调度属性，就通过scheduler处理执行
-      effect.options.scheduler(effect)
-    &#125; else &#123;
-      effect()
-    &#125;
-  &#125;
-
-  effects.forEach(run)
-&#125;
-</code></pre>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
 <li>vue3响应式是通过数据劫持和发布订阅的模式进行处理，首先vue3中的数据是通过<code>proxy</code>做了一层代理，然后处理<code>proxy</code>的<code>handler</code>，基本类型的<code>handler</code>是通过<code>baseHandlers</code>，特殊类型(map，set)的<code>handler</code>是通过<code>collectHandlers</code>。</li>
 <li><code>handler</code>中获取属性的操作通过<code>track</code>进行依赖收集，修改属性的操作通过<code>trigger</code>进行依赖触发，依赖的收集与触发是通过依赖管理中心<code>targetMap</code>保存的</li>
@@ -577,12 +228,118 @@ export function trigger(
 </ul>
 </li>
 </ul>
-</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2021-08-01</span><i class="fa fa-tag"></i><a class="tag" href="/tags/Vue3/" title="Vue3">Vue3 </a><i class="fa fa-tag"></i><a class="tag" href="/tags/Vue/" title="Vue">Vue </a><span class="leancloud_visitors"></span><span>大约3070个字, 10分钟14秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2021/08/01/解析reactive-vue3响应式/,LH'BLOG,vue3响应式分析,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2021/08/21/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%8D%95%E6%8C%87%E6%8B%96%E6%8B%BD%E5%92%8C%E5%8F%8C%E6%8C%87%E7%BC%A9%E6%94%BE%E6%97%8B%E8%BD%AC/" title="微信小程序单指拖拽和双指缩放旋转">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2021/07/17/%E8%A7%A3%E6%9E%90nextTick-vue3%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" title="解析nextTick---vue3任务调度">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
-var disqus_identifier = '2021/08/01/解析reactive-vue3响应式/';
-var disqus_title = 'vue3响应式分析';
-var disqus_url = 'https://lhrun.github.io/2021/08/01/解析reactive-vue3响应式/';
-(function() {
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2021/08/21/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%8D%95%E6%8C%87%E6%8B%96%E6%8B%BD%E5%92%8C%E5%8F%8C%E6%8C%87%E7%BC%A9%E6%94%BE%E6%97%8B%E8%BD%AC/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2021/07/17/%E8%A7%A3%E6%9E%90nextTick-vue3%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2021/08/01/%E8%A7%A3%E6%9E%90reactive-vue3%E5%93%8D%E5%BA%94%E5%BC%8F/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2021/08/01/解析reactive-vue3响应式/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

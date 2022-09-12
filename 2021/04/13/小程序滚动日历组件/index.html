@@ -1,160 +1,286 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>小程序滚动日历组件 · LH'BLOG</title><meta name="description" content="小程序滚动日历组件前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-在ready中初始化组件数据
+    <meta name="author" content="songlh">
 
-/**"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6"><span class="toclist-number">1.</span> <span class="toclist-text">小程序滚动日历组件</span></a></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>小程序滚动日历组件</a></h3></div><div class="post-content"><p><h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
+
+
+
+
+
+
+<title>小程序滚动日历组件 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">
+                            微信小程序
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                小程序滚动日历组件
+            
+            
+        </div>
+        <span class="post-date">
+            4月 13, 2021
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/11/vXAg8e.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
 <ol>
-<li>在ready中初始化组件数据</li>
-</ol>
-<pre><code class="js">/**
- * @description: 初始化
- */
-ready() &#123;
-  // 这两个数据是从页面中传过来的，起始时间和结束时间
-  // 数组类型 [year, month, day]
-  const &#123; endDate, startDate &#125; = this.data
-  let monthList = [] // 这个用于wxml中遍历，以每月为item
-
-  // 未跨年
-  if ( endDate[0] === startDate[0]) &#123;
-    let rangeMonth = endDate[1] - startDate[1]
-    for (let i = 0; i &lt;= rangeMonth; i++) &#123;
-      let date = [startDate[0], startDate[1] + i + 1]
-      // monthInitData()初始化每月数据
-      let days = this.monthInitData(startDate[0], startDate[1] + i)
-      monthList.push(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-  &#125; else &#123;
-    // 跨年前月份
-    for (let i = 0, lng = 12 - startDate[1]; i &lt; lng; i++) &#123;
-      let date = [startDate[0], startDate[1] + i + 1]
-      let days = this.monthInitData(startDate[0], startDate[1] + i)
-      monthList.push(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-
-    // 跨年后月份
-    for (let i = 0; i &lt;= endDate[1]; i++) &#123;
-      let date = [endDate[0], i + 1]
-      let days = this.monthInitData(endDate[0], i)
-      monthList.push(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-  &#125;
-  this.setData(&#123;
-    monthList,
-  &#125;)
-&#125;
-</code></pre>
-<ol start="2">
-<li>初始化每月数据: <blockquote>
+<li><p>在ready中初始化组件数据</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 初始化</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">ready</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 这两个数据是从页面中传过来的，起始时间和结束时间</span></span><br><span class="line">  <span class="comment">// 数组类型 [year, month, day]</span></span><br><span class="line">  <span class="keyword">const</span> &#123; endDate, startDate &#125; = <span class="variable language_">this</span>.<span class="property">data</span></span><br><span class="line">  <span class="keyword">let</span> monthList = [] <span class="comment">// 这个用于wxml中遍历，以每月为item</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 未跨年</span></span><br><span class="line">  <span class="keyword">if</span> ( endDate[<span class="number">0</span>] === startDate[<span class="number">0</span>]) &#123;</span><br><span class="line">    <span class="keyword">let</span> rangeMonth = endDate[<span class="number">1</span>] - startDate[<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= rangeMonth; i++) &#123;</span><br><span class="line">      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]</span><br><span class="line">      <span class="comment">// monthInitData()初始化每月数据</span></span><br><span class="line">      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)</span><br><span class="line">      monthList.<span class="title function_">push</span>(&#123;</span><br><span class="line">        date,</span><br><span class="line">        days,</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 跨年前月份</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, lng = <span class="number">12</span> - startDate[<span class="number">1</span>]; i &lt; lng; i++) &#123;</span><br><span class="line">      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]</span><br><span class="line">      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)</span><br><span class="line">      monthList.<span class="title function_">push</span>(&#123;</span><br><span class="line">        date,</span><br><span class="line">        days,</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 跨年后月份</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= endDate[<span class="number">1</span>]; i++) &#123;</span><br><span class="line">      <span class="keyword">let</span> date = [endDate[<span class="number">0</span>], i + <span class="number">1</span>]</span><br><span class="line">      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(endDate[<span class="number">0</span>], i)</span><br><span class="line">      monthList.<span class="title function_">push</span>(&#123;</span><br><span class="line">        date,</span><br><span class="line">        days,</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    monthList,</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>初始化每月数据: </p>
+<blockquote>
 <p>逻辑是获取每个月第一天的星期数和每个月的最大天数，然后在之前和之后的空数据填充item占位<br>然后遍历，根据不同的需求，在遍历中处理，最后在html中flex布局即可</p>
 </blockquote>
-</li>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 初始化每月数据</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">monthInitData</span>(<span class="params">year, month</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> &#123; calendarValue, startDate, endDate &#125;= <span class="variable language_">this</span>.<span class="property">data</span>, <span class="comment">// 当前点击时间，起始时间，结束时间</span></span><br><span class="line">    firstWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, <span class="number">1</span>).<span class="title function_">getDay</span>(), <span class="comment">// 本月的第一天的星期数</span></span><br><span class="line">    days = [], <span class="comment">// 日期数组</span></span><br><span class="line">    max = <span class="variable language_">this</span>.<span class="title function_">getMonthMax</span>(year, month + <span class="number">1</span>), <span class="comment">// 每月最大天数</span></span><br><span class="line">    lastWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, (month + <span class="number">1</span>), <span class="number">0</span>).<span class="title function_">getDay</span>() <span class="comment">// 本月的最后一天的星期数</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 填充每月一号之前的空数据</span></span><br><span class="line">  <span class="keyword">if</span> (firstWeek &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; firstWeek; i++) &#123;</span><br><span class="line">      days.<span class="title function_">push</span>(&#123;</span><br><span class="line">        <span class="attr">day</span>: <span class="number">0</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> currentTime = <span class="number">0</span>, </span><br><span class="line">      startTime = <span class="number">0</span>,</span><br><span class="line">      endTime = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (calendarValue[<span class="number">0</span>]) &#123;</span><br><span class="line">    currentTime = <span class="keyword">new</span> <span class="title class_">Date</span>(calendarValue[<span class="number">0</span>], calendarValue[<span class="number">1</span>], calendarValue[<span class="number">2</span>]).<span class="title function_">getTime</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (startDate[<span class="number">0</span>]) &#123;</span><br><span class="line">    startTime = <span class="keyword">new</span> <span class="title class_">Date</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>], startDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (endDate[<span class="number">0</span>]) &#123;</span><br><span class="line">    endTime = <span class="keyword">new</span> <span class="title class_">Date</span>(endDate[<span class="number">0</span>], endDate[<span class="number">1</span>], endDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;</span><br><span class="line">    <span class="comment">// 以下状态是需要在html中判断处理，根据自己需求改变</span></span><br><span class="line">    <span class="keyword">let</span> current = <span class="literal">false</span>, <span class="comment">// 当前点击状态</span></span><br><span class="line">      disabled = <span class="literal">false</span>, <span class="comment">// 禁止状态</span></span><br><span class="line">      now = <span class="literal">false</span>, <span class="comment">// 今天显示文案</span></span><br><span class="line">      time = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, i).<span class="title function_">getTime</span>(),</span><br><span class="line">      nowTime = [<span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getFullYear</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getMonth</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getDate</span>()]</span><br><span class="line">    <span class="keyword">if</span> (currentTime &amp;&amp; currentTime == time) current = <span class="literal">true</span></span><br><span class="line">    <span class="keyword">if</span> (startTime &amp;&amp; startTime &gt; time) disabled = <span class="literal">true</span></span><br><span class="line">    <span class="keyword">if</span> (endTime &amp;&amp; endTime &lt; time) disabled = <span class="literal">true</span></span><br><span class="line">    <span class="keyword">if</span> (year === nowTime[<span class="number">0</span>] &amp;&amp; month === nowTime[<span class="number">1</span>] &amp;&amp; i === nowTime[<span class="number">2</span>]) now = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">    days.<span class="title function_">push</span>(&#123;</span><br><span class="line">      <span class="attr">day</span>: i,</span><br><span class="line">      current,</span><br><span class="line">      disabled,</span><br><span class="line">      now,</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 填充每月最后一天之后的空数据</span></span><br><span class="line">  <span class="keyword">if</span> (lastWeek != <span class="number">6</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = (<span class="number">6</span> - lastWeek); i &lt; l; i++) &#123;</span><br><span class="line">      days.<span class="title function_">push</span>(&#123;</span><br><span class="line">        <span class="attr">day</span>: <span class="number">0</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> days</span><br><span class="line">&#125;,</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取一个月最大天数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@method</span> <span class="variable">getMonthMax</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年份</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月份</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">getMonthMax</span>(<span class="params">year, month</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> max = <span class="number">31</span></span><br><span class="line">  <span class="keyword">if</span> (month == <span class="number">4</span> || month == <span class="number">6</span> || month == <span class="number">9</span> || month == <span class="number">11</span>) &#123;</span><br><span class="line">    max = <span class="number">30</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (month == <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (((year % <span class="number">4</span>) == <span class="number">0</span> &amp;&amp; (year % <span class="number">100</span>) &gt; <span class="number">0</span>) || (year % <span class="number">400</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">      max = <span class="number">29</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      max = <span class="number">28</span></span><br><span class="line">    &#125; </span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> max</span><br><span class="line">&#125;,</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
 </ol>
-<pre><code class="js">/**
- * @description: 初始化每月数据
- * @param: &#123; number &#125; year 年
- * @param: &#123; number &#125; month 月
- */
-monthInitData(year, month) &#123;
-  let &#123; calendarValue, startDate, endDate &#125;= this.data, // 当前点击时间，起始时间，结束时间
-    firstWeek = new Date(year, month, 1).getDay(), // 本月的第一天的星期数
-    days = [], // 日期数组
-    max = this.getMonthMax(year, month + 1), // 每月最大天数
-    lastWeek = new Date(year, (month + 1), 0).getDay() // 本月的最后一天的星期数
-
-  // 填充每月一号之前的空数据
-  if (firstWeek &gt; 0) &#123;
-    for (let i = 0; i &lt; firstWeek; i++) &#123;
-      days.push(&#123;
-        day: 0
-      &#125;)
-    &#125;
-  &#125;
-
-  let currentTime = 0, 
-      startTime = 0,
-      endTime = 0
-
-  if (calendarValue[0]) &#123;
-    currentTime = new Date(calendarValue[0], calendarValue[1], calendarValue[2]).getTime()
-  &#125;
-  if (startDate[0]) &#123;
-    startTime = new Date(startDate[0], startDate[1], startDate[2]).getTime()
-  &#125;
-  if (endDate[0]) &#123;
-    endTime = new Date(endDate[0], endDate[1], endDate[2]).getTime()
-  &#125;
-
-  for (let i = 1; i &lt;= max; i++) &#123;
-    // 以下状态是需要在html中判断处理，根据自己需求改变
-    let current = false, // 当前点击状态
-      disabled = false, // 禁止状态
-      now = false, // 今天显示文案
-      time = new Date(year, month, i).getTime(),
-      nowTime = [new Date().getFullYear(), new Date().getMonth(), new Date().getDate()]
-    if (currentTime &amp;&amp; currentTime == time) current = true
-    if (startTime &amp;&amp; startTime &gt; time) disabled = true
-    if (endTime &amp;&amp; endTime &lt; time) disabled = true
-    if (year === nowTime[0] &amp;&amp; month === nowTime[1] &amp;&amp; i === nowTime[2]) now = true
-
-    days.push(&#123;
-      day: i,
-      current,
-      disabled,
-      now,
-    &#125;)
-  &#125;
-
-  // 填充每月最后一天之后的空数据
-  if (lastWeek != 6) &#123;
-    for (let i = 0, l = (6 - lastWeek); i &lt; l; i++) &#123;
-      days.push(&#123;
-        day: 0
-      &#125;)
-    &#125;
-  &#125;
-  return days
-&#125;,
-
-/**
- * 获取一个月最大天数
- * @method getMonthMax
- * @param: &#123; number &#125; year 年份
- * @param: &#123; number &#125; month 月份
- */
-getMonthMax(year, month) &#123;
-  let max = 31
-  if (month == 4 || month == 6 || month == 9 || month == 11) &#123;
-    max = 30
-  &#125; else if (month == 2) &#123;
-    if (((year % 4) == 0 &amp;&amp; (year % 100) &gt; 0) || (year % 400) == 0) &#123;
-      max = 29
-    &#125; else &#123;
-      max = 28
-    &#125; 
-  &#125;
-
-  return max
-&#125;,
-</code></pre>
 <ul>
 <li>以上就是核心逻辑，像一些弹窗事件和一些点击事件就不附上来了</li>
 </ul>
-</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2021-04-13</span><i class="fa fa-tag"></i><a class="tag" href="/tags/微信小程序/" title="微信小程序">微信小程序 </a><span class="leancloud_visitors"></span><span>大约737个字, 2分钟27秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2021/04/13/小程序滚动日历组件/,LH'BLOG,小程序滚动日历组件,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2021/06/10/H5%E8%B7%B3%E8%BD%AC%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/" title="H5跳转微信小程序">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2020/01/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%93%9D%E7%89%99%E6%8E%A7%E5%88%B6%E5%BC%80%E9%97%A8/" title="微信小程序蓝牙控制开门">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
-var disqus_identifier = '2021/04/13/小程序滚动日历组件/';
-var disqus_title = '小程序滚动日历组件';
-var disqus_url = 'https://lhrun.github.io/2021/04/13/小程序滚动日历组件/';
-(function() {
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2021/06/10/H5%E8%B7%B3%E8%BD%AC%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2020/01/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%93%9D%E7%89%99%E6%8E%A7%E5%88%B6%E5%BC%80%E9%97%A8/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2021/04/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2021/04/13/小程序滚动日历组件/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

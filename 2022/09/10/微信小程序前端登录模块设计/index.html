@@ -1,7 +1,161 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>微信小程序前端登录模块设计 · LH'BLOG</title><meta name="description" content="前言微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我在本文会按照以往经验实现一个较优雅的登录方案
-基本登录流程
-获取微信登录凭证，通过wx.login获取，这个api会返回一个带有时效性的code
-发送cod"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%89%8D%E8%A8%80"><span class="toclist-number">1.</span> <span class="toclist-text">前言</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%9F%BA%E6%9C%AC%E7%99%BB%E5%BD%95%E6%B5%81%E7%A8%8B"><span class="toclist-number">2.</span> <span class="toclist-text">基本登录流程</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E9%80%BB%E8%BE%91%E5%B0%81%E8%A3%85"><span class="toclist-number">3.</span> <span class="toclist-text">逻辑封装</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E4%B8%9A%E5%8A%A1%E5%B1%82"><span class="toclist-number">4.</span> <span class="toclist-text">业务层</span></a></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>微信小程序前端登录模块设计</a></h3></div><div class="post-content"><p><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我在本文会按照以往经验实现一个较优雅的登录方案</p>
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>微信小程序前端登录模块设计 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">
+                            微信小程序
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                微信小程序前端登录模块设计
+            
+            
+        </div>
+        <span class="post-date">
+            9月 10, 2022
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/11/vXAlBq.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案</p>
 <h2 id="基本登录流程"><a href="#基本登录流程" class="headerlink" title="基本登录流程"></a>基本登录流程</h2><ol>
 <li>获取微信登录凭证，通过<code>wx.login</code>获取，这个api会返回一个带有时效性的code</li>
 <li>发送code给服务端，这一步就是通过你和后端定义的接口发送</li>
@@ -15,196 +169,174 @@
 <tr>
 <th>方法名</th>
 <th>功能</th>
-<th>使用场景</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><code>getLoginCode</code></td>
 <td>获取微信登录凭证</td>
-<td>-</td>
 </tr>
 <tr>
 <td><code>staticLogin</code></td>
 <td>静默登录</td>
-<td>需要登录的地方调用</td>
 </tr>
 <tr>
 <td><code>singleLogin</code></td>
 <td>登录请求封装</td>
-<td>-</td>
 </tr>
 <tr>
 <td><code>checkLogin</code></td>
-<td>判断现在是否登录了</td>
-<td>-</td>
+<td>判断是否登录</td>
 </tr>
 <tr>
-<td><code>bindPhoneNum</code></td>
-<td>绑定手机号</td>
-<td>点击微信授权手机号</td>
+<td><code>getPhoneNum</code></td>
+<td>获取微信授权手机号</td>
 </tr>
 </tbody></table>
 <ul>
-<li>我习惯在promise请求中使用await-to方法，这是一个针对异步比较优雅的方案<ul>
+<li><p>我习惯在promise请求中使用await-to方法，这是一个针对异步比较优雅的方案</p>
+<ul>
 <li><a target="_blank" rel="noopener" href="https://blog.grossman.io/how-to-write-async-await-without-try-catch-blocks-in-javascript/">How to write async await without try-catch blocks in Javascript</a></li>
 </ul>
 </li>
-<li>getLoginCode，一个简单的promise封装获取code</li>
+<li><p>getLoginCode，一个简单的promise封装获取code</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getLoginCode</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      wx.<span class="title function_">login</span>(&#123;</span><br><span class="line">        success (res) &#123;</span><br><span class="line">          <span class="keyword">if</span> (res.<span class="property">code</span>) &#123;</span><br><span class="line">            <span class="title function_">resolve</span>(res.<span class="property">code</span>)</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="title function_">reject</span>(res)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">fail</span>(<span class="params">err</span>) &#123;</span><br><span class="line">          <span class="title function_">reject</span>(err)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>静默登录封装，获取用户信息，并进行存储</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">staticLogin</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 如果已经登录，直接返回登录信息</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="title function_">checkLogin</span>()) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">getLoginInfo</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">singleLogin</span>());</span><br><span class="line">  <span class="keyword">if</span> (loginErr) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 存储用户信息，这个就根据自己的情况了，我这随便定个方法</span></span><br><span class="line">  <span class="title function_">setLoginInfo</span>(&#123;</span><br><span class="line">    ...loginRes,</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">return</span> loginRes;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>登录请求封装，这里我是用单例模式并返回了一个promise，这样做是为了，你多次调用singleLogin时，比如快速切换页面，快速点击多个需登录区域，在数据没有返回的时候，都会等待，而不是触发多次请求</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> loginInstance = <span class="literal">null</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">singleLogin</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">if</span> (loginInstance) &#123;</span><br><span class="line">    <span class="keyword">return</span> loginInstance</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// loginReq：封装请求，包括请求后端和getLoginCode</span></span><br><span class="line">  loginInstance = <span class="title function_">loginReq</span>()</span><br><span class="line">  loginInstance.<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">    loginInstance = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(err);</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">return</span> loginInstance</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>checkLogin，检查是否登录，这个就看你存储在那个地方了，视情况而定</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">checkLogin</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">Boolean</span>(loginInfo?.<span class="property">sid</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>getPhoneNum</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getPhoneNum</span> = <span class="keyword">async</span> (<span class="params">iv, encryptedData</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> [codeErr, codeRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getLoginCode</span>())</span><br><span class="line">  <span class="keyword">if</span> (codeErr) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(codeErr);</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(codeErr);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// decrypt：请求后端</span></span><br><span class="line">  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">decrypt</span>(&#123;</span><br><span class="line">    iv,</span><br><span class="line">    encryptedData,</span><br><span class="line">    <span class="attr">code</span>: codeRes.<span class="property">code</span></span><br><span class="line">  &#125;))</span><br><span class="line">  <span class="keyword">if</span> (phoneErr) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(phoneErr);</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(phoneErr);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> phoneNumber = phoneRes.<span class="property">result</span>.<span class="property">phoneNumber</span></span><br><span class="line">  <span class="title function_">setLoginInfo</span>(&#123;</span><br><span class="line">    phoneNumber,</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">return</span> phoneNumber</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">export const getLoginCode = () =&gt; &#123;
-  return new Promise((resolve, reject) =&gt; &#123;
-      wx.login(&#123;
-        success (res) &#123;
-          if (res.code) &#123;
-            resolve(res.code)
-          &#125; else &#123;
-            reject(res)
-          &#125;
-        &#125;,
-        fail(err) &#123;
-          reject(err)
-        &#125;
-      &#125;)
-  &#125;)
-&#125;
-</code></pre>
-<ul>
-<li>静默登录封装，获取用户信息，并进行存储</li>
-</ul>
-<pre><code class="js">export const staticLogin = async () =&gt; &#123;
-  // 如果已经登录，直接返回登录信息
-  if (checkLogin()) &#123;
-    return getLoginInfo()
-  &#125;
-  const [loginErr, loginRes] = await _to(singleLogin());
-  if (loginErr) &#123;
-    throw new Error(loginErr);
-  &#125;
-  // 存储用户信息，这个就根据自己的情况了，我这随便定个方法
-  setLoginInfo(&#123;
-    ...loginRes,
-  &#125;)
-  return loginRes;
-&#125;
-</code></pre>
-<ul>
-<li>登录请求封装，这里我是用单例模式并返回了一个promise，这样做是为了，你多次调用singleLogin时，比如快速切换页面，快速点击多个需登录区域，在数据没有返回的时候，都会等待，而不是触发多次请求</li>
-</ul>
-<pre><code class="js">let loginInstance = null
-export const singleLogin = () =&gt; &#123;
-  if (loginInstance) &#123;
-    return loginInstance
-  &#125;
-  // loginReq：封装请求，包括请求后端和getLoginCode
-  loginInstance = loginReq()
-  loginInstance.catch((err) =&gt; &#123;
-    loginInstance = null;
-    return Promise.reject(err);
-  &#125;)
-  return loginInstance
-&#125;
-</code></pre>
-<ul>
-<li>checkLogin，检查是否登录，这个就看你存储在那个地方了，视情况而定</li>
-</ul>
-<pre><code class="js">export const checkLogin = () =&gt; &#123;
-  return Boolean(loginInfo?.sid)
-&#125;
-</code></pre>
-<ul>
-<li>getPhoneNum</li>
-</ul>
-<pre><code class="js">export const getPhoneNum = async (iv, encryptedData) =&gt; &#123;
-  const [codeErr, codeRes] = await _to(getLoginCode())
-  if (codeErr) &#123;
-    console.log(codeErr);
-    throw new Error(codeErr);
-  &#125;
-  // decrypt：请求后端
-  const [phoneErr, phoneRes] = await _to(decrypt(&#123;
-    iv,
-    encryptedData,
-    code: codeRes.code
-  &#125;))
-  if (phoneErr) &#123;
-    console.log(phoneErr);
-    throw new Error(phoneErr);
-  &#125;
-  const phoneNumber = phoneRes.result.phoneNumber
-  setLoginInfo(&#123;
-    phoneNumber,
-  &#125;)
-  return phoneNumber
-&#125;
-</code></pre>
 <h2 id="业务层"><a href="#业务层" class="headerlink" title="业务层"></a>业务层</h2><p>业务层我会在以下几个地方调用</p>
 <ol>
-<li>请求前根据options判断是否需登录，并进行处理</li>
+<li><p>请求前根据options判断是否需登录，并进行处理</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">REQUEST</span> = <span class="keyword">async</span> (<span class="params">requestObj</span>) =&gt; &#123;</span><br><span class="line">  <span class="comment">// isLogin 当前接口请求是否需要登录</span></span><br><span class="line">  <span class="keyword">if</span> (requestObj.<span class="property">isLogin</span> &amp;&amp; !<span class="title function_">checkLogin</span>()) &#123;</span><br><span class="line">    <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());</span><br><span class="line">    <span class="keyword">if</span> (loginErr) &#123;</span><br><span class="line">      <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>)</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>登录按钮，这个主要用于登录失败兜底的情况，让用户主动点击，用于登录弹窗等组件，只需调用<code>staticLogin</code>即可</p>
+</li>
+<li><p>获取用户授权手机号按钮</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// index.html</span></span><br><span class="line"><span class="comment">// 用户主动触发进行授权手机号</span></span><br><span class="line">&lt;button open-type=<span class="string">&quot;getPhoneNumber&quot;</span> bindgetphonenumber=<span class="string">&quot;bindPhoneNumber&quot;</span>&gt;</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">slot</span>&gt;</span><span class="tag">&lt;/<span class="name">slot</span>&gt;</span></span></span><br><span class="line">&lt;/button&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">// index.js</span></span><br><span class="line"><span class="keyword">async</span> <span class="title function_">bindPhoneNumber</span>(<span class="params">e</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> iv = e.<span class="property">detail</span>.<span class="property">iv</span>;</span><br><span class="line">  <span class="keyword">const</span> encryptedData = e.<span class="property">detail</span>.<span class="property">encryptedData</span>;</span><br><span class="line">  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getPhoneNum</span>(iv, encryptedData));</span><br><span class="line">  <span class="keyword">if</span> (phoneErr) &#123;</span><br><span class="line">    <span class="title class_">Toast</span>(<span class="string">&#x27;获取手机号失败&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;getPhoneNumber&#x27;</span>, phoneRes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>页面组件，在小程序中一般都有一个页面组件，用于封装一些页面必需的功能，比如loading，导航栏，无效页面等等，登录也是必需的，所以我把登录逻辑封装到页面组件上，如果成功会通过triggerEvent触发给页面，如果失败就弹出登录弹窗，当然这种处理不太细，根据业务的不同改变相关的逻辑<br><img src="https://img-blog.csdnimg.cn/f6cd710acc4d45a1a7d88042623ad4bc.png#pic_center" alt="在这里插入图片描述"></p>
+</li>
 </ol>
-<pre><code class="js">export const GET = async (requestObj) =&gt; &#123;
-  if (requestObj.isLogin &amp;&amp; !checkLogin()) &#123;
-    const [loginErr, loginRes] = await _to(staticLogin());
-    if (loginErr) &#123;
-      Toast(&#39;登录失败&#39;)
-      throw new Error(loginErr);
-    &#125;
-  &#125;
-  ...
-&#125;
-</code></pre>
-<ol start="2">
-<li>登录按钮，这个主要用于登录失败兜底的情况，让用户主动点击，用于登录弹窗等组件，只需调用<code>staticLogin</code>即可</li>
-<li>获取用户授权手机号按钮</li>
-</ol>
-<pre><code class="js">// index.html
-// 用户主动触发进行授权手机号
-&lt;button open-type=&quot;getPhoneNumber&quot; bindgetphonenumber=&quot;bindPhoneNumber&quot;&gt;
-  &lt;slot&gt;&lt;/slot&gt;
-&lt;/button&gt;
-
-// index.js
-async bindPhoneNumber(e) &#123;
-  const iv = e.detail.iv;
-  const encryptedData = e.detail.encryptedData;
-  const [phoneErr, phoneRes] = await _to(getPhoneNum(iv, encryptedData));
-  if (phoneErr) &#123;
-    Toast(&#39;获取手机号失败&#39;);
-    return;
-  &#125;
-  this.triggerEvent(&#39;getPhoneNumber&#39;, phoneRes);
-&#125;
-</code></pre>
-<ol start="4">
-<li>页面组件，在小程序中一般都有一个页面组件，用于封装一些页面必需的功能，比如loading，导航栏，无效页面等等，登录也是必需的，所以我把登录逻辑封装到页面组件上，如果成功会通过triggerEvent触发给页面，如果失败就弹出登录弹窗，当然这种处理不太细，根据业务的不同可以改变不同的逻辑<br><img src="https://img-blog.csdnimg.cn/f6cd710acc4d45a1a7d88042623ad4bc.png#pic_center" alt="在这里插入图片描述"></li>
-</ol>
-<pre><code class="js">// index.html
-&lt;view&gt;
-  ...
-  &lt;login-modal show=&#123;loginShow&#125; &#123;...props&#125; /&gt;
-&lt;/view&gt;
-
-// index.js
-async created() &#123;
-  const [loginErr, loginRes] = await _to(staticLogin());
-  if (loginErr) &#123;
-    Toast(&#39;登录失败&#39;);
-    this.setData(&#123;
-      loginShow: true,
-    &#125;);
-    return;
-  &#125;
-  this.triggerEvent(&#39;login&#39;, loginRes);
-&#125;
-</code></pre>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// index.html</span></span><br><span class="line">&lt;view&gt;</span><br><span class="line">  ...</span><br><span class="line">  &lt;login-modal show=&#123;loginShow&#125; &#123;...props&#125; /&gt;</span><br><span class="line">&lt;/view&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">// index.js</span></span><br><span class="line"><span class="keyword">async</span> <span class="title function_">created</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());</span><br><span class="line">  <span class="keyword">if</span> (loginErr) &#123;</span><br><span class="line">    <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">      <span class="attr">loginShow</span>: <span class="literal">true</span>,</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;login&#x27;</span>, loginRes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ol start="5">
-<li>其余一些业务组件就不叙述了…</li>
+<li>还有一些不是太通用的业务组件就不叙述了…</li>
 </ol>
-</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2022-09-10</span><i class="fa fa-tag"></i><a class="tag" href="/tags/微信小程序/" title="微信小程序">微信小程序 </a><span class="leancloud_visitors"></span><span>大约1113个字, 3分钟42秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2022/09/10/微信小程序前端登录模块设计/,LH'BLOG,微信小程序前端登录模块设计,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="next pagbuttons"><a class="btn" role="navigation" href="/2022/09/06/Hexo%E6%90%AD%E5%BB%BA%E5%9F%BA%E6%93%8D%E9%85%8D%E7%BD%AE/" title="Hexo搭建详细教程">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
-var disqus_identifier = '2022/09/10/微信小程序前端登录模块设计/';
-var disqus_title = '微信小程序前端登录模块设计';
-var disqus_url = 'https://lhrun.github.io/2022/09/10/微信小程序前端登录模块设计/';
-(function() {
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2022/09/06/Hexo%E6%90%AD%E5%BB%BA%E5%9F%BA%E6%93%8D%E9%85%8D%E7%BD%AE/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2022/09/10/微信小程序前端登录模块设计/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

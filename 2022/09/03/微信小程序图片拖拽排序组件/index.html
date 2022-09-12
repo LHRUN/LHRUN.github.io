@@ -1,341 +1,196 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="LH_R"><title>微信小程序图片拖拽排序组件 · LH'BLOG</title><meta name="description" content="前言
-图片拖拽排序是一个比较常用的组件，常用于发帖或者评论等内容上传模块，我借鉴了《一款优雅的小程序拖拽排序组件实现》这篇文章的拖拽思路，并封装成wx-drag-img发布到npm
-实现原理：每个图片初始化我都会封装成一个拖拽的数据结构，然后触发touch事件时，通过改变图片的key来计算trans"><meta name="keywords" content="Blog,博客,Hexo"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="shortcut icon" type="image/x-icon" href="/images/favicon.webp"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="stylesheet" href="/css/insight.css"><link rel="stylesheet" href="/css/search.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><script src="/js/jquery.js"></script><meta name="generator" content="Hexo 6.2.0"></head><body><div class="page-top animated fadeInDown"><div class="nav"><li> <a href="/">首页</a></li><li> <a href="/archives">归档</a></li><li> <a href="/tags">标签</a></li><li> <a href="/about">关于</a></li></div><div class="information"><div class="nav_right_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li><li><a class="fa fa-search" onclick="openWindow();"></a></li></div><div class="avatar"></div></div></div><div class="sidebar animated fadeInDown"><div class="sidebar-top"><div class="logo-title"><div class="title"><img src="/images/logo.jpeg" style="width:220px; border-radius:110px" alt="favicon"><h3 title=""><a href="/">LH'BLOG</a></h3><div class="description"><p>keep learning</p></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="https://github.com/lhrun"><i class="fa fa-github"></i></a></li><li><a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s"><i class="fa fa-segmentfault"></i></a></li></ul></div><details class="ltr" open><summary>目录</summary><div class="tocmenu"><p><ol class="toclist"><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%89%8D%E8%A8%80"><span class="toclist-number">1.</span> <span class="toclist-text">前言</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#WXML"><span class="toclist-number">2.</span> <span class="toclist-text">WXML</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%9B%BE%E7%89%87%E4%B8%8A%E4%BC%A0"><span class="toclist-number">3.</span> <span class="toclist-text">图片上传</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E5%9B%BE%E7%89%87%E5%88%A0%E9%99%A4"><span class="toclist-number">3.1.</span> <span class="toclist-text">图片删除</span></a></li></ol></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%9B%BE%E7%89%87%E6%8B%96%E6%8B%BD"><span class="toclist-number">4.</span> <span class="toclist-text">图片拖拽</span></a><ol class="toclist-child"><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toclist-number">4.1.</span> <span class="toclist-text">初始化</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#longPress"><span class="toclist-number">4.2.</span> <span class="toclist-text">longPress</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#touchMove"><span class="toclist-number">4.3.</span> <span class="toclist-text">touchMove</span></a></li><li class="toclist-item toclist-level-3"><a class="toclist-link" href="#touchEnd"><span class="toclist-number">4.4.</span> <span class="toclist-text">touchEnd</span></a></li></ol></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E6%80%BB%E7%BB%93"><span class="toclist-number">5.</span> <span class="toclist-text">总结</span></a></li><li class="toclist-item toclist-level-2"><a class="toclist-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toclist-number">6.</span> <span class="toclist-text">参考资料</span></a></li></ol></p></div></details></div><div class="footer"><div class="p"> <span> 全站CC-BY-SA-3.0 </span><i class="fa fa-star"></i><span> LH_R</span></div><div class="by_farbox"><span>Powered by </span><a href="https://hexo.io/zh-cn/" target="_blank">Hexo</a></div><div class="beian"></div></div></div><div class="main"><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>微信小程序图片拖拽排序组件</a></h3></div><div class="post-content"><p><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>微信小程序图片拖拽排序组件 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">
+                            微信小程序
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                微信小程序图片拖拽排序组件
+            
+            
+        </div>
+        <span class="post-date">
+            9月 3, 2022
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/11/vXA2gH.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
 <li>图片拖拽排序是一个比较常用的组件，常用于发帖或者评论等内容上传模块，我借鉴了<a target="_blank" rel="noopener" href="https://www.cnblogs.com/haha1212/p/11562944.html">《一款优雅的小程序拖拽排序组件实现》</a>这篇文章的拖拽思路，并封装成<a target="_blank" rel="noopener" href="https://github.com/LHRUN/wx-drag-img">wx-drag-img</a>发布到npm</li>
 <li>实现原理：每个图片初始化我都会封装成一个拖拽的数据结构，然后触发touch事件时，通过改变图片的key来计算transform位置，从而达到拖拽效果</li>
 <li>功能包括图片上传拖拽删除，源码和npm地址我会贴在结尾，如果感觉好的话，欢迎star</li>
 <li>我会在下面逐步分析这个组件的实现思路</li>
-<li>使用了以下变量</li>
+<li>使用了以下变量<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 拖拽数据结构</span></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">IDragImg</span> &#123;</span><br><span class="line">  <span class="attr">src</span>: <span class="built_in">string</span>; <span class="comment">// 图片路径</span></span><br><span class="line">  <span class="attr">key</span>: <span class="built_in">number</span>; <span class="comment">// </span></span><br><span class="line">  <span class="attr">id</span>: <span class="built_in">number</span>; <span class="comment">// for循环遍历使用, 不会改变, 创建时自增id</span></span><br><span class="line">  <span class="attr">tranX</span>: <span class="built_in">number</span>; <span class="comment">// x轴位移距离</span></span><br><span class="line">  <span class="attr">tranY</span>: <span class="built_in">number</span>; <span class="comment">// y轴位移距离</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// props</span></span><br><span class="line">&#123;</span><br><span class="line">  previewSize <span class="comment">// 图片大小</span></span><br><span class="line">  defaultImgList <span class="comment">// 初始化图片数组</span></span><br><span class="line">  maxCount <span class="comment">// 图片上传数量限制</span></span><br><span class="line">  columns <span class="comment">// 列数</span></span><br><span class="line">  gap <span class="comment">// 图片间隔</span></span><br><span class="line">  deleteStyle <span class="comment">// 删除样式</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="attr">data</span>: &#123;</span><br><span class="line">  <span class="attr">dragImgList</span>: <span class="title class_">IDragImg</span>[],</span><br><span class="line">  <span class="attr">containerRes</span>: &#123;</span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span>, <span class="comment">// 容器距离页面顶部距离 px</span></span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span>, <span class="comment">// 容器距离页面左边距离 px</span></span><br><span class="line">    <span class="attr">width</span>: <span class="number">0</span>, <span class="comment">// 容器宽度 px</span></span><br><span class="line">    <span class="attr">height</span>: <span class="number">0</span>, <span class="comment">// 容器高度 px</span></span><br><span class="line">  &#125;, <span class="comment">// 拖拽容器属性</span></span><br><span class="line">  <span class="attr">currentKey</span>: -<span class="number">1</span>, <span class="comment">// 正在拖拽图片的key</span></span><br><span class="line">  <span class="attr">currentIndex</span>: -<span class="number">1</span>, <span class="comment">// 正在拖拽图片的index</span></span><br><span class="line">  <span class="attr">tranX</span>: <span class="number">0</span>, <span class="comment">// 正在拖拽图片移动的x距离</span></span><br><span class="line">  <span class="attr">tranY</span>: <span class="number">0</span>, <span class="comment">// 正在拖拽图片移动的y距离</span></span><br><span class="line">  <span class="attr">uploadPosition</span>: &#123; <span class="comment">// upload上传图标位移距离</span></span><br><span class="line">    <span class="attr">tranX</span>: <span class="number">0</span>,</span><br><span class="line">    <span class="attr">tranY</span>: <span class="number">0</span>,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="ts">// 拖拽数据结构
-interface IDragImg &#123;
-  src: string; // 图片路径
-  key: number; // 
-  id: number; // for循环遍历使用, 不会改变, 创建时自增id
-  tranX: number; // x轴位移距离
-  tranY: number; // y轴位移距离
-&#125;
+<h2 id="WXML"><a href="#WXML" class="headerlink" title="WXML"></a>WXML</h2><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">view</span> <span class="attr">style</span>=<span class="string">&quot;width: &#123;&#123;containerRes.width&#125;&#125;px; height: &#123;&#123;containerRes.height&#125;&#125;px;&quot;</span> <span class="attr">class</span>=<span class="string">&quot;drag-container&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">view</span></span></span><br><span class="line"><span class="tag">    <span class="attr">wx:for</span>=<span class="string">&quot;&#123;&#123;dragImgList&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">wx:key</span>=<span class="string">&quot;id&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">style</span>=<span class="string">&quot;transform: translate(&#123;&#123;index === currentIndex ? tranX : item.tranX&#125;&#125;px, &#123;&#123;index === currentIndex ? tranY : item.tranY&#125;&#125;px); z-index: &#123;&#123;index === currentIndex ? 10 : 1&#125;&#125;; width: &#123;&#123;previewSize&#125;&#125;px; height: &#123;&#123;previewSize&#125;&#125;px;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">class</span>=<span class="string">&quot;drag-item drag-item-transition&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">mark:index</span>=<span class="string">&quot;&#123;&#123;index&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">mark:key</span>=<span class="string">&quot;&#123;&#123;item.key&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">catch:longpress</span>=<span class="string">&quot;longPress&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">catch:touchmove</span>=<span class="string">&quot;touchMove&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">catch:touchend</span>=<span class="string">&quot;touchEnd&quot;</span></span></span><br><span class="line"><span class="tag">  &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">image</span> <span class="attr">class</span>=<span class="string">&quot;drag-item-img&quot;</span> <span class="attr">src</span>=<span class="string">&quot;&#123;&#123;item.src&#125;&#125;&quot;</span>/&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 删除图标 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">view</span> <span class="attr">catch:tap</span>=<span class="string">&quot;deleteImg&quot;</span> <span class="attr">mark:key</span>=<span class="string">&quot;&#123;&#123;item.key&#125;&#125;&quot;</span> <span class="attr">class</span>=<span class="string">&quot;drag-item-delete&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">view</span> <span class="attr">class</span>=<span class="string">&quot;drag-item-delete_default&quot;</span> <span class="attr">style</span>=<span class="string">&quot;&#123;&#123;deleteStyle&#125;&#125;&quot;</span>&gt;</span>x<span class="tag">&lt;/<span class="name">view</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">view</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">view</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- 上传图片 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">view</span></span></span><br><span class="line"><span class="tag">    <span class="attr">bindtap</span>=<span class="string">&quot;uploadImage&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">class</span>=<span class="string">&quot;drag-item drag-upload&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">hidden</span>=<span class="string">&quot;&#123;&#123;dragImgList.length &gt;= maxCount&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">style</span>=<span class="string">&quot;transform: translate(&#123;&#123;uploadPosition.tranX&#125;&#125;px, &#123;&#123;uploadPosition.tranY&#125;&#125;px); width: &#123;&#123;previewSize&#125;&#125;px; height: &#123;&#123;previewSize&#125;&#125;px;&quot;</span></span></span><br><span class="line"><span class="tag">  &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">view</span> <span class="attr">class</span>=<span class="string">&quot;drag-upload_solt&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">slot</span> <span class="attr">name</span>=<span class="string">&quot;upload&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">slot</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">view</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">view</span> <span class="attr">class</span>=<span class="string">&quot;drag-upload_default&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">text</span>&gt;</span>+<span class="tag">&lt;/<span class="name">text</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">view</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">view</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">view</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-// props
-&#123;
-  previewSize // 图片大小
-  defaultImgList // 初始化图片数组
-  maxCount // 图片上传数量限制
-  columns // 列数
-  gap // 图片间隔
-  deleteStyle // 删除样式
-&#125;
-
-data: &#123;
-  dragImgList: IDragImg[],
-  containerRes: &#123;
-    top: 0, // 容器距离页面顶部距离 px
-    left: 0, // 容器距离页面左边距离 px
-    width: 0, // 容器宽度 px
-    height: 0, // 容器高度 px
-  &#125;, // 拖拽容器属性
-  currentKey: -1, // 正在拖拽图片的key
-  currentIndex: -1, // 正在拖拽图片的index
-  tranX: 0, // 正在拖拽图片移动的x距离
-  tranY: 0, // 正在拖拽图片移动的y距离
-  uploadPosition: &#123; // upload上传图标位移距离
-    tranX: 0,
-    tranY: 0,
-  &#125;
-&#125;,
-</code></pre>
-<h2 id="WXML"><a href="#WXML" class="headerlink" title="WXML"></a>WXML</h2><pre><code class="html">&lt;view style=&quot;width: &#123;&#123;containerRes.width&#125;&#125;px; height: &#123;&#123;containerRes.height&#125;&#125;px;&quot; class=&quot;drag-container&quot;&gt;
-  &lt;view
-    wx:for=&quot;&#123;&#123;dragImgList&#125;&#125;&quot;
-    wx:key=&quot;id&quot;
-    style=&quot;transform: translate(&#123;&#123;index === currentIndex ? tranX : item.tranX&#125;&#125;px, &#123;&#123;index === currentIndex ? tranY : item.tranY&#125;&#125;px); z-index: &#123;&#123;index === currentIndex ? 10 : 1&#125;&#125;; width: &#123;&#123;previewSize&#125;&#125;px; height: &#123;&#123;previewSize&#125;&#125;px;&quot;
-    class=&quot;drag-item drag-item-transition&quot;
-    mark:index=&quot;&#123;&#123;index&#125;&#125;&quot;
-    mark:key=&quot;&#123;&#123;item.key&#125;&#125;&quot;
-    catch:longpress=&quot;longPress&quot;
-    catch:touchmove=&quot;touchMove&quot;
-    catch:touchend=&quot;touchEnd&quot;
-  &gt;
-    &lt;image class=&quot;drag-item-img&quot; src=&quot;&#123;&#123;item.src&#125;&#125;&quot;/&gt;
-    &lt;!-- 删除图标 --&gt;
-    &lt;view catch:tap=&quot;deleteImg&quot; mark:key=&quot;&#123;&#123;item.key&#125;&#125;&quot; class=&quot;drag-item-delete&quot;&gt;
-      &lt;view class=&quot;drag-item-delete_default&quot; style=&quot;&#123;&#123;deleteStyle&#125;&#125;&quot;&gt;x&lt;/view&gt;
-    &lt;/view&gt;
-  &lt;/view&gt;
-
-  &lt;!-- 上传图片 --&gt;
-  &lt;view
-    bindtap=&quot;uploadImage&quot;
-    class=&quot;drag-item drag-upload&quot;
-    hidden=&quot;&#123;&#123;dragImgList.length >= maxCount&#125;&#125;&quot;
-    style=&quot;transform: translate(&#123;&#123;uploadPosition.tranX&#125;&#125;px, &#123;&#123;uploadPosition.tranY&#125;&#125;px); width: &#123;&#123;previewSize&#125;&#125;px; height: &#123;&#123;previewSize&#125;&#125;px;&quot;
-  &gt;
-    &lt;view class=&quot;drag-upload_solt&quot;&gt;
-      &lt;slot name=&quot;upload&quot;&gt;&lt;/slot&gt;
-    &lt;/view&gt;
-    &lt;view class=&quot;drag-upload_default&quot;&gt;
-      &lt;text&gt;+&lt;/text&gt;
-    &lt;/view&gt;
-  &lt;/view&gt;
-&lt;/view&gt;
-</code></pre>
 <h2 id="图片上传"><a href="#图片上传" class="headerlink" title="图片上传"></a>图片上传</h2><ul>
 <li>图片上传很简单，就是初始化上传的图片，然后拼接到现有图片，最后修改上传图标位置即可</li>
-<li>点击上传区域回调函数<code>uploadImage</code></li>
+<li>点击上传区域回调函数<code>uploadImage</code><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 上传图片</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">async</span> <span class="title function_">uploadImage</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> &#123; dragImgList, maxCount &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> res = <span class="keyword">await</span> wx.<span class="title function_">chooseMedia</span>(&#123;</span><br><span class="line">      <span class="attr">count</span>: maxCount - dragImgList.<span class="property">length</span>,</span><br><span class="line">      <span class="attr">mediaType</span>: [<span class="string">&#x27;image&#x27;</span>],</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="comment">// 获取上传图片数据后需要初始化图片拽结构</span></span><br><span class="line">    <span class="keyword">const</span> imgList = <span class="variable language_">this</span>.<span class="title function_">getDragImgList</span>(res?.<span class="property">tempFiles</span>?.<span class="title function_">map</span>(<span class="function">(<span class="params">&#123; tempFilePath &#125;</span>) =&gt;</span> tempFilePath) || [], <span class="literal">false</span>);</span><br><span class="line">    dragImgList = dragImgList.<span class="title function_">concat</span>(imgList);</span><br><span class="line">    <span class="comment">// 修改上传区域位置</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setUploaPosition</span>(dragImgList.<span class="property">length</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">      dragImgList,</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">updateEvent</span>(dragImgList);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(error);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
+<li>上传后需要初始化拖拽的数据结构<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 根据图片列表生成拖拽列表数据结构</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> list 图片src列表</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> init 是否是初始化</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"> <span class="title function_">getDragImgList</span>(<span class="params">list, init = <span class="literal">true</span></span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> &#123; dragImgList, previewSize, columns, gap &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="keyword">return</span> list.<span class="title function_">map</span>(<span class="function">(<span class="params">item, index</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> i = (init ? <span class="number">0</span> : dragImgList.<span class="property">length</span>) + index;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="attr">tranX</span>: (previewSize + gap) * (i % columns),</span><br><span class="line">      <span class="attr">tranY</span>: <span class="title class_">Math</span>.<span class="title function_">floor</span>(i / columns) * (previewSize + gap),</span><br><span class="line">      <span class="attr">src</span>: item,</span><br><span class="line">      <span class="attr">id</span>: i,</span><br><span class="line">      <span class="attr">key</span>: i,</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
+<li>修改上传区域位置<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 修改上传区域位置</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> listLength 数组长度</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">setUploaPosition</span>(<span class="params">listLength</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; previewSize, columns, gap &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="keyword">const</span> uploadPosition = &#123;</span><br><span class="line">    <span class="attr">tranX</span>: listLength % columns * (previewSize + gap),</span><br><span class="line">    <span class="attr">tranY</span>: <span class="title class_">Math</span>.<span class="title function_">floor</span>(listLength / columns) * (previewSize + gap),</span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="keyword">const</span> &#123; width, height &#125; = <span class="variable language_">this</span>.<span class="title function_">getContainerRect</span>(listLength);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    uploadPosition,</span><br><span class="line">    [<span class="string">&#x27;containerRes.width&#x27;</span>]: width,</span><br><span class="line">    [<span class="string">&#x27;containerRes.height&#x27;</span>]: height,</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
+<li>图片数量改变后就要重新获取容器宽高了<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 改变图片数量后获取容器宽高</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@parma</span> listLength 数组长度</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">getContainerRect</span>(<span class="params">listLength</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; columns, previewSize, maxCount, gap &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="keyword">const</span> number = listLength === maxCount ? listLength : listLength + <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">const</span> row = <span class="title class_">Math</span>.<span class="title function_">ceil</span>(number / columns)</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">width</span>: columns * previewSize + (columns - <span class="number">1</span>) * gap,</span><br><span class="line">    <span class="attr">height</span>: row * previewSize + gap * (row - <span class="number">1</span>),</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
+<li>updateEvent<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * updateEvent</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@describe</span> 上传删除拖拽后触发事件把列表数据发给页面</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">updateEvent</span>(<span class="params">dragImgList</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> list = [...dragImgList].<span class="title function_">sort</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a.<span class="property">key</span> - b.<span class="property">key</span>).<span class="title function_">map</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> item.<span class="property">src</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;updateImageList&#x27;</span>, &#123;</span><br><span class="line">      list,</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">/**
- * 上传图片
- */
-async uploadImage() &#123;
-  let &#123; dragImgList, maxCount &#125; = this.data;
-  try &#123;
-    const res = await wx.chooseMedia(&#123;
-      count: maxCount - dragImgList.length,
-      mediaType: [&#39;image&#39;],
-    &#125;);
-    // 获取上传图片数据后需要初始化图片拽结构
-    const imgList = this.getDragImgList(res?.tempFiles?.map((&#123; tempFilePath &#125;) =&gt; tempFilePath) || [], false);
-    dragImgList = dragImgList.concat(imgList);
-    // 修改上传区域位置
-    this.setUploaPosition(dragImgList.length);
-    this.setData(&#123;
-      dragImgList,
-    &#125;);
-    this.updateEvent(dragImgList);
-  &#125; catch (error) &#123;
-    console.log(error);
-  &#125;
-&#125;,
-</code></pre>
-<ul>
-<li>上传后需要初始化拖拽的数据结构</li>
-</ul>
-<pre><code class="js">/**
- * 根据图片列表生成拖拽列表数据结构
- * @param list 图片src列表
- * @param init 是否是初始化
- */
- getDragImgList(list, init = true) &#123;
-  let &#123; dragImgList, previewSize, columns, gap &#125; = this.data;
-  return list.map((item, index) =&gt; &#123;
-    const i = (init ? 0 : dragImgList.length) + index;
-    return &#123;
-      tranX: (previewSize + gap) * (i % columns),
-      tranY: Math.floor(i / columns) * (previewSize + gap),
-      src: item,
-      id: i,
-      key: i,
-    &#125;;
-  &#125;);
-&#125;,
-</code></pre>
-<ul>
-<li>修改上传区域位置</li>
-</ul>
-<pre><code class="js">/**
- * 修改上传区域位置
- * @param listLength 数组长度
- */
-setUploaPosition(listLength) &#123;
-  const &#123; previewSize, columns, gap &#125; = this.data;
-  const uploadPosition = &#123;
-    tranX: listLength % columns * (previewSize + gap),
-    tranY: Math.floor(listLength / columns) * (previewSize + gap),
-  &#125;;
-  const &#123; width, height &#125; = this.getContainerRect(listLength);
-  this.setData(&#123;
-    uploadPosition,
-    [&#39;containerRes.width&#39;]: width,
-    [&#39;containerRes.height&#39;]: height,
-  &#125;);
-&#125;,
-</code></pre>
-<ul>
-<li>图片数量改变后就要重新获取容器宽高了</li>
-</ul>
-<pre><code class="js">/**
- * 改变图片数量后获取容器宽高
- * @parma listLength 数组长度
- */
-getContainerRect(listLength) &#123;
-  const &#123; columns, previewSize, maxCount, gap &#125; = this.data;
-  const number = listLength === maxCount ? listLength : listLength + 1;
-  const row = Math.ceil(number / columns)
-  return &#123;
-    width: columns * previewSize + (columns - 1) * gap,
-    height: row * previewSize + gap * (row - 1),
-  &#125;;
-&#125;,
-</code></pre>
-<ul>
-<li>updateEvent</li>
-</ul>
-<pre><code class="js">/**
- * updateEvent
- * @describe 上传删除拖拽后触发事件把列表数据发给页面
- */
-updateEvent(dragImgList) &#123;
-  const list = [...dragImgList].sort((a, b) =&gt; a.key - b.key).map((item) =&gt; item.src);
-    this.triggerEvent(&#39;updateImageList&#39;, &#123;
-      list,
-  &#125;);
-&#125;,
-</code></pre>
 <h3 id="图片删除"><a href="#图片删除" class="headerlink" title="图片删除"></a>图片删除</h3><ul>
-<li>首先从图片列表中删除所需图片，然后修改列表，把大于所选图片key的key全部减一，最后计算剩余图片位置和上传图标位置</li>
+<li>首先从图片列表中删除所需图片，然后修改列表，把大于所选图片key的key全部减一，最后计算剩余图片位置和上传图标位置<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 删除图片</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">deleteImg</span>(<span class="params">e</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> key = e.<span class="property">mark</span>.<span class="property">key</span>;</span><br><span class="line">  <span class="keyword">const</span> list = <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">dragImgList</span>.<span class="title function_">filter</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> item.<span class="property">key</span> !== key);</span><br><span class="line">  <span class="comment">// 大于删除图片key的key全部减1</span></span><br><span class="line">  list.<span class="title function_">forEach</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> &#123;</span><br><span class="line">    item.<span class="property">key</span> &gt; key &amp;&amp; item.<span class="property">key</span>--;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">// 获取</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">getListPosition</span>(list);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setUploaPosition</span>(list.<span class="property">length</span>);</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 计算数组的位移位置</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> list 拖拽图片数组</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">getListPosition</span>(<span class="params">list</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; previewSize, columns, gap &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="keyword">const</span> dragImgList = list.<span class="title function_">map</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> &#123;</span><br><span class="line">    item.<span class="property">tranX</span> = (previewSize + gap) * (item.<span class="property">key</span> % columns);</span><br><span class="line">    item.<span class="property">tranY</span> = <span class="title class_">Math</span>.<span class="title function_">floor</span>(item.<span class="property">key</span> / columns) * (previewSize + gap);</span><br><span class="line">    <span class="keyword">return</span> item;</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    dragImgList,</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">updateEvent</span>(dragImgList);</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">/**
- * 删除图片
- */
-deleteImg(e) &#123;
-  const key = e.mark.key;
-  const list = this.data.dragImgList.filter((item) =&gt; item.key !== key);
-  // 大于删除图片key的key全部减1
-  list.forEach((item) =&gt; &#123;
-    item.key &gt; key &amp;&amp; item.key--;
-  &#125;);
-  // 获取
-  this.getListPosition(list);
-  this.setUploaPosition(list.length);
-&#125;,
-</code></pre>
-<pre><code class="js">/**
- * 计算数组的位移位置
- * @param list 拖拽图片数组
- */
-getListPosition(list) &#123;
-  const &#123; previewSize, columns, gap &#125; = this.data;
-  const dragImgList = list.map((item) =&gt; &#123;
-    item.tranX = (previewSize + gap) * (item.key % columns);
-    item.tranY = Math.floor(item.key / columns) * (previewSize + gap);
-    return item;
-  &#125;)
-  this.setData(&#123;
-    dragImgList,
-  &#125;);
-  this.updateEvent(dragImgList);
-&#125;,
-</code></pre>
 <h2 id="图片拖拽"><a href="#图片拖拽" class="headerlink" title="图片拖拽"></a>图片拖拽</h2><h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><ul>
-<li>初始化只需获取容器的位置信息即可，因为拖拽组件不一定是在页面的左上角，所以需要知道容器的位置信息</li>
+<li>初始化只需获取容器的位置信息即可，因为拖拽组件不一定是在页面的左上角，所以需要知道容器的位置信息<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">lifetimes</span>: &#123;</span><br><span class="line">  <span class="title function_">ready</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">createSelectorQuery</span>()</span><br><span class="line">      .<span class="title function_">select</span>(<span class="string">&quot;.drag-container&quot;</span>)</span><br><span class="line">      .<span class="title function_">boundingClientRect</span>(<span class="function">(<span class="params">&#123; top, left &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">          [<span class="string">&#x27;containerRes.top&#x27;</span>]: top,</span><br><span class="line">          [<span class="string">&#x27;containerRes.left&#x27;</span>]: left,</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;).<span class="title function_">exec</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">lifetimes: &#123;
-  ready() &#123;
-    this.createSelectorQuery()
-      .select(&quot;.drag-container&quot;)
-      .boundingClientRect((&#123; top, left &#125;) =&gt; &#123;
-        this.setData(&#123;
-          [&#39;containerRes.top&#39;]: top,
-          [&#39;containerRes.left&#39;]: left,
-        &#125;);
-      &#125;).exec();
-  &#125;
-&#125;,
-</code></pre>
 <h3 id="longPress"><a href="#longPress" class="headerlink" title="longPress"></a>longPress</h3><ul>
-<li>这里采用longPress，而不是touchStart的原因，一是为了优化体验，二是touchStart与删除按钮冲突</li>
+<li>这里采用longPress，而不是touchStart的原因，一是为了优化体验，二是touchStart与删除按钮冲突<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 长按图片</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">longPress</span>(<span class="params">e</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> index = e.<span class="property">mark</span>.<span class="property">index</span>;</span><br><span class="line">  <span class="keyword">const</span> &#123; pageX, pageY &#125; = e.<span class="property">touches</span>[<span class="number">0</span>];</span><br><span class="line">  <span class="keyword">const</span> &#123; previewSize, <span class="attr">containerRes</span>: &#123; top, left &#125; &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    <span class="attr">currentIndex</span>: index,</span><br><span class="line">    <span class="attr">tranX</span>: pageX - previewSize / <span class="number">2</span> - left,</span><br><span class="line">    <span class="attr">tranY</span>: pageY - previewSize / <span class="number">2</span> - top,</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">/**
- * 长按图片
- */
-longPress(e) &#123;
-  const index = e.mark.index;
-  const &#123; pageX, pageY &#125; = e.touches[0];
-  const &#123; previewSize, containerRes: &#123; top, left &#125; &#125; = this.data;
-  this.setData(&#123;
-    currentIndex: index,
-    tranX: pageX - previewSize / 2 - left,
-    tranY: pageY - previewSize / 2 - top,
-  &#125;);
-&#125;,
-</code></pre>
 <h3 id="touchMove"><a href="#touchMove" class="headerlink" title="touchMove"></a>touchMove</h3><ul>
 <li>touchMove首先计算出位移距离，然后根据位移距离求出停放位置的key，如果不一样就修改位置</li>
-<li>touchMove</li>
+<li>touchMove<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * touchMove</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">touchMove</span>(<span class="params">e</span>) &#123;</span><br><span class="line">  <span class="comment">// 如果currentIndex &lt; 0，说明并没有触发longPress</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">currentIndex</span> &lt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> &#123; pageX, pageY &#125; = e.<span class="property">touches</span>[<span class="number">0</span>];</span><br><span class="line">  <span class="keyword">const</span> &#123; previewSize, <span class="attr">containerRes</span>: &#123; top, left &#125; &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="keyword">const</span> tranX = pageX - previewSize / <span class="number">2</span> - left;</span><br><span class="line">  <span class="keyword">const</span> tranY = pageY - previewSize / <span class="number">2</span> - top;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    tranX,</span><br><span class="line">    tranY</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">// 对比当前移动的key和停放位置的key，如果不一样就修改位置</span></span><br><span class="line">  <span class="keyword">const</span> currentKey = e.<span class="property">mark</span>.<span class="property">key</span>;</span><br><span class="line">  <span class="keyword">const</span> moveKey = <span class="variable language_">this</span>.<span class="title function_">getMoveKey</span>(tranX, tranY);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 当移动的key和正在停放位置的key相等，就无须处理</span></span><br><span class="line">  <span class="keyword">if</span> (currentKey === moveKey || <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">currentKey</span> === currentKey) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">currentKey</span> = currentKey;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">replace</span>(currentKey, moveKey);</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
+<li>getMoveKey<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 计算移动中的key</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> tranX 正在拖拽图片的tranX</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> tranY 正在拖拽图片的tranY</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">getMoveKey</span>(<span class="params">tranX, tranY</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">dragImgList</span>: list, previewSize, columns &#125; = <span class="variable language_">this</span>.<span class="property">data</span>;</span><br><span class="line">  <span class="keyword">const</span> <span class="title function_">_getPositionNumber</span> = (<span class="params">drag, limit</span>) =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> positionNumber = <span class="title class_">Math</span>.<span class="title function_">round</span>(drag / previewSize);</span><br><span class="line">    <span class="keyword">return</span> positionNumber &gt;= limit ? limit - <span class="number">1</span> : positionNumber &lt; <span class="number">0</span> ? <span class="number">0</span> : positionNumber;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> endKey = columns * <span class="title function_">_getPositionNumber</span>(tranY, <span class="title class_">Math</span>.<span class="title function_">ceil</span>(list.<span class="property">length</span> / columns)) + <span class="title function_">_getPositionNumber</span>(tranX, columns);</span><br><span class="line">  <span class="keyword">return</span> endKey &gt;= list.<span class="property">length</span> ? list.<span class="property">length</span> - <span class="number">1</span> : endKey;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
+<li>replace<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 生成拖拽后的新数组</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> start 拖拽起始的key</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> end 拖拽结束的key</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">replace</span>(<span class="params">start, end</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> dragImgList = <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">dragImgList</span>;</span><br><span class="line">  dragImgList.<span class="title function_">forEach</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (start &lt; end) &#123;</span><br><span class="line">      <span class="keyword">if</span> (item.<span class="property">key</span> &gt; start &amp;&amp; item.<span class="property">key</span> &lt;= end) item.<span class="property">key</span>--;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (item.<span class="property">key</span> === start) item.<span class="property">key</span> = end;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (start &gt; end) &#123;</span><br><span class="line">      <span class="keyword">if</span> (item.<span class="property">key</span> &gt;= end &amp;&amp; item.<span class="property">key</span> &lt; start) item.<span class="property">key</span>++;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (item.<span class="property">key</span> === start) item.<span class="property">key</span> = end;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">getListPosition</span>(dragImgList);</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">/**
- * touchMove
- */
-touchMove(e) &#123;
-  // 如果currentIndex &lt; 0，说明并没有触发longPress
-  if (this.data.currentIndex &lt; 0) &#123;
-    return;
-  &#125;
-  const &#123; pageX, pageY &#125; = e.touches[0];
-  const &#123; previewSize, containerRes: &#123; top, left &#125; &#125; = this.data;
-  const tranX = pageX - previewSize / 2 - left;
-  const tranY = pageY - previewSize / 2 - top;
-  this.setData(&#123;
-    tranX,
-    tranY
-  &#125;);
-  // 对比当前移动的key和停放位置的key，如果不一样就修改位置
-  const currentKey = e.mark.key;
-  const moveKey = this.getMoveKey(tranX, tranY);
-
-  // 当移动的key和正在停放位置的key相等，就无须处理
-  if (currentKey === moveKey || this.data.currentKey === currentKey) &#123;
-    return;
-  &#125;
-  this.data.currentKey = currentKey;
-  this.replace(currentKey, moveKey);
-&#125;,
-</code></pre>
-<ul>
-<li>getMoveKey</li>
-</ul>
-<pre><code class="js">/**
- * 计算移动中的key
- * @param tranX 正在拖拽图片的tranX
- * @param tranY 正在拖拽图片的tranY
- */
-getMoveKey(tranX, tranY) &#123;
-  const &#123; dragImgList: list, previewSize, columns &#125; = this.data;
-  const _getPositionNumber = (drag, limit) =&gt; &#123;
-    const positionNumber = Math.round(drag / previewSize);
-    return positionNumber &gt;= limit ? limit - 1 : positionNumber &lt; 0 ? 0 : positionNumber;
-  &#125;
-  const endKey = columns * _getPositionNumber(tranY, Math.ceil(list.length / columns)) + _getPositionNumber(tranX, columns);
-  return endKey &gt;= list.length ? list.length - 1 : endKey;
-&#125;,
-</code></pre>
-<ul>
-<li>replace</li>
-</ul>
-<pre><code class="js">/**
- * 生成拖拽后的新数组
- * @param start 拖拽起始的key
- * @param end 拖拽结束的key
- */
-replace(start, end) &#123;
-  const dragImgList = this.data.dragImgList;
-  dragImgList.forEach((item) =&gt; &#123;
-    if (start &lt; end) &#123;
-      if (item.key &gt; start &amp;&amp; item.key &lt;= end) item.key--;
-      else if (item.key === start) item.key = end;
-    &#125; else if (start &gt; end) &#123;
-      if (item.key &gt;= end &amp;&amp; item.key &lt; start) item.key++;
-      else if (item.key === start) item.key = end;
-    &#125;
-  &#125;);
-  this.getListPosition(dragImgList);
-&#125;,
-</code></pre>
 <h3 id="touchEnd"><a href="#touchEnd" class="headerlink" title="touchEnd"></a>touchEnd</h3><ul>
-<li>touchEnd用于重置数据</li>
+<li>touchEnd用于重置数据<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * touchEnd</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">touchEnd</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    <span class="attr">tranX</span>: <span class="number">0</span>,</span><br><span class="line">    <span class="attr">tranY</span>: <span class="number">0</span>,</span><br><span class="line">    <span class="attr">currentIndex</span>: -<span class="number">1</span>,</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">data</span>.<span class="property">currentKey</span> = -<span class="number">1</span>;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
 </ul>
-<pre><code class="js">/**
- * touchEnd
- */
-touchEnd() &#123;
-  this.setData(&#123;
-    tranX: 0,
-    tranY: 0,
-    currentIndex: -1,
-  &#125;);
-  this.data.currentKey = -1;
-&#125;,
-</code></pre>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/LHRUN/wx-drag-img">repo</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.npmjs.com/package/wx-drag-img">npm</a></li>
@@ -343,12 +198,118 @@ touchEnd() &#123;
 <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/haha1212/p/11562944.html">一款优雅的小程序拖拽排序组件实现</a></li>
 </ul>
-</p></div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2022-09-03</span><i class="fa fa-tag"></i><a class="tag" href="/tags/微信小程序/" title="微信小程序">微信小程序 </a><span class="leancloud_visitors"></span><span>大约1723个字, 5分钟44秒读完</span></div></div></div></div><div class="share"><div class="evernote"><a class="fa fa-bookmark" href="" onclick="javascript:join_favorite()" ref="sidebar"></a></div><div class="weibo"><a class="fa fa-weibo" href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));"></a></div><div class="twitter"><a class="fa fa-twitter" target="_blank" rel="noopener" href="http://twitter.com/home?status=,https://lhrun.github.io/2022/09/03/微信小程序图片拖拽排序组件/,LH'BLOG,微信小程序图片拖拽排序组件,;"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a class="btn" role="navigation" href="/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/" title="React源码分析之diff核心算法">上一篇</a></li><li class="next pagbuttons"><a class="btn" role="navigation" href="/2022/08/31/Vue3%E6%A8%A1%E7%89%88%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" title="Vue3模版编译原理">下一篇</a></li></ul></div><script src="/js/visitors.js"></script><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'lhblog-1';
-var disqus_identifier = '2022/09/03/微信小程序图片拖拽排序组件/';
-var disqus_title = '微信小程序图片拖拽排序组件';
-var disqus_url = 'https://lhrun.github.io/2022/09/03/微信小程序图片拖拽排序组件/';
-(function() {
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-})();</script><script id="dsq-count-scr" src="https://#{theme.disqus}.disqus.com/count.js" async></script></div></div></div></div><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script><script src="/js/add-bookmark.js"></script><script>(function(window){var INSIGHT_CONFIG={TRANSLATION:{POSTS:"文章",PAGES:"页面",CATEGORIES:"分类",TAGS:"标签",UNTITLED:"(无标题)",},CONTENT_URL:"/content.json",};window.INSIGHT_CONFIG=INSIGHT_CONFIG})(window);</script><script src="/js/insight.js" defer></script><div class="searchbox ins-search"><div class="searchbox-container ins-search-container"><div class="searchbox-input-wrapper"><input class="searchbox-input ins-search-input" type="text" placeholder="想要查找什么..."><span class="searchbox-close"><a class="fa fa-times-circle" onclick="closeWindow();"></a></span></div><div class="searchbox-result-wrapper ins-section-wrapper"><div class="ins-section-container"><p>Seraching...</p></div></div></div></div></body></html>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2022/08/31/Vue3%E6%A8%A1%E7%89%88%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2022/09/03/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%9B%BE%E7%89%87%E6%8B%96%E6%8B%BD%E6%8E%92%E5%BA%8F%E7%BB%84%E4%BB%B6/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2022/09/03/微信小程序图片拖拽排序组件/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
