@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>前端的Docker学习记录 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Docker/">
+                            Docker
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                前端的Docker学习记录
+            
+            
+        </div>
+        <span class="post-date">
+            10月 30, 2022
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/10/30/xI2sQP.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="Docker简介"><a href="#Docker简介" class="headerlink" title="Docker简介"></a>Docker简介</h2><ul>
+<li>Docker 是一个应用<strong>打包</strong>、<strong>分发</strong>、<strong>部署</strong>的工具，可以使应用部署更加轻量，可移植，可扩展，可以理解为一个轻量的虚拟机<ul>
+<li>打包：就是把你软件运行所需的依赖、第三方库、软件打包到一起，变成一个安装包</li>
+<li>分发：你可以把你打包好的“安装包”上传到一个镜像仓库，其他人可以非常方便的获取和安装</li>
+<li>部署：拿着“安装包”就可以一个命令运行起来应用，自动模拟出一模一样的运行环境，不管是在Windows&#x2F;Mac&#x2F;Linux</li>
+</ul>
+</li>
+<li>docker架构图<br><img src="https://s1.ax1x.com/2022/10/30/xI2lGR.png"></li>
+</ul>
+<ul>
+<li><strong>docker client</strong>: 即docker命令行工具</li>
+<li><strong>docker host</strong>: 宿主机，docker daemon的运行环境服务器</li>
+<li><strong>docker daemon</strong>: docker的守护进程，docker client通过命令行与docker daemon交互</li>
+<li><strong>image</strong>: 镜像，可以理解为安装包，可以方便的进行传播和安装</li>
+<li><strong>container</strong>: 容器，镜像的运行实例，每个软件运行环境都是独立的，隔离的</li>
+<li><strong>registry</strong>: 镜像仓库，可以从镜像仓库拉取和推送镜像</li>
+</ul>
+<h3 id="底层原理"><a href="#底层原理" class="headerlink" title="底层原理"></a>底层原理</h3><p>docker底层使用了一些linux内核的特性，<code>namespace</code>，<code>cgroups</code>，<code>unionFS</code></p>
+<h3 id="namespace"><a href="#namespace" class="headerlink" title="namespace"></a>namespace</h3><ul>
+<li>namespace，也叫命名空间，名称空间，它表示一个标识符的可见范围。一个标识符可在多个名字空间中定义，它在不同名字空间中的含义是互不相干的。这样，在一个新的名字空间中可定义任何标识符，它不会与任何已有的标识符发生冲突，因为已有的定义都处于其他命名空间中</li>
+<li>docker使用linux namespace构建隔离的环境，它由以下namespace组成<ul>
+<li>pid：隔离进程</li>
+<li>net：隔离网络</li>
+<li>ipc：隔离IPC</li>
+<li>mnt：隔离文件系统挂载</li>
+<li>uts：隔离hostname</li>
+<li>user：隔离uid&#x2F;gid</li>
+</ul>
+</li>
+</ul>
+<h3 id="cgroups"><a href="#cgroups" class="headerlink" title="cgroups"></a>cgroups</h3><ul>
+<li>cgroups，是控制组群(control groups)的简写，是用来限制、控制与分离一个进程组的资源(如CPU、内存、磁盘输入输出等)</li>
+<li>cgroups功能：<ul>
+<li>资源限制：设置内存限制，包括虚拟内存</li>
+<li>优先级：一些资源可以得到大量的CPU或磁盘IO吞吐量</li>
+<li>结算：用来度量系统实际用了多少资源</li>
+<li>控制：冻结组或检查点和重启动</li>
+</ul>
+</li>
+</ul>
+<h3 id="unionFS"><a href="#unionFS" class="headerlink" title="unionFS"></a>unionFS</h3><ul>
+<li>unionFS(Union file systems)是一种分层、轻量级并且高性能的文件性能，支持对文件系统的修改作为一次提交来一层层的叠加。docker的镜像与容器就是分层存储，可用的存储引擎呦aufs，overlay等</li>
+</ul>
+<h3 id="镜像"><a href="#镜像" class="headerlink" title="镜像"></a>镜像</h3><ul>
+<li>镜像是一份用来创造容器的配置文件，而容器可以视作最小型的一个操作系统</li>
+<li>docker的镜像和容器都使用了unionFS做分层存储，镜像作为只读层是共享的，而容器在镜像之上附加了一层可写层，最大程度地减少了空间的浪费</li>
+<li>镜像的相关命令<ul>
+<li>镜像拉取：<code>docker pull node:alpine</code></li>
+<li>查看镜像信息：<code>docker inspect node:alpine</code></li>
+<li>列出所有镜像：<code>docker images</code></li>
+<li>镜像打包：<code>docker build -t docker-app:v1.0.0</code><ul>
+<li><code>-t</code>：设置镜像名字和版本号</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><ul>
+<li>Dockerfile是docker构建镜像的配置文件，比如一个简单的Dockerfile如下<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:<span class="number">16</span></span><br><span class="line"><span class="keyword">MAINTAINER</span> songlh</span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD</span><span class="language-bash"> . /app</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> npm install pnpm -g</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> pnpm install</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="language-bash"> pnpm run dev</span></span><br></pre></td></tr></table></figure></li>
+<li>常用指令</li>
+<li><code>FROM</code>：表示基于一个已有的基础镜像，<code>FROM &lt;image&gt; [AS &lt;name&gt;]</code></li>
+<li><code>MAINTAINER</code>：声明dockerfile镜像构建的作者</li>
+<li><code>ADD</code>：表示把宿主机的文件或目录加入到镜像的文件系统，<code>ADD [--chown=&lt;user&gt;:&lt;group&gt;] &lt;src&gt;... &lt;dest&gt;</code></li>
+<li><code>RUN</code>: 在镜像中执行命令，由于ufs的文件系统，它会在当前镜像的顶层新增一层，<code>RUN &lt;command&gt;</code></li>
+<li><code>CMD</code>: 指定容器如何启动，一个Dockerfile中只允许有一个CMD</li>
+<li><code>WORKDIR</code>：设置工作目录</li>
+<li><code>ENV</code>：设置环境变量</li>
+</ul>
+<h2 id="容器"><a href="#容器" class="headerlink" title="容器"></a>容器</h2><ul>
+<li><code>docker run</code>：创建容器<ul>
+<li><code>docker run -p 8080:8080 --name docker-hello docker-app:v1.0.0</code>表示基于docker-app镜像的v1.0.0版本创建一个容器并在本地的8080端口运行，容器名字叫<code>docker-hellp</code></li>
+<li><code>-p host-port:container-port</code>：宿主机与容器端口映射，方便容器对外提供服务</li>
+<li><code>--name</code>：为容器指定名称</li>
+<li><code>-d</code>：后台运行</li>
+<li><code>--rm</code>：当停止容器时自动清除容器</li>
+</ul>
+</li>
+<li><code>docker stop</code>：停止容器</li>
+<li><code>docker rm</code>：删除容器</li>
+<li><code>docker exec -it container-name</code>：进入容器环境</li>
+<li><code>docker ps</code>：列出所有容器</li>
+<li><code>docker port</code>：查看容器端口映射</li>
+<li><code>docker stats</code>：查看容器资源占用</li>
+</ul>
+<h2 id="目录挂载"><a href="#目录挂载" class="headerlink" title="目录挂载"></a>目录挂载</h2><ul>
+<li>按照目前已有知识，如果改了项目代码不会立刻生效，需要重新build和run，很麻烦，而且容器产生的数据，如果容器删除了就会没有，目录挂载就是为了解决这些问题</li>
+<li>目前的挂载方式<ul>
+<li><code>bind mount</code>：直接把宿主机目录映射到容器内，适合挂载代码目录和配置文件，可挂载到多个容器上</li>
+<li><code>volume</code>：由容器创建和管理，创建在宿主机，所以删除容器不会丢失，官方推荐，更高效，Linux文件系统，适合存储数据库数据。可挂载到多个容器上</li>
+<li><code>tmpfs mount</code>：适合存储临时文件，存储在宿主机内存中。不可多容器共享</li>
+<li><img src="https://s1.ax1x.com/2022/10/30/xI2Qi9.png"></li>
+</ul>
+</li>
+</ul>
+<h3 id="bind-mount"><a href="#bind-mount" class="headerlink" title="bind mount"></a>bind mount</h3><ul>
+<li><code>bind mount</code>是通过<code>-v</code>参数来绑定宿主机目录，比如将外部的html文档挂载到Nginx容器的根目录下<ul>
+<li><code>docker run -v ~/html:/usr/share/nginx/html -p 81:80 -d --name nginx_bind nginx:latest</code></li>
+</ul>
+</li>
+<li>这种方式的缺点就是被挂载的宿主机目录(或文件)不受保护，任何容器都可以随意修改</li>
+</ul>
+<h3 id="volume"><a href="#volume" class="headerlink" title="volume"></a>volume</h3><ul>
+<li>volume也是一个文件，但是这个文件是在docker的管控范围内，docker可以通过挂载的设定来控制容器对volume的读写权限</li>
+<li>通过<code>docker volume create volume-name</code>创建一个Volume，实际上是在docker的<code>/var/lib/docker/volumes/</code>文件夹内创建一个相同名字的文件夹来保存数据</li>
+<li>比如设置一个只能读取volume<ul>
+<li><code>docker run --mount type=volume,source=nginx-volume,destination=/usr/share/nginx/html,readonly -p 82:80 -d --name nginx_volume nginx:latest</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="tmpfs-mount"><a href="#tmpfs-mount" class="headerlink" title="tmpfs mount"></a>tmpfs mount</h3><ul>
+<li>tmpfs挂载是临时的，仅保留在主机内存中。当容器停止时，tmpfs挂载被移除，写入的文件不会被持久化</li>
+<li><code>docker run --mount type=tmpfs,destination=/usr/share/nginx/html -p 83:80 -d --name nginx-tempfs nginx:latest</code></li>
+<li>tmpfs因为不是持久化，一般不使用</li>
+</ul>
+<h2 id="容器通信"><a href="#容器通信" class="headerlink" title="容器通信"></a>容器通信</h2><ul>
+<li>容器间的通信根据媒介可以分为：volume共享通信、网络通信</li>
+<li>根据通信范围可以分为：同主机通信、跨主机通信</li>
+</ul>
+<h3 id="网络通信"><a href="#网络通信" class="headerlink" title="网络通信"></a>网络通信</h3><ul>
+<li>Docker的网络通信模型分为以下几种，在安装Docker以后，会默认创建三种网络，可以通过<code>docker network ls</code>查看<ul>
+<li><strong>bridge</strong>：为每一个容器分配、设置IP等，并将容器连接到一个<code>docker0</code>虚拟网桥，默认为该模式</li>
+<li><strong>host</strong>：容器将不会虚拟出自己的网卡，配置自己的IP等，而是使用宿主机的IP和端口</li>
+<li><strong>none</strong>：容器有独立的<code>network namespace</code>，但并没有对其进行任何网络设置，如分配<code>veth pair</code>和网桥连接，IP等</li>
+<li><strong>overlay</strong>：可以连接多个docker守护进程或者满足集群服务之间的通信，适用于不同宿主机上的docker容器之间的通信</li>
+<li><strong>macvlan</strong>: 可以为docker容器分配MAC地址，使其像真实的物理及一样运行</li>
+</ul>
+</li>
+<li>Docker内置的<code>bridge network</code>，也就是docker0接口所属的network，所有未指定network的容器，默认连接到此network中，其网段未<code>172.17.0.1/16</code>，所以两个未进行任何连接操作的容器是可以通过IP地址互相通信的，因为他们同在一个network下，但通信只能通过IP地址进行，不可以通过容器名通信<ul>
+<li><img src="https://s1.ax1x.com/2022/10/30/xI21R1.png"></li>
+</ul>
+</li>
+<li>创建自定义网络：<code>docker network create custom_network</code></li>
+<li>查看网络模式：<code>docker network ls</code></li>
+<li>通过自定义网络创建容器：<code>docker run -di --name docker-app --net custom_network docker-app:v1.0.0</code></li>
+<li>查看容器的网络信息：<code>docker inspect 容器名称|ID</code>，然后在<code>NetworkSettings</code>节点中可以看到</li>
+<li>为容器连接新的网络：<code>docker network connect 网络名称 容器名称</code></li>
+<li>断开网络：<code>docker network disconnect 网络名称 容器名称</code></li>
+</ul>
+<h2 id="docker-compose"><a href="#docker-compose" class="headerlink" title="docker-compose"></a>docker-compose</h2><ul>
+<li>docker-compose是用于定义和运行多容器Docker应用程序的工具。通过compose，您可以使用YML文件来配置应用程序需要的所有服务，然后使用一个命令就可以从YML文件配置中创建并启动所有服务</li>
+<li>使用分三步<ul>
+<li><ol>
+<li>使用Dockerfile定义应用程序的环境</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>使用docker-compose.yml定义构成应用程序的服务，这样它们可以在隔离环境中一起运行</li>
+</ol>
+</li>
+<li><ol start="3">
+<li>最后，执行docker-compose up命令启动并运行整个应用程序</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>比如运行一个web项目和redis，可以编写一个如下的<code>docker-compose.yml</code>文件<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&quot;3&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">build:</span> <span class="string">./</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">80</span><span class="string">:8080</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./:/app</span></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">redis:5.0.13</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">redis:/data</span></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="attr">redis:</span></span><br></pre></td></tr></table></figure></li>
+<li>version：指定本yml依从的compose哪个版本指定的</li>
+<li>build: 指定构建镜像上下文路径</li>
+<li>image：指定启动容器的镜像</li>
+<li>volumes：卷挂载路径设置，如果跨多个服务并重用挂载卷，可以在volumes关键字中命名挂载卷</li>
+<li>ports：暴露端口信息</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/Mr_YanMingXin/article/details/123016807">浅谈Docker底层原理</a></li>
+<li><a target="_blank" rel="noopener" href="https://docker.easydoc.net/">Docker快速入门</a></li>
+<li><a target="_blank" rel="noopener" href="https://q.shanyue.tech/deploy/docker.html#%E6%9C%AF%E8%AF%AD">Docker使用指南</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6993979788020940830">Docker与数据：三种挂载方式</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/mrhelloworld/p/docker11.html">Docker 网络模式详解及容器间网络通信</a></li>
+</ul>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2022/10/12/%E5%9F%BA%E4%BA%8Emarkdown-it%E6%89%93%E9%80%A0%E7%9A%84markdown%E7%BC%96%E8%BE%91%E5%99%A8/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2022/10/30/%E5%89%8D%E7%AB%AF%E7%9A%84Docker%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2022/10/30/前端的Docker学习记录/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
