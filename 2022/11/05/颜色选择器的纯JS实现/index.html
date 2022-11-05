@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>颜色选择器的纯JS实现 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">
+                            微信小程序
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                颜色选择器的纯JS实现
+            
+            
+        </div>
+        <span class="post-date">
+            11月 5, 2022
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img src="https://s1.ax1x.com/2022/09/11/vXAg8e.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在逛论坛的时候发现了一个新API：<code>EyeDropper</code>，仅需创建一个实例，然后调用open方法，就可以取到你屏幕内所有可以取到的颜色，可惜兼容性不太行，只有Chrome，Edge，Opera支持，<a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/API/EyeDropper">MDN文档</a><br>知道了这个API后我也有了一个想实现取色器的想法，工作摸鱼期间👻折腾了几天搞了出来，实现步骤大致以下几步</p>
+<ol>
+<li>所需页面创建实例，初始化所需属性</li>
+<li>需开启时调用open方法开启取色器，网页截屏生成canvas，初始化监听事件和浮动元素(放大镜)</li>
+<li>鼠标移动时根据坐标获取颜色数据修改放大镜颜色</li>
+<li>鼠标点击或者按Esc键后销毁</li>
+</ol>
+<h2 id="预览"><a href="#预览" class="headerlink" title="预览"></a>预览</h2><p>预览地址：<a href="https://lhrun.github.io/page-color-picker/">https://lhrun.github.io/page-color-picker/</a><br>github：<a target="_blank" rel="noopener" href="https://github.com/LHRUN/page-color-picker">https://github.com/LHRUN/page-color-picker</a><br><img src="https://s1.ax1x.com/2022/11/05/xOoXo4.png"></p>
+<h2 id="初始化方法"><a href="#初始化方法" class="headerlink" title="初始化方法"></a>初始化方法</h2><p>初始化方法没什么说的，就是把需要的属性和方法赋值一遍初始值，然后接收一个鼠标点击时的回调</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">ColorPicker</span> &#123;</span><br><span class="line">  <span class="attr">canvasContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// canvas容器元素</span></span><br><span class="line">  <span class="attr">canvas</span>: <span class="title class_">HTMLCanvasElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas</span></span><br><span class="line">  <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas[context]</span></span><br><span class="line">  <span class="attr">floatContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 鼠标移动时的浮动容器元素</span></span><br><span class="line">  onChange?: <span class="function">(<span class="params">color: <span class="built_in">string</span></span>) =&gt;</span> <span class="built_in">void</span> <span class="comment">// 点击鼠标后的回调</span></span><br><span class="line">  color = <span class="string">&#x27;&#x27;</span> <span class="comment">// 颜色值</span></span><br><span class="line">  elementId = <span class="string">&#x27;&#x27;</span> <span class="comment">// 元素唯一id</span></span><br><span class="line">  <span class="attr">colorArr</span>: &#123;</span><br><span class="line">    <span class="attr">el</span>: <span class="title class_">HTMLDivElement</span></span><br><span class="line">    <span class="attr">row</span>: <span class="built_in">number</span></span><br><span class="line">    <span class="attr">col</span>: <span class="built_in">number</span></span><br><span class="line">  &#125;[] = [] <span class="comment">// 放大镜颜色数组</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"></span></span><br><span class="line"><span class="params">    onChange?: (color: <span class="built_in">string</span>) =&gt; <span class="built_in">void</span> <span class="comment">// 点击后回调</span></span></span><br><span class="line"><span class="params">  </span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onChange</span> = onChange</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="开启取色器"><a href="#开启取色器" class="headerlink" title="开启取色器"></a>开启取色器</h2><p>开启取色器分为4步</p>
+<ol>
+<li>初始化canvas容器</li>
+<li>生成canvas，我使用的是<a target="_blank" rel="noopener" href="https://www.npmjs.com/package/html2canvas">html2canvas</a></li>
+<li>初始化监听事件</li>
+<li>创建浮动元素</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 开启取色器</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="title function_">open</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 获取随机id</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">elementId</span> = <span class="title function_">getId</span>()</span><br><span class="line">  <span class="comment">// 初始化canvas容器</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">initContainer</span>()</span><br><span class="line">  <span class="title function_">html2canvas</span>(<span class="variable language_">document</span>.<span class="property">body</span>).<span class="title function_">then</span>(<span class="function">(<span class="params">canvas</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (canvas &amp;&amp; <span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;</span><br><span class="line">      <span class="comment">// 初始化事件</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">initEvent</span>(canvas)</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="property">style</span>.<span class="property">display</span> = <span class="string">&#x27;block&#x27;</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="title function_">appendChild</span>(canvas)</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">canvas</span> = canvas</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">context</span> = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>)</span><br><span class="line">      <span class="comment">// 创建浮动元素</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">initFloatContainer</span>()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>初始化canvas容器</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">initContainer</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 创建元素我封装了一个方法</span></span><br><span class="line">  <span class="keyword">const</span> canvasContainer = <span class="title function_">createDocument</span>(</span><br><span class="line">    <span class="string">&#x27;div&#x27;</span>,</span><br><span class="line">    styleObj.<span class="property">canvasContainer</span>,</span><br><span class="line">    <span class="variable language_">document</span>.<span class="property">body</span></span><br><span class="line">  )</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">canvasContainer</span> = canvasContainer</span><br><span class="line">  <span class="keyword">return</span> canvasContainer</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 创建元素</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> elType 元素类型</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> styleObj 样式对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> parent 父级元素</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns</span> <span class="variable">element</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> createDocument = &lt;T <span class="keyword">extends</span> keyof <span class="title class_">HTMLElementTagNameMap</span>&gt;(</span><br><span class="line">  <span class="attr">elType</span>: T,</span><br><span class="line">  <span class="attr">styleObj</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">string</span> | <span class="built_in">number</span>&gt;,</span><br><span class="line">  <span class="attr">parent</span>: <span class="title class_">HTMLElement</span> | <span class="title class_">DocumentFragment</span></span><br><span class="line">): <span class="title class_">HTMLElementTagNameMap</span>[T] =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> el = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(elType)</span><br><span class="line">  <span class="title class_">Object</span>.<span class="title function_">keys</span>(styleObj).<span class="title function_">forEach</span>(<span class="function">(<span class="params">key</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">isValidKey</span>(key, styleObj)) &#123;</span><br><span class="line">      <span class="title class_">Reflect</span>.<span class="title function_">set</span>(el.<span class="property">style</span>, key, styleObj[key])</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">  parent.<span class="title function_">appendChild</span>(el)</span><br><span class="line">  <span class="keyword">return</span> el</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>初始化事件</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 初始化事件</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> <span class="variable">canvas</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">initEvent</span>(<span class="params">canvas: HTMLCanvasElement</span>) &#123;</span><br><span class="line">  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)</span><br><span class="line">  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)</span><br><span class="line">  <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建浮动元素容器</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">initFloatCOntainer</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;</span><br><span class="line">    <span class="comment">// 创建浮动元素容器</span></span><br><span class="line">    <span class="keyword">const</span> floatContainer = <span class="title function_">createDocument</span>(</span><br><span class="line">      <span class="string">&#x27;div&#x27;</span>,</span><br><span class="line">      styleObj.<span class="property">floatContainer</span>,</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">canvasContainer</span></span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建放大镜的小颜色块</span></span><br><span class="line">    <span class="keyword">const</span> fragment = <span class="variable language_">document</span>.<span class="title function_">createDocumentFragment</span>()</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>; i++) &#123;</span><br><span class="line">      <span class="keyword">const</span> row = <span class="title class_">Math</span>.<span class="title function_">ceil</span>(i / <span class="variable constant_">COLOR_ITEM_SIZE</span>)</span><br><span class="line">      <span class="keyword">const</span> col = i - (row - <span class="number">1</span>) * <span class="variable constant_">COLOR_ITEM_SIZE</span></span><br><span class="line">      <span class="keyword">const</span> <span class="attr">style</span>: <span class="title class_">Record</span>&lt;string, string | number&gt; = &#123;</span><br><span class="line">        ...styleObj.<span class="property">colorItem</span></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span>) &#123;</span><br><span class="line">        style.<span class="property">borderColor</span> = <span class="string">&#x27;#000000&#x27;</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">const</span> itemEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, style, fragment)</span><br><span class="line">      itemEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span><span class="subst">$&#123;i&#125;</span>`</span>)</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">colorArr</span>.<span class="title function_">push</span>(&#123;</span><br><span class="line">        <span class="attr">el</span>: itemEl,</span><br><span class="line">        row,</span><br><span class="line">        col</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    floatContainer.<span class="title function_">appendChild</span>(fragment)</span><br><span class="line">    <span class="keyword">const</span> textEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, styleObj.<span class="property">text</span>, floatContainer)</span><br><span class="line">    textEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">floatContainer</span> = floatContainer</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="鼠标移动"><a href="#鼠标移动" class="headerlink" title="鼠标移动"></a>鼠标移动</h2><ul>
+<li>根据鼠标移动时的坐标，计算需要处理的颜色区域，然后调用<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/getImageData">CanvasRenderingContext2D.getImageData()</a>方法，这个方法会返回一个ImageData对象，这个对象里就包含RGBA数据，然后把这些数据展示到放大镜元素上，就有了放大的效果<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">canvasMouseMove = <span class="function">(<span class="params">e: MouseEvent</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> x = e.<span class="property">pageX</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span></span><br><span class="line">    <span class="keyword">const</span> y = e.<span class="property">pageY</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span></span><br><span class="line">    <span class="comment">// 获取放大镜所需区域颜色</span></span><br><span class="line">    <span class="keyword">const</span> colors = <span class="variable language_">this</span>.<span class="title function_">getColors</span>(x, y)</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span> &amp;&amp; colors) &#123;</span><br><span class="line">      <span class="comment">// 根据坐标改变放大镜位置</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">transform</span> = <span class="string">`translate(<span class="subst">$&#123;e.pageX - <span class="number">82.5</span>&#125;</span>px, <span class="subst">$&#123;</span></span></span><br><span class="line"><span class="subst"><span class="string">        e.pageY - <span class="number">82.5</span></span></span></span><br><span class="line"><span class="subst"><span class="string">      &#125;</span>px )`</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">display</span> === <span class="string">&#x27;none&#x27;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">display</span> = <span class="string">&#x27;flex&#x27;</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">const</span> textEl = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 遍历每个颜色块，修改颜色</span></span><br><span class="line">      <span class="keyword">for</span> (</span><br><span class="line">        <span class="keyword">let</span> i = <span class="number">0</span>;</span><br><span class="line">        i &lt; <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>;</span><br><span class="line">        i++</span><br><span class="line">      ) &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123; el, row, col &#125; = <span class="variable language_">this</span>.<span class="property">colorArr</span>[i]</span><br><span class="line">        <span class="keyword">const</span> [r, g, b, a] = colors[i]</span><br><span class="line">        <span class="comment">// toHexString rgba转16进制</span></span><br><span class="line">        <span class="keyword">const</span> hexStr = <span class="title function_">toHexString</span>(&#123; r, g, b, <span class="attr">a</span>: a / <span class="number">255</span> &#125;)</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  最中间的颜色保存起来</span></span><br><span class="line">        <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span> &amp;&amp; textEl) &#123;</span><br><span class="line">          textEl.<span class="property">textContent</span> = hexStr</span><br><span class="line">          textEl.<span class="property">style</span>.<span class="property">color</span> = hexStr</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">color</span> = hexStr</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        el.<span class="property">style</span>.<span class="property">backgroundColor</span> = hexStr</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取放大镜所需区域颜色</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> <span class="variable">x</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> <span class="variable">y</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">getColors</span>(<span class="params">x: <span class="built_in">number</span>, y: <span class="built_in">number</span></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; data &#125; = <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">getImageData</span>(</span><br><span class="line">      x - <span class="number">5</span>,</span><br><span class="line">      y - <span class="number">5</span>,</span><br><span class="line">      <span class="variable constant_">COLOR_ITEM_SIZE</span>,</span><br><span class="line">      <span class="variable constant_">COLOR_ITEM_SIZE</span></span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">const</span> colors = []</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; data.<span class="property">length</span>; i += <span class="number">4</span>) &#123;</span><br><span class="line">      colors.<span class="title function_">push</span>([data[i], data[i + <span class="number">1</span>], data[i + <span class="number">2</span>], data[i + <span class="number">3</span>]])</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> colors</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="鼠标点击"><a href="#鼠标点击" class="headerlink" title="鼠标点击"></a>鼠标点击</h2><ul>
+<li>鼠标点击触发回调，销毁元素<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">canvasMouseDown = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">this</span>?.<span class="property">onChange</span>?.(<span class="variable language_">this</span>.<span class="property">color</span>)</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">destroy</span>()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">destroy</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvas</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;</span><br><span class="line">    <span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">removeChild</span>(<span class="variable language_">this</span>.<span class="property">canvasContainer</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">window</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>有问题欢迎讨论👻</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2022/10/30/%E5%89%8D%E7%AB%AF%E7%9A%84Docker%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2022/11/05/%E9%A2%9C%E8%89%B2%E9%80%89%E6%8B%A9%E5%99%A8%E7%9A%84%E7%BA%AFJS%E5%AE%9E%E7%8E%B0/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2022/11/05/颜色选择器的纯JS实现/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
