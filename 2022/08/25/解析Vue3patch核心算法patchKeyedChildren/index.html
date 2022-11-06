@@ -126,14 +126,14 @@
             
                 
                     <span class="post-tag">
-                        <a href="/tags/Vue3/">
-                            Vue3
+                        <a href="/tags/Vue/">
+                            Vue
                         </a>
                     </span>    
                 
                     <span class="post-tag">
-                        <a href="/tags/Vue/">
-                            Vue
+                        <a href="/tags/Vue3/">
+                            Vue3
                         </a>
                     </span>    
                            
@@ -156,8 +156,8 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
@@ -167,27 +167,186 @@
 <li>首先patchKeyedChildren是在子列表对比并且有key的情况会进入，并且逻辑大致分为5步，这个看源码官方注释就可以看出</li>
 </ul>
 <h4 id="第一步，从前向后遍历"><a href="#第一步，从前向后遍历" class="headerlink" title="第一步，从前向后遍历"></a>第一步，从前向后遍历</h4><p>这一步是从节点组头部向尾部遍历，如果遍历过程中遇到相似节点，就进行patch对比，否则就退出遍历，并记录当前遍历的最新下标</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (i &lt;= e1 &amp;&amp; i &lt;= e2) &#123;</span><br><span class="line">  <span class="keyword">const</span> n1 = c1[i]</span><br><span class="line">  <span class="keyword">const</span> n2 = (c2[i] = optimized</span><br><span class="line">    ? <span class="title function_">cloneIfMounted</span>(c2[i] <span class="keyword">as</span> <span class="title class_">VNode</span>)</span><br><span class="line">    : <span class="title function_">normalizeVNode</span>(c2[i]))</span><br><span class="line">  <span class="keyword">if</span> (<span class="title function_">isSameVNodeType</span>(n1, n2)) &#123;</span><br><span class="line">    <span class="title function_">patch</span>(</span><br><span class="line">      n1,</span><br><span class="line">      n2,</span><br><span class="line">      container,</span><br><span class="line">      <span class="literal">null</span>,</span><br><span class="line">      parentComponent,</span><br><span class="line">      parentSuspense,</span><br><span class="line">      isSVG,</span><br><span class="line">      slotScopeIds,</span><br><span class="line">      optimized</span><br><span class="line">    )</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">break</span></span><br><span class="line">  &#125;</span><br><span class="line">  i++</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">while</span> (i &lt;= e1 &amp;&amp; i &lt;= e2) &#123;
+  <span class="keyword">const</span> n1 = c1[i]
+  <span class="keyword">const</span> n2 = (c2[i] = optimized
+    ? <span class="title function_">cloneIfMounted</span>(c2[i] <span class="keyword">as</span> <span class="title class_">VNode</span>)
+    : <span class="title function_">normalizeVNode</span>(c2[i]))
+  <span class="keyword">if</span> (<span class="title function_">isSameVNodeType</span>(n1, n2)) &#123;
+    <span class="title function_">patch</span>(
+      n1,
+      n2,
+      container,
+      <span class="literal">null</span>,
+      parentComponent,
+      parentSuspense,
+      isSVG,
+      slotScopeIds,
+      optimized
+    )
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="keyword">break</span>
+  &#125;
+  i++
+&#125;</code></pre>
 
 <h4 id="第二步，从后向前遍历"><a href="#第二步，从后向前遍历" class="headerlink" title="第二步，从后向前遍历"></a>第二步，从后向前遍历</h4><p>从后向前遍历，如果遇到第一步记录的下标就停止，然后遍历过程中，如果遇到相似节点也是直接进行patch对比，如果不相同就是直接退出遍历，并且记录旧节点组和新节点组的尾指针</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (i &lt;= e1 &amp;&amp; i &lt;= e2) &#123;</span><br><span class="line">  <span class="keyword">const</span> n1 = c1[e1]</span><br><span class="line">  <span class="keyword">const</span> n2 = (c2[e2] = optimized</span><br><span class="line">    ? <span class="title function_">cloneIfMounted</span>(c2[e2] <span class="keyword">as</span> <span class="title class_">VNode</span>)</span><br><span class="line">    : <span class="title function_">normalizeVNode</span>(c2[e2]))</span><br><span class="line">  <span class="keyword">if</span> (<span class="title function_">isSameVNodeType</span>(n1, n2)) &#123;</span><br><span class="line">    <span class="title function_">patch</span>(</span><br><span class="line">      n1,</span><br><span class="line">      n2,</span><br><span class="line">      container,</span><br><span class="line">      <span class="literal">null</span>,</span><br><span class="line">      parentComponent,</span><br><span class="line">      parentSuspense,</span><br><span class="line">      isSVG,</span><br><span class="line">      slotScopeIds,</span><br><span class="line">      optimized</span><br><span class="line">    )</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">break</span></span><br><span class="line">  &#125;</span><br><span class="line">  e1--</span><br><span class="line">  e2--</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">while</span> (i &lt;= e1 &amp;&amp; i &lt;= e2) &#123;
+  <span class="keyword">const</span> n1 = c1[e1]
+  <span class="keyword">const</span> n2 = (c2[e2] = optimized
+    ? <span class="title function_">cloneIfMounted</span>(c2[e2] <span class="keyword">as</span> <span class="title class_">VNode</span>)
+    : <span class="title function_">normalizeVNode</span>(c2[e2]))
+  <span class="keyword">if</span> (<span class="title function_">isSameVNodeType</span>(n1, n2)) &#123;
+    <span class="title function_">patch</span>(
+      n1,
+      n2,
+      container,
+      <span class="literal">null</span>,
+      parentComponent,
+      parentSuspense,
+      isSVG,
+      slotScopeIds,
+      optimized
+    )
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="keyword">break</span>
+  &#125;
+  e1--
+  e2--
+&#125;</code></pre>
 
 <h4 id="第三步，检查旧节点组"><a href="#第三步，检查旧节点组" class="headerlink" title="第三步，检查旧节点组"></a>第三步，检查旧节点组</h4><p>这一步就是检查旧节点组在上两步的遍历后是否遍历完，如果遍历完，那么新节点组没有遍历完的就都是新的dom，可以全部当作新增节点进行挂载处理</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (i &gt; e1) &#123;</span><br><span class="line">  <span class="keyword">if</span> (i &lt;= e2) &#123;</span><br><span class="line">    <span class="keyword">const</span> nextPos = e2 + <span class="number">1</span></span><br><span class="line">    <span class="keyword">const</span> anchor = nextPos &lt; l2 ? (c2[nextPos] <span class="keyword">as</span> <span class="title class_">VNode</span>).<span class="property">el</span> : parentAnchor</span><br><span class="line">    <span class="keyword">while</span> (i &lt;= e2) &#123;</span><br><span class="line">      <span class="comment">// patch第一个参数为null，就是代表没有旧节点，直接将新节点插入</span></span><br><span class="line">      <span class="title function_">patch</span>(</span><br><span class="line">        <span class="literal">null</span>,</span><br><span class="line">        (c2[i] = optimized</span><br><span class="line">          ? <span class="title function_">cloneIfMounted</span>(c2[i] <span class="keyword">as</span> <span class="title class_">VNode</span>)</span><br><span class="line">          : <span class="title function_">normalizeVNode</span>(c2[i])),</span><br><span class="line">        container,</span><br><span class="line">        anchor,</span><br><span class="line">        parentComponent,</span><br><span class="line">        parentSuspense,</span><br><span class="line">        isSVG,</span><br><span class="line">        slotScopeIds,</span><br><span class="line">        optimized</span><br><span class="line">      )</span><br><span class="line">      i++</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">if</span> (i &gt; e1) &#123;
+  <span class="keyword">if</span> (i &lt;= e2) &#123;
+    <span class="keyword">const</span> nextPos = e2 + <span class="number">1</span>
+    <span class="keyword">const</span> anchor = nextPos &lt; l2 ? (c2[nextPos] <span class="keyword">as</span> <span class="title class_">VNode</span>).<span class="property">el</span> : parentAnchor
+    <span class="keyword">while</span> (i &lt;= e2) &#123;
+      <span class="comment">// patch第一个参数为null，就是代表没有旧节点，直接将新节点插入</span>
+      <span class="title function_">patch</span>(
+        <span class="literal">null</span>,
+        (c2[i] = optimized
+          ? <span class="title function_">cloneIfMounted</span>(c2[i] <span class="keyword">as</span> <span class="title class_">VNode</span>)
+          : <span class="title function_">normalizeVNode</span>(c2[i])),
+        container,
+        anchor,
+        parentComponent,
+        parentSuspense,
+        isSVG,
+        slotScopeIds,
+        optimized
+      )
+      i++
+    &#125;
+  &#125;
+&#125;</code></pre>
 
 <h4 id="第四步，检查新节点组"><a href="#第四步，检查新节点组" class="headerlink" title="第四步，检查新节点组"></a>第四步，检查新节点组</h4><p>如果上一步检查旧节点未遍历完，那么就检查新节点组是否遍历完，如果遍历完，那么旧的节点组剩余的节点说明都是要卸载的，因为都不需要了</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (i &gt; e2) &#123;</span><br><span class="line">  <span class="comment">// 旧子节点未被遍历完</span></span><br><span class="line">  <span class="keyword">while</span> (i &lt;= e1) &#123;</span><br><span class="line">    <span class="title function_">unmount</span>(c1[i], parentComponent, parentSuspense, <span class="literal">true</span>)</span><br><span class="line">    i++</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">else</span> <span class="keyword">if</span> (i &gt; e2) &#123;
+  <span class="comment">// 旧子节点未被遍历完</span>
+  <span class="keyword">while</span> (i &lt;= e1) &#123;
+    <span class="title function_">unmount</span>(c1[i], parentComponent, parentSuspense, <span class="literal">true</span>)
+    i++
+  &#125;
+&#125;</code></pre>
 
 <h4 id="第五步，未知序列"><a href="#第五步，未知序列" class="headerlink" title="第五步，未知序列"></a>第五步，未知序列</h4><ul>
 <li>如果新旧节点组都未遍历完，说明存在未知序列，可能存在位移等情况，就需要进一步处理</li>
-<li>首先创建一个数组，用于记录新旧节点的对应关系<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// toBePatched是新序列的节点数量 e2 - s2 + 1</span></span><br><span class="line"><span class="keyword">const</span> newIndexToOldIndexMap = <span class="keyword">new</span> <span class="title class_">Array</span>(toBePatched)</span><br><span class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; toBePatched; i++) newIndexToOldIndexMap[i] = <span class="number">0</span></span><br></pre></td></tr></table></figure></li>
+<li>首先创建一个数组，用于记录新旧节点的对应关系<pre><code class="highlight js"><span class="comment">// toBePatched是新序列的节点数量 e2 - s2 + 1</span>
+<span class="keyword">const</span> newIndexToOldIndexMap = <span class="keyword">new</span> <span class="title class_">Array</span>(toBePatched)
+<span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; toBePatched; i++) newIndexToOldIndexMap[i] = <span class="number">0</span></code></pre></li>
 <li>然后会遍历旧节点组，这里会用两个变量记录<ul>
 <li><code>let moved = false</code>：位移标识，用于判断是否需要位移</li>
-<li><code>let patched = 0</code>：记录已执行patch的新节点数量，用于处理如果在更新时更新过的数量大于需要更新的节点数量，就卸载对应旧节点<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (i = s1; i &lt;= e1; i++) &#123;</span><br><span class="line">  <span class="keyword">const</span> prevChild = c1[i]</span><br><span class="line">  <span class="comment">// 如果已更新数量大于新节点数量，就卸载节点</span></span><br><span class="line">  <span class="keyword">if</span> (patched &gt;= toBePatched) &#123;</span><br><span class="line">    <span class="title function_">unmount</span>(prevChild, parentComponent, parentSuspense, <span class="literal">true</span>)</span><br><span class="line">    <span class="keyword">continue</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">let</span> newIndex <span class="comment">//新旧节点key相同的新节点index</span></span><br><span class="line">  <span class="keyword">if</span> (prevChild.<span class="property">key</span> != <span class="literal">null</span>) &#123;</span><br><span class="line">    newIndex = keyToNewIndexMap.<span class="title function_">get</span>(prevChild.<span class="property">key</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (j = s2; j &lt;= e2; j++) &#123;</span><br><span class="line">      <span class="keyword">if</span> (</span><br><span class="line">        newIndexToOldIndexMap[j - s2] === <span class="number">0</span> &amp;&amp;</span><br><span class="line">        <span class="title function_">isSameVNodeType</span>(prevChild, c2[j] <span class="keyword">as</span> <span class="title class_">VNode</span>)</span><br><span class="line">      ) &#123;</span><br><span class="line">        newIndex = j</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果newIndex为空，则说明未找到与旧节点对应的新节点，直接卸载</span></span><br><span class="line">  <span class="keyword">if</span> (newIndex === <span class="literal">undefined</span>) &#123;</span><br><span class="line">    <span class="title function_">unmount</span>(prevChild, parentComponent, parentSuspense, <span class="literal">true</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 更新新旧节点关系表</span></span><br><span class="line">    newIndexToOldIndexMap[newIndex - s2] = i + <span class="number">1</span></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 这里的maxNexIndexSoFar是记录每次patch最大index</span></span><br><span class="line"><span class="comment">     * 也是用于判断是否产生了位移，因为如果新节点index比最大index小，就说明发生了位移</span></span><br><span class="line"><span class="comment">     * 例如：</span></span><br><span class="line"><span class="comment">     *  (a b) c</span></span><br><span class="line"><span class="comment">     *  (a c  b)</span></span><br><span class="line"><span class="comment">     * 在新旧序列对比b，c时，由于c最新的newIndex已经小于b对应的newIndex，因此会记录需要位移</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (newIndex &gt;= maxNewIndexSoFar) &#123;</span><br><span class="line">      maxNewIndexSoFar = newIndex</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      moved = <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">patch</span>(</span><br><span class="line">      prevChild,</span><br><span class="line">      c2[newIndex] <span class="keyword">as</span> <span class="title class_">VNode</span>,</span><br><span class="line">      container,</span><br><span class="line">      <span class="literal">null</span>,</span><br><span class="line">      parentComponent,</span><br><span class="line">      parentSuspense,</span><br><span class="line">      isSVG,</span><br><span class="line">      slotScopeIds,</span><br><span class="line">      optimized</span><br><span class="line">    )</span><br><span class="line">    patched++</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><code>let patched = 0</code>：记录已执行patch的新节点数量，用于处理如果在更新时更新过的数量大于需要更新的节点数量，就卸载对应旧节点<pre><code class="highlight js"><span class="keyword">for</span> (i = s1; i &lt;= e1; i++) &#123;
+  <span class="keyword">const</span> prevChild = c1[i]
+  <span class="comment">// 如果已更新数量大于新节点数量，就卸载节点</span>
+  <span class="keyword">if</span> (patched &gt;= toBePatched) &#123;
+    <span class="title function_">unmount</span>(prevChild, parentComponent, parentSuspense, <span class="literal">true</span>)
+    <span class="keyword">continue</span>
+  &#125;
+  <span class="keyword">let</span> newIndex <span class="comment">//新旧节点key相同的新节点index</span>
+  <span class="keyword">if</span> (prevChild.<span class="property">key</span> != <span class="literal">null</span>) &#123;
+    newIndex = keyToNewIndexMap.<span class="title function_">get</span>(prevChild.<span class="property">key</span>)
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="keyword">for</span> (j = s2; j &lt;= e2; j++) &#123;
+      <span class="keyword">if</span> (
+        newIndexToOldIndexMap[j - s2] === <span class="number">0</span> &amp;&amp;
+        <span class="title function_">isSameVNodeType</span>(prevChild, c2[j] <span class="keyword">as</span> <span class="title class_">VNode</span>)
+      ) &#123;
+        newIndex = j
+        <span class="keyword">break</span>
+      &#125;
+    &#125;
+  &#125;
+  <span class="comment">// 如果newIndex为空，则说明未找到与旧节点对应的新节点，直接卸载</span>
+  <span class="keyword">if</span> (newIndex === <span class="literal">undefined</span>) &#123;
+    <span class="title function_">unmount</span>(prevChild, parentComponent, parentSuspense, <span class="literal">true</span>)
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="comment">// 更新新旧节点关系表</span>
+    newIndexToOldIndexMap[newIndex - s2] = i + <span class="number">1</span>
+    <span class="comment">/**</span>
+<span class="comment">     * 这里的maxNexIndexSoFar是记录每次patch最大index</span>
+<span class="comment">     * 也是用于判断是否产生了位移，因为如果新节点index比最大index小，就说明发生了位移</span>
+<span class="comment">     * 例如：</span>
+<span class="comment">     *  (a b) c</span>
+<span class="comment">     *  (a c  b)</span>
+<span class="comment">     * 在新旧序列对比b，c时，由于c最新的newIndex已经小于b对应的newIndex，因此会记录需要位移</span>
+<span class="comment">     */</span>
+    <span class="keyword">if</span> (newIndex &gt;= maxNewIndexSoFar) &#123;
+      maxNewIndexSoFar = newIndex
+    &#125; <span class="keyword">else</span> &#123;
+      moved = <span class="literal">true</span>
+    &#125;
+    <span class="title function_">patch</span>(
+      prevChild,
+      c2[newIndex] <span class="keyword">as</span> <span class="title class_">VNode</span>,
+      container,
+      <span class="literal">null</span>,
+      parentComponent,
+      parentSuspense,
+      isSVG,
+      slotScopeIds,
+      optimized
+    )
+    patched++
+  &#125;
+&#125;</code></pre></li>
 </ul>
 </li>
 <li>遍历完旧序列后，就需要确定如何位移</li>
-<li>首先是根据新旧节点关系表生成最长递增子序列(这个算法就不陈述了，较复杂，可以看<a target="_blank" rel="noopener" href="https://juejin.cn/post/6952674285311754276#comment">精读《DOM diff 最长上升子序列》</a>)，然后倒序遍历新子节点<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 最长递增子序列</span></span><br><span class="line"><span class="keyword">const</span> increasingNewIndexSequence = moved</span><br><span class="line">  ? <span class="title function_">getSequence</span>(newIndexToOldIndexMap)</span><br><span class="line">  : <span class="variable constant_">EMPTY_ARR</span></span><br><span class="line">j = increasingNewIndexSequence.<span class="property">length</span> - <span class="number">1</span></span><br><span class="line"><span class="comment">// 从新序列尾部向前遍历，目的是为了使用上一个遍历的节点做锚点</span></span><br><span class="line"><span class="keyword">for</span> (i = toBePatched - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">  <span class="keyword">const</span> nextIndex = s2 + i</span><br><span class="line">  <span class="keyword">const</span> nextChild = c2[nextIndex] <span class="keyword">as</span> <span class="title class_">VNode</span></span><br><span class="line">  <span class="comment">// 如果是序列的最后一个节点，anchor就是父节点对应的anchor，否则就是上一个子节点</span></span><br><span class="line">  <span class="keyword">const</span> anchor =</span><br><span class="line">    nextIndex + <span class="number">1</span> &lt; l2 ? (c2[nextIndex + <span class="number">1</span>] <span class="keyword">as</span> <span class="title class_">VNode</span>).<span class="property">el</span> : parentAnchor</span><br><span class="line">  <span class="comment">// 如果newIndexToOldIndexMap[i]还是0，那么说明新节点没有对应的旧节点，说明是新节点，直接挂载</span></span><br><span class="line">  <span class="keyword">if</span> (newIndexToOldIndexMap[i] === <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="title function_">patch</span>(</span><br><span class="line">      <span class="literal">null</span>,</span><br><span class="line">      nextChild,</span><br><span class="line">      container,</span><br><span class="line">      anchor,</span><br><span class="line">      parentComponent,</span><br><span class="line">      parentSuspense,</span><br><span class="line">      isSVG,</span><br><span class="line">      slotScopeIds,</span><br><span class="line">      optimized</span><br><span class="line">    )</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (moved) &#123;</span><br><span class="line">    <span class="comment">// 然后在moved为true的情况下，如果最长子序列为空或者最长子序列和当前访问的新节点index不同，说明就需要进行位移</span></span><br><span class="line">    <span class="keyword">if</span> (j &lt; <span class="number">0</span> || i !== increasingNewIndexSequence[j]) &#123;</span><br><span class="line">      <span class="title function_">move</span>(nextChild, container, anchor, <span class="title class_">MoveType</span>.<span class="property">REORDER</span>)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      j--</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>首先是根据新旧节点关系表生成最长递增子序列(这个算法就不陈述了，较复杂，可以看<a target="_blank" rel="noopener" href="https://juejin.cn/post/6952674285311754276#comment">精读《DOM diff 最长上升子序列》</a>)，然后倒序遍历新子节点<pre><code class="highlight js"><span class="comment">// 最长递增子序列</span>
+<span class="keyword">const</span> increasingNewIndexSequence = moved
+  ? <span class="title function_">getSequence</span>(newIndexToOldIndexMap)
+  : <span class="variable constant_">EMPTY_ARR</span>
+j = increasingNewIndexSequence.<span class="property">length</span> - <span class="number">1</span>
+<span class="comment">// 从新序列尾部向前遍历，目的是为了使用上一个遍历的节点做锚点</span>
+<span class="keyword">for</span> (i = toBePatched - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;
+  <span class="keyword">const</span> nextIndex = s2 + i
+  <span class="keyword">const</span> nextChild = c2[nextIndex] <span class="keyword">as</span> <span class="title class_">VNode</span>
+  <span class="comment">// 如果是序列的最后一个节点，anchor就是父节点对应的anchor，否则就是上一个子节点</span>
+  <span class="keyword">const</span> anchor =
+    nextIndex + <span class="number">1</span> &lt; l2 ? (c2[nextIndex + <span class="number">1</span>] <span class="keyword">as</span> <span class="title class_">VNode</span>).<span class="property">el</span> : parentAnchor
+  <span class="comment">// 如果newIndexToOldIndexMap[i]还是0，那么说明新节点没有对应的旧节点，说明是新节点，直接挂载</span>
+  <span class="keyword">if</span> (newIndexToOldIndexMap[i] === <span class="number">0</span>) &#123;
+    <span class="title function_">patch</span>(
+      <span class="literal">null</span>,
+      nextChild,
+      container,
+      anchor,
+      parentComponent,
+      parentSuspense,
+      isSVG,
+      slotScopeIds,
+      optimized
+    )
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (moved) &#123;
+    <span class="comment">// 然后在moved为true的情况下，如果最长子序列为空或者最长子序列和当前访问的新节点index不同，说明就需要进行位移</span>
+    <span class="keyword">if</span> (j &lt; <span class="number">0</span> || i !== increasingNewIndexSequence[j]) &#123;
+      <span class="title function_">move</span>(nextChild, container, anchor, <span class="title class_">MoveType</span>.<span class="property">REORDER</span>)
+    &#125; <span class="keyword">else</span> &#123;
+      j--
+    &#125;
+  &#125;
+&#125;</code></pre></li>
 </ul>
 
 </div> 

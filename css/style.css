@@ -482,11 +482,15 @@ input[type="search"]::-webkit-search-results-decoration {
   flex-direction: column;
 }
 .post-gallery-item .post-info .post-title {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
   font-size: 1.125rem;
   font-weight: 700;
   line-height: 1.5rem;
   color: #002a56;
+}
+.post-gallery-item .post-info .post-excerpt {
+  font-size: 14px;
+  margin-bottom: 5px;
 }
 .post-gallery-item .post-info .post-date {
   font-size: 0.875rem;
@@ -834,8 +838,11 @@ blockquote blockquote {
   color: #002a56;
   margin-top: 0.5rem;
 }
+.post-content li li {
+  list-style-type: circle !important;
+}
 .post-content ol {
-  padding-left: 1.5rem;
+  padding-left: 0.5rem;
   margin-left: 0.75rem;
   margin-right: 0.75rem;
   margin-top: 1rem;
@@ -844,7 +851,7 @@ blockquote blockquote {
   margin-top: 0.5rem;
 }
 .post-content ul {
-  padding-left: 1.5rem;
+  padding-left: 0.5rem;
   margin-left: 0.75rem;
   margin-right: 0.75rem;
   margin-top: 1rem;

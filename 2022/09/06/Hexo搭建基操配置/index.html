@@ -150,8 +150,8 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
@@ -164,7 +164,9 @@
 </ul>
 <ol start="2">
 <li>环境准备好后，安装Hexo <code>npm install -g hexo-cli</code></li>
-<li>安装后在指定文件夹创建项目<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hexo init &lt;folder&gt;</span><br><span class="line"><span class="built_in">cd</span> &lt;folder&gt;</span><br><span class="line">npm install</span><br></pre></td></tr></table></figure></li>
+<li>安装后在指定文件夹创建项目<pre><code class="highlight sh">hexo init &lt;folder&gt;
+<span class="built_in">cd</span> &lt;folder&gt;
+npm install</code></pre></li>
 <li>选择主题</li>
 </ol>
 <ul>
@@ -203,7 +205,10 @@
 <ol start="3">
 <li>然后再新建一个仓库，名字为 <code>github名字.github.io</code>，这个仓库用于放部署后的代码</li>
 <li>安装Hexo部署插件 <code>npm install hexo-deployer-git</code></li>
-<li>修改根目录下的 <code>_config.yml</code><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">部署仓库地址</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">main</span></span><br></pre></td></tr></table></figure></li>
+<li>修改根目录下的 <code>_config.yml</code><pre><code class="highlight yml"><span class="attr">deploy:</span>
+  <span class="attr">type:</span> <span class="string">git</span>
+  <span class="attr">repo:</span> <span class="string">部署仓库地址</span>
+  <span class="attr">branch:</span> <span class="string">main</span></code></pre></li>
 <li>最后执行<code>hexo deploy</code>命令就可以在<code>github名字.github.io</code>看到博客了</li>
 </ol>
 <h2 id="SSH-github-Actions自动部署"><a href="#SSH-github-Actions自动部署" class="headerlink" title="SSH + github Actions自动部署"></a>SSH + github Actions自动部署</h2><ul>
@@ -217,7 +222,41 @@
 <li><p>git仓库添加密钥私有变量，配置路径：<code>repo -&gt; Settings -&gt; Secrets</code>，点击<code>New repository secret</code>，name可以自定义，主要是接下来的deploy.yaml文件需要使用，Secret填写你生成的密钥<br><img src="https://img-blog.csdnimg.cn/10897de98a7f44a2b3171371b71b91ac.jpeg#pic_center" alt="在这里插入图片描述"></p>
 </li>
 <li><p>然后根目录下新建<code>.github/workflows/deploy.yaml</code>，并填写以下内容</p>
-<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">Deploy</span></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">push:</span></span><br><span class="line">    <span class="attr">branches:</span> [<span class="string">你需要自动化部署的分支</span>]</span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">build:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Checkout</span> <span class="string">Repository</span> <span class="string">main</span> <span class="string">branch</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">actions/checkout@main</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Node</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">actions/setup-node@v1</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">node-version:</span> <span class="number">14.</span><span class="string">x</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Hexo</span> <span class="string">Dependencies</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          npm install hexo-cli -g</span></span><br><span class="line"><span class="string">          npm install</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Deploy</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">          <span class="attr">HEXO_DEPLOY_PRIVATE_KEY:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.&#x27;你上一步自定义的变量名&#x27;</span> <span class="string">&#125;&#125;</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          mkdir -p ~/.ssh/</span></span><br><span class="line"><span class="string">          echo &quot;$HEXO_DEPLOY_PRIVATE_KEY&quot; &gt; ~/.ssh/id_rsa </span></span><br><span class="line"><span class="string">          chmod 600 ~/.ssh/id_rsa</span></span><br><span class="line"><span class="string">          ssh-keyscan github.com &gt;&gt; ~/.ssh/known_hosts</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Git</span> <span class="string">Infomation</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          git config --global user.name &quot;git名字&quot;</span></span><br><span class="line"><span class="string">          git config --global user.email &quot;git邮箱&quot;</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Deploy</span> <span class="string">Hexo</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          hexo clean</span></span><br><span class="line"><span class="string">          hexo generate </span></span><br><span class="line"><span class="string">          hexo deploy    </span></span><br></pre></td></tr></table></figure></li>
+<pre><code class="highlight yml"><span class="attr">name:</span> <span class="string">Deploy</span>
+<span class="attr">on:</span>
+  <span class="attr">push:</span>
+    <span class="attr">branches:</span> [<span class="string">你需要自动化部署的分支</span>]
+<span class="attr">jobs:</span>
+  <span class="attr">build:</span>
+    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span>
+    <span class="attr">steps:</span>
+      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Checkout</span> <span class="string">Repository</span> <span class="string">main</span> <span class="string">branch</span>
+        <span class="attr">uses:</span> <span class="string">actions/checkout@main</span>
+      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Node</span>
+        <span class="attr">uses:</span> <span class="string">actions/setup-node@v1</span>
+        <span class="attr">with:</span>
+          <span class="attr">node-version:</span> <span class="number">14.</span><span class="string">x</span>
+      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Hexo</span> <span class="string">Dependencies</span>
+        <span class="attr">run:</span> <span class="string">|</span>
+<span class="string">          npm install hexo-cli -g</span>
+<span class="string">          npm install</span>
+<span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Deploy</span>
+        <span class="attr">env:</span>
+          <span class="attr">HEXO_DEPLOY_PRIVATE_KEY:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.&#x27;你上一步自定义的变量名&#x27;</span> <span class="string">&#125;&#125;</span>
+        <span class="attr">run:</span> <span class="string">|</span>
+<span class="string">          mkdir -p ~/.ssh/</span>
+<span class="string">          echo &quot;$HEXO_DEPLOY_PRIVATE_KEY&quot; &gt; ~/.ssh/id_rsa </span>
+<span class="string">          chmod 600 ~/.ssh/id_rsa</span>
+<span class="string">          ssh-keyscan github.com &gt;&gt; ~/.ssh/known_hosts</span>
+<span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Setup</span> <span class="string">Git</span> <span class="string">Infomation</span>
+        <span class="attr">run:</span> <span class="string">|</span>
+<span class="string">          git config --global user.name &quot;git名字&quot;</span>
+<span class="string">          git config --global user.email &quot;git邮箱&quot;</span>
+<span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Deploy</span> <span class="string">Hexo</span>
+        <span class="attr">run:</span> <span class="string">|</span>
+<span class="string">          hexo clean</span>
+<span class="string">          hexo generate </span>
+<span class="string">          hexo deploy    </span></code></pre></li>
 <li><p>然后把代码push上去的时候，就可以在仓库的<strong>Actions</strong>上看自动工作流程的情况</p>
 </li>
 </ol>
@@ -234,7 +273,9 @@
 <li><p>安装站点地图插件 <code>npm install hexo-generator-sitemap --save</code></p>
 </li>
 <li><p>在hexo根目录的_config.yml修改以下内容</p>
-<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">url:</span> <span class="string">博客地址</span></span><br><span class="line"><span class="attr">sitemap:</span></span><br><span class="line"> <span class="attr">path:</span> <span class="string">sitemap.xml</span></span><br></pre></td></tr></table></figure></li>
+<pre><code class="highlight yml"><span class="attr">url:</span> <span class="string">博客地址</span>
+<span class="attr">sitemap:</span>
+ <span class="attr">path:</span> <span class="string">sitemap.xml</span></code></pre></li>
 <li><p>然后部署博客，输入<code>博客地址/sitemap.xml</code>能看见以下内容<br><img src="https://img-blog.csdnimg.cn/74745ec1ca3e4d06a06ba512ddb5e3f1.png#pic_center" alt="在这里插入图片描述"></p>
 </li>
 <li><p>最后在<strong>Google Search Console</strong>上的站点地图上点击提交<br><img src="https://img-blog.csdnimg.cn/371a45539f694c08a207367d47d25d88.jpeg#pic_center" alt="在这里插入图片描述"></p>

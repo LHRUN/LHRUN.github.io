@@ -150,8 +150,8 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
@@ -199,34 +199,141 @@
 </ul>
 </li>
 <li><p>getLoginCode，一个简单的promise封装获取code</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getLoginCode</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      wx.<span class="title function_">login</span>(&#123;</span><br><span class="line">        success (res) &#123;</span><br><span class="line">          <span class="keyword">if</span> (res.<span class="property">code</span>) &#123;</span><br><span class="line">            <span class="title function_">resolve</span>(res.<span class="property">code</span>)</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="title function_">reject</span>(res)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">fail</span>(<span class="params">err</span>) &#123;</span><br><span class="line">          <span class="title function_">reject</span>(err)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getLoginCode</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;
+      wx.<span class="title function_">login</span>(&#123;
+        success (res) &#123;
+          <span class="keyword">if</span> (res.<span class="property">code</span>) &#123;
+            <span class="title function_">resolve</span>(res.<span class="property">code</span>)
+          &#125; <span class="keyword">else</span> &#123;
+            <span class="title function_">reject</span>(res)
+          &#125;
+        &#125;,
+        <span class="title function_">fail</span>(<span class="params">err</span>) &#123;
+          <span class="title function_">reject</span>(err)
+        &#125;
+      &#125;)
+  &#125;)
+&#125;</code></pre>
 </li>
 <li><p>静默登录封装，获取用户信息，并进行存储</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">staticLogin</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 如果已经登录，直接返回登录信息</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="title function_">checkLogin</span>()) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">getLoginInfo</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">singleLogin</span>());</span><br><span class="line">  <span class="keyword">if</span> (loginErr) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 存储用户信息，这个就根据自己的情况了，我这随便定个方法</span></span><br><span class="line">  <span class="title function_">setLoginInfo</span>(&#123;</span><br><span class="line">    ...loginRes,</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">return</span> loginRes;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">staticLogin</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
+  <span class="comment">// 如果已经登录，直接返回登录信息</span>
+  <span class="keyword">if</span> (<span class="title function_">checkLogin</span>()) &#123;
+    <span class="keyword">return</span> <span class="title function_">getLoginInfo</span>()
+  &#125;
+  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">singleLogin</span>());
+  <span class="keyword">if</span> (loginErr) &#123;
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
+  &#125;
+  <span class="comment">// 存储用户信息，这个就根据自己的情况了，我这随便定个方法</span>
+  <span class="title function_">setLoginInfo</span>(&#123;
+    ...loginRes,
+  &#125;)
+  <span class="keyword">return</span> loginRes;
+&#125;</code></pre>
 </li>
 <li><p>登录请求封装，这里我是用单例模式并返回了一个promise，这样做是为了，你多次调用singleLogin时，比如快速切换页面，快速点击多个需登录区域，在数据没有返回的时候，都会等待，而不是触发多次请求</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> loginInstance = <span class="literal">null</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">singleLogin</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">if</span> (loginInstance) &#123;</span><br><span class="line">    <span class="keyword">return</span> loginInstance</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// loginReq：封装请求，包括请求后端和getLoginCode</span></span><br><span class="line">  loginInstance = <span class="title function_">loginReq</span>()</span><br><span class="line">  loginInstance.<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">    loginInstance = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(err);</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">return</span> loginInstance</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">let</span> loginInstance = <span class="literal">null</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">singleLogin</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">if</span> (loginInstance) &#123;
+    <span class="keyword">return</span> loginInstance
+  &#125;
+  <span class="comment">// loginReq：封装请求，包括请求后端和getLoginCode</span>
+  loginInstance = <span class="title function_">loginReq</span>()
+  loginInstance.<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;
+    loginInstance = <span class="literal">null</span>;
+    <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(err);
+  &#125;)
+  <span class="keyword">return</span> loginInstance
+&#125;</code></pre>
 </li>
 <li><p>checkLogin，检查是否登录，这个就看你存储在那个地方了，视情况而定</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">checkLogin</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">Boolean</span>(loginInfo?.<span class="property">sid</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">checkLogin</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">return</span> <span class="title class_">Boolean</span>(loginInfo?.<span class="property">sid</span>)
+&#125;</code></pre>
 </li>
 <li><p>getPhoneNum</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getPhoneNum</span> = <span class="keyword">async</span> (<span class="params">iv, encryptedData</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> [codeErr, codeRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getLoginCode</span>())</span><br><span class="line">  <span class="keyword">if</span> (codeErr) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(codeErr);</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(codeErr);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// decrypt：请求后端</span></span><br><span class="line">  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">decrypt</span>(&#123;</span><br><span class="line">    iv,</span><br><span class="line">    encryptedData,</span><br><span class="line">    <span class="attr">code</span>: codeRes.<span class="property">code</span></span><br><span class="line">  &#125;))</span><br><span class="line">  <span class="keyword">if</span> (phoneErr) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(phoneErr);</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(phoneErr);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> phoneNumber = phoneRes.<span class="property">result</span>.<span class="property">phoneNumber</span></span><br><span class="line">  <span class="title function_">setLoginInfo</span>(&#123;</span><br><span class="line">    phoneNumber,</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">return</span> phoneNumber</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getPhoneNum</span> = <span class="keyword">async</span> (<span class="params">iv, encryptedData</span>) =&gt; &#123;
+  <span class="keyword">const</span> [codeErr, codeRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getLoginCode</span>())
+  <span class="keyword">if</span> (codeErr) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(codeErr);
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(codeErr);
+  &#125;
+  <span class="comment">// decrypt：请求后端</span>
+  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">decrypt</span>(&#123;
+    iv,
+    encryptedData,
+    <span class="attr">code</span>: codeRes.<span class="property">code</span>
+  &#125;))
+  <span class="keyword">if</span> (phoneErr) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(phoneErr);
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(phoneErr);
+  &#125;
+  <span class="keyword">const</span> phoneNumber = phoneRes.<span class="property">result</span>.<span class="property">phoneNumber</span>
+  <span class="title function_">setLoginInfo</span>(&#123;
+    phoneNumber,
+  &#125;)
+  <span class="keyword">return</span> phoneNumber
+&#125;</code></pre></li>
 </ul>
 <h2 id="业务层"><a href="#业务层" class="headerlink" title="业务层"></a>业务层</h2><p>业务层我会在以下几个地方调用</p>
 <ol>
 <li><p>请求前根据options判断是否需登录，并进行处理</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">REQUEST</span> = <span class="keyword">async</span> (<span class="params">requestObj</span>) =&gt; &#123;</span><br><span class="line">  <span class="comment">// isLogin 当前接口请求是否需要登录</span></span><br><span class="line">  <span class="keyword">if</span> (requestObj.<span class="property">isLogin</span> &amp;&amp; !<span class="title function_">checkLogin</span>()) &#123;</span><br><span class="line">    <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());</span><br><span class="line">    <span class="keyword">if</span> (loginErr) &#123;</span><br><span class="line">      <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>)</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">REQUEST</span> = <span class="keyword">async</span> (<span class="params">requestObj</span>) =&gt; &#123;
+  <span class="comment">// isLogin 当前接口请求是否需要登录</span>
+  <span class="keyword">if</span> (requestObj.<span class="property">isLogin</span> &amp;&amp; !<span class="title function_">checkLogin</span>()) &#123;
+    <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
+    <span class="keyword">if</span> (loginErr) &#123;
+      <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>)
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
+    &#125;
+  &#125;
+  ...
+&#125;</code></pre>
 </li>
 <li><p>登录按钮，这个主要用于登录失败兜底的情况，让用户主动点击，用于登录弹窗等组件，只需调用<code>staticLogin</code>即可</p>
 </li>
 <li><p>获取用户授权手机号按钮</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// index.html</span></span><br><span class="line"><span class="comment">// 用户主动触发进行授权手机号</span></span><br><span class="line">&lt;button open-type=<span class="string">&quot;getPhoneNumber&quot;</span> bindgetphonenumber=<span class="string">&quot;bindPhoneNumber&quot;</span>&gt;</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">slot</span>&gt;</span><span class="tag">&lt;/<span class="name">slot</span>&gt;</span></span></span><br><span class="line">&lt;/button&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">// index.js</span></span><br><span class="line"><span class="keyword">async</span> <span class="title function_">bindPhoneNumber</span>(<span class="params">e</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> iv = e.<span class="property">detail</span>.<span class="property">iv</span>;</span><br><span class="line">  <span class="keyword">const</span> encryptedData = e.<span class="property">detail</span>.<span class="property">encryptedData</span>;</span><br><span class="line">  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getPhoneNum</span>(iv, encryptedData));</span><br><span class="line">  <span class="keyword">if</span> (phoneErr) &#123;</span><br><span class="line">    <span class="title class_">Toast</span>(<span class="string">&#x27;获取手机号失败&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;getPhoneNumber&#x27;</span>, phoneRes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="comment">// index.html</span>
+<span class="comment">// 用户主动触发进行授权手机号</span>
+&lt;button open-type=<span class="string">&quot;getPhoneNumber&quot;</span> bindgetphonenumber=<span class="string">&quot;bindPhoneNumber&quot;</span>&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">slot</span>&gt;</span><span class="tag">&lt;/<span class="name">slot</span>&gt;</span></span>
+&lt;/button&gt;
+
+<span class="comment">// index.js</span>
+<span class="keyword">async</span> <span class="title function_">bindPhoneNumber</span>(<span class="params">e</span>) &#123;
+  <span class="keyword">const</span> iv = e.<span class="property">detail</span>.<span class="property">iv</span>;
+  <span class="keyword">const</span> encryptedData = e.<span class="property">detail</span>.<span class="property">encryptedData</span>;
+  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getPhoneNum</span>(iv, encryptedData));
+  <span class="keyword">if</span> (phoneErr) &#123;
+    <span class="title class_">Toast</span>(<span class="string">&#x27;获取手机号失败&#x27;</span>);
+    <span class="keyword">return</span>;
+  &#125;
+  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;getPhoneNumber&#x27;</span>, phoneRes);
+&#125;</code></pre>
 </li>
 <li><p>页面组件，在小程序中一般都有一个页面组件，用于封装一些页面必需的功能，比如loading，导航栏，无效页面等等，登录也是必需的，所以我把登录逻辑封装到页面组件上，如果成功会通过triggerEvent触发给页面，如果失败就弹出登录弹窗，当然这种处理不太细，根据业务的不同改变相关的逻辑<br><img src="https://img-blog.csdnimg.cn/f6cd710acc4d45a1a7d88042623ad4bc.png#pic_center" alt="在这里插入图片描述"></p>
 </li>
 </ol>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// index.html</span></span><br><span class="line">&lt;view&gt;</span><br><span class="line">  ...</span><br><span class="line">  &lt;login-modal show=&#123;loginShow&#125; &#123;...props&#125; /&gt;</span><br><span class="line">&lt;/view&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">// index.js</span></span><br><span class="line"><span class="keyword">async</span> <span class="title function_">created</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());</span><br><span class="line">  <span class="keyword">if</span> (loginErr) &#123;</span><br><span class="line">    <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">      <span class="attr">loginShow</span>: <span class="literal">true</span>,</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;login&#x27;</span>, loginRes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="comment">// index.html</span>
+&lt;view&gt;
+  ...
+  &lt;login-modal show=&#123;loginShow&#125; &#123;...props&#125; /&gt;
+&lt;/view&gt;
+
+<span class="comment">// index.js</span>
+<span class="keyword">async</span> <span class="title function_">created</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
+  <span class="keyword">if</span> (loginErr) &#123;
+    <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>);
+    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
+      <span class="attr">loginShow</span>: <span class="literal">true</span>,
+    &#125;);
+    <span class="keyword">return</span>;
+  &#125;
+  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;login&#x27;</span>, loginRes);
+&#125;</code></pre>
 <ol start="5">
 <li>还有一些不是太通用的业务组件就不叙述了…</li>
 </ol>

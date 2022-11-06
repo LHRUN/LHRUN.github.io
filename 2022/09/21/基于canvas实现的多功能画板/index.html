@@ -150,8 +150,8 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
@@ -165,28 +165,329 @@
 </ol>
 <h2 id="预览"><a href="#预览" class="headerlink" title="预览"></a>预览</h2><p>目前实现效果如下<br><img src="https://img-blog.csdnimg.cn/img_convert/6ee0b9163552f4c61abfde6af199b3ed.png"><br>预览地址：<a href="https://lhrun.github.io/paint-board/">https://lhrun.github.io/paint-board/</a><br>repo：<a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">https://github.com/LHRUN/paint-board</a></p>
 <h2 id="画板设计"><a href="#画板设计" class="headerlink" title="画板设计"></a>画板设计</h2><ol>
-<li>首先是建立一个canvas画板类，所有canvas上的操作和数据全都在此处理，例如初始化，渲染，拖拽画板等等<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PaintBoard</span> &#123;</span><br><span class="line">  <span class="attr">canvas</span>: <span class="title class_">HTMLCanvasElement</span></span><br><span class="line">  <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span></span><br><span class="line">  ...</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">canvas: HTMLCanvasElement</span>) &#123;&#125;</span><br><span class="line">  <span class="comment">// 初始化canvas</span></span><br><span class="line">  <span class="title function_">initCanvas</span>(<span class="params"></span>) &#123;&#125;</span><br><span class="line">  <span class="comment">// 渲染</span></span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;&#125;</span><br><span class="line">  <span class="comment">// 拖拽</span></span><br><span class="line">  <span class="title function_">drag</span>(<span class="params"></span>) &#123;&#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li>然后基于canvas类，根据当前的操作，建立对应的canvas元素，比如画笔，橡皮擦，基本类型如下<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CanvasElement</span> &#123;</span><br><span class="line">  <span class="attr">type</span>: string <span class="comment">// 元素类型</span></span><br><span class="line">  <span class="attr">layer</span>: number <span class="comment">// 图层</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">type: string, layer: number</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">type</span> = type</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">layer</span> = layer</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>首先是建立一个canvas画板类，所有canvas上的操作和数据全都在此处理，例如初始化，渲染，拖拽画板等等<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">PaintBoard</span> &#123;
+  <span class="attr">canvas</span>: <span class="title class_">HTMLCanvasElement</span>
+  <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span>
+  ...
+  <span class="title function_">constructor</span>(<span class="params">canvas: HTMLCanvasElement</span>) &#123;&#125;
+  <span class="comment">// 初始化canvas</span>
+  <span class="title function_">initCanvas</span>(<span class="params"></span>) &#123;&#125;
+  <span class="comment">// 渲染</span>
+  <span class="title function_">render</span>(<span class="params"></span>) &#123;&#125;
+  <span class="comment">// 拖拽</span>
+  <span class="title function_">drag</span>(<span class="params"></span>) &#123;&#125;
+  ...
+&#125;</code></pre></li>
+<li>然后基于canvas类，根据当前的操作，建立对应的canvas元素，比如画笔，橡皮擦，基本类型如下<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">CanvasElement</span> &#123;
+  <span class="attr">type</span>: string <span class="comment">// 元素类型</span>
+  <span class="attr">layer</span>: number <span class="comment">// 图层</span>
+  <span class="comment">// ...</span>
+  <span class="title function_">constructor</span>(<span class="params">type: string, layer: number</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">type</span> = type
+    <span class="variable language_">this</span>.<span class="property">layer</span> = layer
+    <span class="comment">// ...</span>
+  &#125;
+  <span class="comment">// ...</span>
+&#125;</code></pre></li>
 <li>最后根据渲染逻辑，还会封装一些通用的逻辑来改变canvas上最终的展示，比如撤回，反撤回，图层操作等等</li>
 </ol>
 <h2 id="画笔"><a href="#画笔" class="headerlink" title="画笔"></a>画笔</h2><ul>
 <li>实现画笔效果首先要在鼠标按下时建立一个画笔元素，然后在构造函数中接受基础宽度，颜色，初始化鼠标移动记录和线宽记录，然后在鼠标移动时记录鼠标移动的坐标</li>
-<li>为了体现鼠标移动快，线宽就变窄，移动慢，线宽就恢复正常这个效果，我会计算当前移动的速度，然后根据速度计算线宽<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FreeLine</span> <span class="keyword">extends</span> <span class="title class_ inherited__">CanvasElement</span> &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">color: string, width: number, layer: number</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">positions</span> = [] <span class="comment">// 鼠标移动位置记录</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">lineWidths</span> = [<span class="number">0</span>] <span class="comment">// 线宽记录</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">color</span> = color <span class="comment">// 当前绘线颜色</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">maxWidth</span> = width <span class="comment">// 最大线宽</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minWidth</span> = width / <span class="number">2</span> <span class="comment">// 最小线宽</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> = width <span class="comment">// 最后绘线宽度</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li>记录鼠标位置和当前线宽<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">interface <span class="title class_">MousePosition</span> &#123;</span><br><span class="line">  <span class="attr">x</span>: number</span><br><span class="line">  <span class="attr">y</span>: number</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">addPosition</span>(<span class="params">position: MousePosition</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">positions</span>.<span class="title function_">push</span>(position)</span><br><span class="line">  <span class="comment">// 处理当前线宽</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> &gt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> mouseSpeed = <span class="variable language_">this</span>.<span class="title function_">_computedSpeed</span>(</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">positions</span>[<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">2</span>],</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">positions</span>[<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">1</span>]</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">const</span> lineWidth = <span class="variable language_">this</span>.<span class="title function_">_computedLineWidth</span>(mouseSpeed)</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">lineWidths</span>.<span class="title function_">push</span>(lineWidth)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 计算移动速度</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> start 起点</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> end 终点</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">_computedSpeed</span>(<span class="params">start: MousePosition, end: MousePosition</span>) &#123;</span><br><span class="line">  <span class="comment">// 获取距离</span></span><br><span class="line">  <span class="keyword">const</span> moveDistance = <span class="title function_">getDistance</span>(start, end)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> curTime = <span class="title class_">Date</span>.<span class="title function_">now</span>()</span><br><span class="line">  <span class="comment">// 获取移动间隔时间   lastMoveTime：最后鼠标移动时间</span></span><br><span class="line">  <span class="keyword">const</span> moveTime = curTime - <span class="variable language_">this</span>.<span class="property">lastMoveTime</span></span><br><span class="line">  <span class="comment">// 计算速度</span></span><br><span class="line">  <span class="keyword">const</span> mouseSpeed = moveDistance / moveTime</span><br><span class="line">  <span class="comment">// 更新最后移动时间</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">lastMoveTime</span> = curTime</span><br><span class="line">  <span class="keyword">return</span> mouseSpeed</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 计算画笔宽度</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> speed 鼠标移动速度</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">_computedLineWidth</span>(<span class="params">speed: number</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> lineWidth = <span class="number">0</span></span><br><span class="line">  <span class="keyword">const</span> minWidth = <span class="variable language_">this</span>.<span class="property">minWidth</span></span><br><span class="line">  <span class="keyword">const</span> maxWidth = <span class="variable language_">this</span>.<span class="property">maxWidth</span></span><br><span class="line">  <span class="keyword">if</span> (speed &gt;= <span class="variable language_">this</span>.<span class="property">maxSpeed</span>) &#123;</span><br><span class="line">    lineWidth = minWidth</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (speed &lt;= <span class="variable language_">this</span>.<span class="property">minSpeed</span>) &#123;</span><br><span class="line">    lineWidth = maxWidth</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    lineWidth = maxWidth - (speed / <span class="variable language_">this</span>.<span class="property">maxSpeed</span>) * maxWidth</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  lineWidth = lineWidth * (<span class="number">1</span> / <span class="number">3</span>) + <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> * (<span class="number">2</span> / <span class="number">3</span>)</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> = lineWidth</span><br><span class="line">  <span class="keyword">return</span> lineWidth</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li>保存坐标后，渲染就是遍历所有坐标<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">freeLineRender</span>(<span class="params"></span></span><br><span class="line"><span class="params">  context: CanvasRenderingContext2D,</span></span><br><span class="line"><span class="params">  instance: FreeLine</span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  context.<span class="title function_">save</span>()</span><br><span class="line">  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span></span><br><span class="line">  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span></span><br><span class="line">  context.<span class="property">strokeStyle</span> = instance.<span class="property">color</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    <span class="title function_">_drawLine</span>(instance, i, context)</span><br><span class="line">  &#125;</span><br><span class="line">  context.<span class="title function_">restore</span>()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 画笔轨迹是借鉴了网上的一些方案，分两种情况</span></span><br><span class="line"><span class="comment"> * 1. 如果是前两个坐标，就通过lineTo连接即可</span></span><br><span class="line"><span class="comment"> * 2. 如果是前两个坐标之后的坐标，就采用贝塞尔曲线进行连接，</span></span><br><span class="line"><span class="comment"> *    比如现在有a, b, c 三个点，到c点时，把ab坐标的中间点作为起点</span></span><br><span class="line"><span class="comment"> *     bc坐标的中间点作为终点，b点作为控制点进行连接</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">_drawLine</span>(<span class="params"></span></span><br><span class="line"><span class="params">  instance: FreeLine,</span></span><br><span class="line"><span class="params">  i: number,</span></span><br><span class="line"><span class="params">  context: CanvasRenderingContext2D</span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; positions, lineWidths &#125; = instance</span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">x</span>: centerX, <span class="attr">y</span>: centerY &#125; = positions[i - <span class="number">1</span>]</span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">x</span>: endX, <span class="attr">y</span>: endY &#125; = positions[i]</span><br><span class="line">  context.<span class="title function_">beginPath</span>()</span><br><span class="line">  <span class="keyword">if</span> (i == <span class="number">1</span>) &#123;</span><br><span class="line">    context.<span class="title function_">moveTo</span>(centerX, centerY)</span><br><span class="line">    context.<span class="title function_">lineTo</span>(endX, endY)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; <span class="attr">x</span>: startX, <span class="attr">y</span>: startY &#125; = positions[i - <span class="number">2</span>]</span><br><span class="line">    <span class="keyword">const</span> lastX = (startX + centerX) / <span class="number">2</span></span><br><span class="line">    <span class="keyword">const</span> lastY = (startY + centerY) / <span class="number">2</span></span><br><span class="line">    <span class="keyword">const</span> x = (centerX + endX) / <span class="number">2</span></span><br><span class="line">    <span class="keyword">const</span> y = (centerY + endY) / <span class="number">2</span></span><br><span class="line">    context.<span class="title function_">moveTo</span>(lastX, lastY)</span><br><span class="line">    context.<span class="title function_">quadraticCurveTo</span>(centerX, centerY, x, y)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  context.<span class="property">lineWidth</span> = lineWidths[i]</span><br><span class="line">  context.<span class="title function_">stroke</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>为了体现鼠标移动快，线宽就变窄，移动慢，线宽就恢复正常这个效果，我会计算当前移动的速度，然后根据速度计算线宽<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">FreeLine</span> <span class="keyword">extends</span> <span class="title class_ inherited__">CanvasElement</span> &#123;
+  ...
+  <span class="title function_">constructor</span>(<span class="params">color: string, width: number, layer: number</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">positions</span> = [] <span class="comment">// 鼠标移动位置记录</span>
+    <span class="variable language_">this</span>.<span class="property">lineWidths</span> = [<span class="number">0</span>] <span class="comment">// 线宽记录</span>
+    <span class="variable language_">this</span>.<span class="property">color</span> = color <span class="comment">// 当前绘线颜色</span>
+    <span class="variable language_">this</span>.<span class="property">maxWidth</span> = width <span class="comment">// 最大线宽</span>
+    <span class="variable language_">this</span>.<span class="property">minWidth</span> = width / <span class="number">2</span> <span class="comment">// 最小线宽</span>
+    <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> = width <span class="comment">// 最后绘线宽度</span>
+  &#125;
+&#125;</code></pre></li>
+<li>记录鼠标位置和当前线宽<pre><code class="highlight js">interface <span class="title class_">MousePosition</span> &#123;
+  <span class="attr">x</span>: number
+  <span class="attr">y</span>: number
+&#125;
+
+<span class="title function_">addPosition</span>(<span class="params">position: MousePosition</span>) &#123;
+  <span class="variable language_">this</span>.<span class="property">positions</span>.<span class="title function_">push</span>(position)
+  <span class="comment">// 处理当前线宽</span>
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> &gt; <span class="number">1</span>) &#123;
+    <span class="keyword">const</span> mouseSpeed = <span class="variable language_">this</span>.<span class="title function_">_computedSpeed</span>(
+      <span class="variable language_">this</span>.<span class="property">positions</span>[<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">2</span>],
+      <span class="variable language_">this</span>.<span class="property">positions</span>[<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">1</span>]
+    )
+    <span class="keyword">const</span> lineWidth = <span class="variable language_">this</span>.<span class="title function_">_computedLineWidth</span>(mouseSpeed)
+    <span class="variable language_">this</span>.<span class="property">lineWidths</span>.<span class="title function_">push</span>(lineWidth)
+  &#125;
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 计算移动速度</span>
+<span class="comment"> * <span class="doctag">@param</span> start 起点</span>
+<span class="comment"> * <span class="doctag">@param</span> end 终点</span>
+<span class="comment"> */</span>
+<span class="title function_">_computedSpeed</span>(<span class="params">start: MousePosition, end: MousePosition</span>) &#123;
+  <span class="comment">// 获取距离</span>
+  <span class="keyword">const</span> moveDistance = <span class="title function_">getDistance</span>(start, end)
+
+  <span class="keyword">const</span> curTime = <span class="title class_">Date</span>.<span class="title function_">now</span>()
+  <span class="comment">// 获取移动间隔时间   lastMoveTime：最后鼠标移动时间</span>
+  <span class="keyword">const</span> moveTime = curTime - <span class="variable language_">this</span>.<span class="property">lastMoveTime</span>
+  <span class="comment">// 计算速度</span>
+  <span class="keyword">const</span> mouseSpeed = moveDistance / moveTime
+  <span class="comment">// 更新最后移动时间</span>
+  <span class="variable language_">this</span>.<span class="property">lastMoveTime</span> = curTime
+  <span class="keyword">return</span> mouseSpeed
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 计算画笔宽度</span>
+<span class="comment"> * <span class="doctag">@param</span> speed 鼠标移动速度</span>
+<span class="comment"> */</span>
+<span class="title function_">_computedLineWidth</span>(<span class="params">speed: number</span>) &#123;
+  <span class="keyword">let</span> lineWidth = <span class="number">0</span>
+  <span class="keyword">const</span> minWidth = <span class="variable language_">this</span>.<span class="property">minWidth</span>
+  <span class="keyword">const</span> maxWidth = <span class="variable language_">this</span>.<span class="property">maxWidth</span>
+  <span class="keyword">if</span> (speed &gt;= <span class="variable language_">this</span>.<span class="property">maxSpeed</span>) &#123;
+    lineWidth = minWidth
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (speed &lt;= <span class="variable language_">this</span>.<span class="property">minSpeed</span>) &#123;
+    lineWidth = maxWidth
+  &#125; <span class="keyword">else</span> &#123;
+    lineWidth = maxWidth - (speed / <span class="variable language_">this</span>.<span class="property">maxSpeed</span>) * maxWidth
+  &#125;
+
+  lineWidth = lineWidth * (<span class="number">1</span> / <span class="number">3</span>) + <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> * (<span class="number">2</span> / <span class="number">3</span>)
+  <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> = lineWidth
+  <span class="keyword">return</span> lineWidth
+&#125;</code></pre></li>
+<li>保存坐标后，渲染就是遍历所有坐标<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">freeLineRender</span>(<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeLine</span>
+<span class="params"></span>) &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">strokeStyle</span> = instance.<span class="property">color</span>
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="title function_">_drawLine</span>(instance, i, context)
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 画笔轨迹是借鉴了网上的一些方案，分两种情况</span>
+<span class="comment"> * 1. 如果是前两个坐标，就通过lineTo连接即可</span>
+<span class="comment"> * 2. 如果是前两个坐标之后的坐标，就采用贝塞尔曲线进行连接，</span>
+<span class="comment"> *    比如现在有a, b, c 三个点，到c点时，把ab坐标的中间点作为起点</span>
+<span class="comment"> *     bc坐标的中间点作为终点，b点作为控制点进行连接</span>
+<span class="comment"> */</span>
+<span class="keyword">function</span> <span class="title function_">_drawLine</span>(<span class="params"></span>
+<span class="params">  instance: FreeLine,</span>
+<span class="params">  i: number,</span>
+<span class="params">  context: CanvasRenderingContext2D</span>
+<span class="params"></span>) &#123;
+  <span class="keyword">const</span> &#123; positions, lineWidths &#125; = instance
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: centerX, <span class="attr">y</span>: centerY &#125; = positions[i - <span class="number">1</span>]
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: endX, <span class="attr">y</span>: endY &#125; = positions[i]
+  context.<span class="title function_">beginPath</span>()
+  <span class="keyword">if</span> (i == <span class="number">1</span>) &#123;
+    context.<span class="title function_">moveTo</span>(centerX, centerY)
+    context.<span class="title function_">lineTo</span>(endX, endY)
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="keyword">const</span> &#123; <span class="attr">x</span>: startX, <span class="attr">y</span>: startY &#125; = positions[i - <span class="number">2</span>]
+    <span class="keyword">const</span> lastX = (startX + centerX) / <span class="number">2</span>
+    <span class="keyword">const</span> lastY = (startY + centerY) / <span class="number">2</span>
+    <span class="keyword">const</span> x = (centerX + endX) / <span class="number">2</span>
+    <span class="keyword">const</span> y = (centerY + endY) / <span class="number">2</span>
+    context.<span class="title function_">moveTo</span>(lastX, lastY)
+    context.<span class="title function_">quadraticCurveTo</span>(centerX, centerY, x, y)
+  &#125;
+
+  context.<span class="property">lineWidth</span> = lineWidths[i]
+  context.<span class="title function_">stroke</span>()
+&#125;</code></pre></li>
 </ul>
 <h2 id="橡皮擦"><a href="#橡皮擦" class="headerlink" title="橡皮擦"></a>橡皮擦</h2><ul>
-<li>橡皮擦是一个线状擦除，我采用的方案是通过计算每个点的圆弧轨迹和两个点之间的矩形区域，然后通过clip剪切后清除<br><img src="https://img-blog.csdnimg.cn/img_convert/8ae8229d79cd8b69d175d5fbb68e3c43.png"><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 橡皮擦渲染</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> cleanCanvas 清除画板</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> instance CleanLine</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">cleanLineRender</span>(<span class="params"></span></span><br><span class="line"><span class="params">  context: CanvasRenderingContext2D,</span></span><br><span class="line"><span class="params">  cleanCanvas: () =&gt; <span class="keyword">void</span>,</span></span><br><span class="line"><span class="params">  instance: CleanLine</span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">1</span>; i++) &#123;</span><br><span class="line">    <span class="title function_">_cleanLine</span>(</span><br><span class="line">      instance.<span class="property">positions</span>[i],</span><br><span class="line">      instance.<span class="property">positions</span>[i + <span class="number">1</span>],</span><br><span class="line">      context,</span><br><span class="line">      cleanCanvas,</span><br><span class="line">      instance.<span class="property">cleanWidth</span></span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 线状清除</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> start 起点</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> end 终点</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> cleanCanvas 清除画板</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> cleanWidth 清楚宽度</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">_cleanLine</span>(<span class="params"></span></span><br><span class="line"><span class="params">  start: MousePosition,</span></span><br><span class="line"><span class="params">  end: MousePosition,</span></span><br><span class="line"><span class="params">  context: CanvasRenderingContext2D,</span></span><br><span class="line"><span class="params">  cleanCanvas: () =&gt; <span class="keyword">void</span>,</span></span><br><span class="line"><span class="params">  cleanWidth: number</span></span><br><span class="line"><span class="params"></span>)&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">x</span>: x1, <span class="attr">y</span>: y1 &#125; = start</span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">x</span>: x2, <span class="attr">y</span>: y2 &#125; = end</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取鼠标起点和终点之间的矩形区域端点</span></span><br><span class="line">  <span class="keyword">const</span> asin = cleanWidth * <span class="title class_">Math</span>.<span class="title function_">sin</span>(<span class="title class_">Math</span>.<span class="title function_">atan</span>((y2 - y1) / (x2 - x1)))</span><br><span class="line">  <span class="keyword">const</span> acos = cleanWidth * <span class="title class_">Math</span>.<span class="title function_">cos</span>(<span class="title class_">Math</span>.<span class="title function_">atan</span>((y2 - y1) / (x2 - x1)))</span><br><span class="line">  <span class="keyword">const</span> x3 = x1 + asin</span><br><span class="line">  <span class="keyword">const</span> y3 = y1 - acos</span><br><span class="line">  <span class="keyword">const</span> x4 = x1 - asin</span><br><span class="line">  <span class="keyword">const</span> y4 = y1 + acos</span><br><span class="line">  <span class="keyword">const</span> x5 = x2 + asin</span><br><span class="line">  <span class="keyword">const</span> y5 = y2 - acos</span><br><span class="line">  <span class="keyword">const</span> x6 = x2 - asin</span><br><span class="line">  <span class="keyword">const</span> y6 = y2 + acos</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 清除末端圆弧</span></span><br><span class="line">  context.<span class="title function_">save</span>()</span><br><span class="line">  context.<span class="title function_">beginPath</span>()</span><br><span class="line">  context.<span class="title function_">arc</span>(x2, y2, cleanWidth, <span class="number">0</span>, <span class="number">2</span> * <span class="title class_">Math</span>.<span class="property">PI</span>)</span><br><span class="line">  context.<span class="title function_">clip</span>()</span><br><span class="line">  <span class="title function_">cleanCanvas</span>()</span><br><span class="line">  context.<span class="title function_">restore</span>()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 清除矩形区域</span></span><br><span class="line">  context.<span class="title function_">save</span>()</span><br><span class="line">  context.<span class="title function_">beginPath</span>()</span><br><span class="line">  context.<span class="title function_">moveTo</span>(x3, y3)</span><br><span class="line">  context.<span class="title function_">lineTo</span>(x5, y5)</span><br><span class="line">  context.<span class="title function_">lineTo</span>(x6, y6)</span><br><span class="line">  context.<span class="title function_">lineTo</span>(x4, y4)</span><br><span class="line">  context.<span class="title function_">closePath</span>()</span><br><span class="line">  context.<span class="title function_">clip</span>()</span><br><span class="line">  <span class="title function_">cleanCanvas</span>()</span><br><span class="line">  context.<span class="title function_">restore</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>橡皮擦是一个线状擦除，我采用的方案是通过计算每个点的圆弧轨迹和两个点之间的矩形区域，然后通过clip剪切后清除<br><img src="https://img-blog.csdnimg.cn/img_convert/8ae8229d79cd8b69d175d5fbb68e3c43.png"><pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * 橡皮擦渲染</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span>
+<span class="comment"> * <span class="doctag">@param</span> cleanCanvas 清除画板</span>
+<span class="comment"> * <span class="doctag">@param</span> instance CleanLine</span>
+<span class="comment"> */</span>
+<span class="keyword">function</span> <span class="title function_">cleanLineRender</span>(<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  cleanCanvas: () =&gt; <span class="keyword">void</span>,</span>
+<span class="params">  instance: CleanLine</span>
+<span class="params"></span>) &#123;
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">1</span>; i++) &#123;
+    <span class="title function_">_cleanLine</span>(
+      instance.<span class="property">positions</span>[i],
+      instance.<span class="property">positions</span>[i + <span class="number">1</span>],
+      context,
+      cleanCanvas,
+      instance.<span class="property">cleanWidth</span>
+    )
+  &#125;
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 线状清除</span>
+<span class="comment"> * <span class="doctag">@param</span> start 起点</span>
+<span class="comment"> * <span class="doctag">@param</span> end 终点</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span>
+<span class="comment"> * <span class="doctag">@param</span> cleanCanvas 清除画板</span>
+<span class="comment"> * <span class="doctag">@param</span> cleanWidth 清楚宽度</span>
+<span class="comment"> */</span>
+<span class="keyword">function</span> <span class="title function_">_cleanLine</span>(<span class="params"></span>
+<span class="params">  start: MousePosition,</span>
+<span class="params">  end: MousePosition,</span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  cleanCanvas: () =&gt; <span class="keyword">void</span>,</span>
+<span class="params">  cleanWidth: number</span>
+<span class="params"></span>)&#123;
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: x1, <span class="attr">y</span>: y1 &#125; = start
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: x2, <span class="attr">y</span>: y2 &#125; = end
+
+  <span class="comment">// 获取鼠标起点和终点之间的矩形区域端点</span>
+  <span class="keyword">const</span> asin = cleanWidth * <span class="title class_">Math</span>.<span class="title function_">sin</span>(<span class="title class_">Math</span>.<span class="title function_">atan</span>((y2 - y1) / (x2 - x1)))
+  <span class="keyword">const</span> acos = cleanWidth * <span class="title class_">Math</span>.<span class="title function_">cos</span>(<span class="title class_">Math</span>.<span class="title function_">atan</span>((y2 - y1) / (x2 - x1)))
+  <span class="keyword">const</span> x3 = x1 + asin
+  <span class="keyword">const</span> y3 = y1 - acos
+  <span class="keyword">const</span> x4 = x1 - asin
+  <span class="keyword">const</span> y4 = y1 + acos
+  <span class="keyword">const</span> x5 = x2 + asin
+  <span class="keyword">const</span> y5 = y2 - acos
+  <span class="keyword">const</span> x6 = x2 - asin
+  <span class="keyword">const</span> y6 = y2 + acos
+
+  <span class="comment">// 清除末端圆弧</span>
+  context.<span class="title function_">save</span>()
+  context.<span class="title function_">beginPath</span>()
+  context.<span class="title function_">arc</span>(x2, y2, cleanWidth, <span class="number">0</span>, <span class="number">2</span> * <span class="title class_">Math</span>.<span class="property">PI</span>)
+  context.<span class="title function_">clip</span>()
+  <span class="title function_">cleanCanvas</span>()
+  context.<span class="title function_">restore</span>()
+
+  <span class="comment">// 清除矩形区域</span>
+  context.<span class="title function_">save</span>()
+  context.<span class="title function_">beginPath</span>()
+  context.<span class="title function_">moveTo</span>(x3, y3)
+  context.<span class="title function_">lineTo</span>(x5, y5)
+  context.<span class="title function_">lineTo</span>(x6, y6)
+  context.<span class="title function_">lineTo</span>(x4, y4)
+  context.<span class="title function_">closePath</span>()
+  context.<span class="title function_">clip</span>()
+  <span class="title function_">cleanCanvas</span>()
+  context.<span class="title function_">restore</span>()
+&#125;</code></pre></li>
 </ul>
 <h2 id="撤回、反撤回"><a href="#撤回、反撤回" class="headerlink" title="撤回、反撤回"></a>撤回、反撤回</h2><ul>
 <li>实现撤回，反撤回就要把canvas上的每个元素的渲染数据进行存储，通过改变控制变量，限制渲染元素的遍历，这样就可以达到撤回的效果</li>
-<li>首先画板初始化时建立一个history类，然后建立缓存和step数据，撤回和反撤回时，只需要修改step即可<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">History</span>&lt;T&gt; &#123;</span><br><span class="line">  <span class="attr">cacheQueue</span>: T[]</span><br><span class="line">  <span class="attr">step</span>: number</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">cacheQueue: T[]</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">cacheQueue</span> = cacheQueue</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">step</span> = cacheQueue.<span class="property">length</span> - <span class="number">1</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 添加数据</span></span><br><span class="line">  <span class="title function_">add</span>(<span class="params">data: T</span>) &#123;</span><br><span class="line">    <span class="comment">// 如果在回退时添加数据就删除暂存数据</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">step</span> !== <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="property">length</span> - <span class="number">1</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="property">length</span> = <span class="variable language_">this</span>.<span class="property">step</span> + <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="title function_">push</span>(data)</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">step</span> = <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="property">length</span> - <span class="number">1</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 遍历cacheQueue</span></span><br><span class="line">  <span class="title function_">each</span>(<span class="params">cb?: (ele: T, i: number) =&gt; <span class="keyword">void</span></span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= <span class="variable language_">this</span>.<span class="property">step</span>; i++) &#123;</span><br><span class="line">      cb?.(<span class="variable language_">this</span>.<span class="property">cacheQueue</span>[i], i)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 后退</span></span><br><span class="line">  <span class="title function_">undo</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">step</span> &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">step</span>--</span><br><span class="line">      <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">cacheQueue</span>[<span class="variable language_">this</span>.<span class="property">step</span>]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 前进</span></span><br><span class="line">  <span class="title function_">redo</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">step</span> &lt; <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="property">length</span> - <span class="number">1</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">step</span>++</span><br><span class="line">      <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">cacheQueue</span>[<span class="variable language_">this</span>.<span class="property">step</span>]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li>针对画板，通过监听鼠标按下操作，在history中添加一个元素，然后对渲染函数的遍历限制到step就达到了撤回的效果<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PaintBoard</span> &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 记录当前元素，并加入history</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">recordCurrent</span>(<span class="params">type: string</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="attr">ele</span>: <span class="variable constant_">ELEMENT_INSTANCE</span> | <span class="literal">null</span> = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">switch</span> (type) &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="variable constant_">CANVAS_ELE_TYPE</span>.<span class="property">FREE_LINE</span>:</span><br><span class="line">        ele = <span class="keyword">new</span> <span class="title class_">FreeLine</span>(</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">currentLineColor</span>,</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">currentLineWidth</span>,</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">current</span></span><br><span class="line">        )</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">      <span class="keyword">case</span> <span class="variable constant_">CANVAS_ELE_TYPE</span>.<span class="property">CLEAN_LINE</span>:</span><br><span class="line">        ele = <span class="keyword">new</span> <span class="title class_">CleanLine</span>(<span class="variable language_">this</span>.<span class="property">cleanWidth</span>, <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">current</span>)</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">      <span class="attr">default</span>:</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (ele) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">history</span>.<span class="title function_">add</span>(ele)</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">currentEle</span> = ele</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 遍历history渲染数据</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 清除画布</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">cleanCanvas</span>()</span><br><span class="line">    <span class="comment">// 遍历history</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">history</span>.<span class="title function_">each</span>(<span class="function">(<span class="params">ele</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">save</span>()</span><br><span class="line">      <span class="comment">// render....</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">context</span>,<span class="title function_">resore</span>()</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="comment">// 缓存数据</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">cache</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>首先画板初始化时建立一个history类，然后建立缓存和step数据，撤回和反撤回时，只需要修改step即可<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">History</span>&lt;T&gt; &#123;
+  <span class="attr">cacheQueue</span>: T[]
+  <span class="attr">step</span>: number
+  <span class="title function_">constructor</span>(<span class="params">cacheQueue: T[]</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">cacheQueue</span> = cacheQueue
+    <span class="variable language_">this</span>.<span class="property">step</span> = cacheQueue.<span class="property">length</span> - <span class="number">1</span>
+  &#125;
+  <span class="comment">// 添加数据</span>
+  <span class="title function_">add</span>(<span class="params">data: T</span>) &#123;
+    <span class="comment">// 如果在回退时添加数据就删除暂存数据</span>
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">step</span> !== <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="property">length</span> - <span class="number">1</span>) &#123;
+      <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="property">length</span> = <span class="variable language_">this</span>.<span class="property">step</span> + <span class="number">1</span>
+    &#125;
+    <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="title function_">push</span>(data)
+    <span class="variable language_">this</span>.<span class="property">step</span> = <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="property">length</span> - <span class="number">1</span>
+  &#125;
+
+  <span class="comment">// 遍历cacheQueue</span>
+  <span class="title function_">each</span>(<span class="params">cb?: (ele: T, i: number) =&gt; <span class="keyword">void</span></span>) &#123;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= <span class="variable language_">this</span>.<span class="property">step</span>; i++) &#123;
+      cb?.(<span class="variable language_">this</span>.<span class="property">cacheQueue</span>[i], i)
+    &#125;
+  &#125;
+
+  <span class="comment">// 后退</span>
+  <span class="title function_">undo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">step</span> &gt;= <span class="number">0</span>) &#123;
+      <span class="variable language_">this</span>.<span class="property">step</span>--
+      <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">cacheQueue</span>[<span class="variable language_">this</span>.<span class="property">step</span>]
+    &#125;
+  &#125;
+
+  <span class="comment">// 前进</span>
+  <span class="title function_">redo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">step</span> &lt; <span class="variable language_">this</span>.<span class="property">cacheQueue</span>.<span class="property">length</span> - <span class="number">1</span>) &#123;
+      <span class="variable language_">this</span>.<span class="property">step</span>++
+      <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">cacheQueue</span>[<span class="variable language_">this</span>.<span class="property">step</span>]
+    &#125;
+  &#125;
+&#125;</code></pre></li>
+<li>针对画板，通过监听鼠标按下操作，在history中添加一个元素，然后对渲染函数的遍历限制到step就达到了撤回的效果<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">PaintBoard</span> &#123;
+  ...
+  <span class="comment">/**</span>
+<span class="comment">   * 记录当前元素，并加入history</span>
+<span class="comment">   */</span>
+  <span class="title function_">recordCurrent</span>(<span class="params">type: string</span>) &#123;
+    <span class="keyword">let</span> <span class="attr">ele</span>: <span class="variable constant_">ELEMENT_INSTANCE</span> | <span class="literal">null</span> = <span class="literal">null</span>
+    <span class="keyword">switch</span> (type) &#123;
+      <span class="keyword">case</span> <span class="variable constant_">CANVAS_ELE_TYPE</span>.<span class="property">FREE_LINE</span>:
+        ele = <span class="keyword">new</span> <span class="title class_">FreeLine</span>(
+          <span class="variable language_">this</span>.<span class="property">currentLineColor</span>,
+          <span class="variable language_">this</span>.<span class="property">currentLineWidth</span>,
+          <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">current</span>
+        )
+        <span class="keyword">break</span>
+      <span class="keyword">case</span> <span class="variable constant_">CANVAS_ELE_TYPE</span>.<span class="property">CLEAN_LINE</span>:
+        ele = <span class="keyword">new</span> <span class="title class_">CleanLine</span>(<span class="variable language_">this</span>.<span class="property">cleanWidth</span>, <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">current</span>)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+    <span class="keyword">if</span> (ele) &#123;
+      <span class="variable language_">this</span>.<span class="property">history</span>.<span class="title function_">add</span>(ele)
+      <span class="variable language_">this</span>.<span class="property">currentEle</span> = ele
+    &#125;
+  &#125;
+
+  <span class="comment">/**</span>
+<span class="comment">   * 遍历history渲染数据</span>
+<span class="comment">   */</span>
+  <span class="title function_">render</span>(<span class="params"></span>) &#123;
+    <span class="comment">// 清除画布</span>
+    <span class="variable language_">this</span>.<span class="title function_">cleanCanvas</span>()
+    <span class="comment">// 遍历history</span>
+    <span class="variable language_">this</span>.<span class="property">history</span>.<span class="title function_">each</span>(<span class="function">(<span class="params">ele</span>) =&gt;</span> &#123;
+      <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">save</span>()
+      <span class="comment">// render....</span>
+      <span class="variable language_">this</span>.<span class="property">context</span>,<span class="title function_">resore</span>()
+    &#125;)
+    <span class="comment">// 缓存数据</span>
+    <span class="variable language_">this</span>.<span class="title function_">cache</span>()
+  &#125;
+&#125;</code></pre></li>
 </ul>
 <h2 id="拖拽画布"><a href="#拖拽画布" class="headerlink" title="拖拽画布"></a>拖拽画布</h2><ul>
 <li>拖拽画布的实现是通过计算鼠标移动距离，根据距离改变画布的原点位置，达到拖拽的效果</li>
 </ul>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">drag</span>(<span class="params">position: MousePosition</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> mousePosition = &#123;</span><br><span class="line">    <span class="attr">x</span>: position.<span class="property">x</span> - <span class="variable language_">this</span>.<span class="property">canvasRect</span>.<span class="property">left</span>,</span><br><span class="line">    <span class="attr">y</span>: position.<span class="property">y</span> - <span class="variable language_">this</span>.<span class="property">canvasRect</span>.<span class="property">top</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">originPosition</span>.<span class="property">x</span> &amp;&amp; <span class="variable language_">this</span>.<span class="property">originPosition</span>.<span class="property">y</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> translteX = mousePosition.<span class="property">x</span> - <span class="variable language_">this</span>.<span class="property">originPosition</span>.<span class="property">x</span></span><br><span class="line">    <span class="keyword">const</span> translteY = mousePosition.<span class="property">y</span> - <span class="variable language_">this</span>.<span class="property">originPosition</span>.<span class="property">y</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">translate</span>(translteX, translteY)</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">originTranslate</span> = &#123;</span><br><span class="line">      <span class="attr">x</span>: translteX + <span class="variable language_">this</span>.<span class="property">originTranslate</span>.<span class="property">x</span>,</span><br><span class="line">      <span class="attr">y</span>: translteY + <span class="variable language_">this</span>.<span class="property">originTranslate</span>.<span class="property">y</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">render</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">originPosition</span> = mousePosition</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">drag</span>(<span class="params">position: MousePosition</span>) &#123;
+  <span class="keyword">const</span> mousePosition = &#123;
+    <span class="attr">x</span>: position.<span class="property">x</span> - <span class="variable language_">this</span>.<span class="property">canvasRect</span>.<span class="property">left</span>,
+    <span class="attr">y</span>: position.<span class="property">y</span> - <span class="variable language_">this</span>.<span class="property">canvasRect</span>.<span class="property">top</span>
+  &#125;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">originPosition</span>.<span class="property">x</span> &amp;&amp; <span class="variable language_">this</span>.<span class="property">originPosition</span>.<span class="property">y</span>) &#123;
+    <span class="keyword">const</span> translteX = mousePosition.<span class="property">x</span> - <span class="variable language_">this</span>.<span class="property">originPosition</span>.<span class="property">x</span>
+    <span class="keyword">const</span> translteY = mousePosition.<span class="property">y</span> - <span class="variable language_">this</span>.<span class="property">originPosition</span>.<span class="property">y</span>
+    <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">translate</span>(translteX, translteY)
+    <span class="variable language_">this</span>.<span class="property">originTranslate</span> = &#123;
+      <span class="attr">x</span>: translteX + <span class="variable language_">this</span>.<span class="property">originTranslate</span>.<span class="property">x</span>,
+      <span class="attr">y</span>: translteY + <span class="variable language_">this</span>.<span class="property">originTranslate</span>.<span class="property">y</span>
+    &#125;
+    <span class="variable language_">this</span>.<span class="title function_">render</span>()
+  &#125;
+  <span class="variable language_">this</span>.<span class="property">originPosition</span> = mousePosition
+&#125;</code></pre>
 
 <h2 id="多图层"><a href="#多图层" class="headerlink" title="多图层"></a>多图层</h2><p>实现多图层需要对以下几个地方进行处理</p>
 <ol>
@@ -195,7 +496,65 @@
 <li>画板的渲染函数改为按照图层顺序进行渲染</li>
 <li>拖拽或者隐藏图层都需要重新渲染，删除图层把对应的缓存图层元素进行删除</li>
 </ol>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">interface <span class="title class_">ILayer</span> &#123;</span><br><span class="line">  <span class="attr">id</span>: number <span class="comment">// 图层id</span></span><br><span class="line">  <span class="attr">title</span>: string <span class="comment">// 图层名称</span></span><br><span class="line">  <span class="attr">show</span>: boolean <span class="comment">// 图层展示状态</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 图层</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Layer</span> &#123;</span><br><span class="line">  <span class="attr">stack</span>: <span class="title class_">ILayer</span>[] <span class="comment">// 图层数据</span></span><br><span class="line">  <span class="attr">current</span>: number <span class="comment">// 当前图层</span></span><br><span class="line">  <span class="attr">render</span>: <span class="function">() =&gt;</span> <span class="keyword">void</span> <span class="comment">// 画板渲染事件</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">render: () =&gt; <span class="keyword">void</span>, initData?: Layer</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;</span><br><span class="line">      stack = [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">id</span>: <span class="number">1</span>,</span><br><span class="line">          <span class="attr">title</span>: <span class="string">&#x27;item1&#x27;</span>,</span><br><span class="line">          <span class="attr">show</span>: <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">      ],</span><br><span class="line">      id = <span class="number">1</span>,</span><br><span class="line">      current = <span class="number">1</span></span><br><span class="line">    &#125; = initData || &#123;&#125;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">stack</span> = stack</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">id</span> = id</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">current</span> = current</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">render</span> = render</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PaintBoard</span> &#123;</span><br><span class="line">  <span class="comment">// 通过图层进行排序</span></span><br><span class="line">   <span class="title function_">sortOnLayer</span>(<span class="params"></span>) &#123;</span><br><span class="line">     <span class="variable language_">this</span>.<span class="property">history</span>.<span class="title function_">sort</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> &#123;</span><br><span class="line">       <span class="keyword">return</span> (</span><br><span class="line">         <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">stack</span>.<span class="title function_">findIndex</span>(<span class="function">(<span class="params">&#123; id &#125;</span>) =&gt;</span> id === b?.<span class="property">layer</span>) -</span><br><span class="line">         <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">stack</span>.<span class="title function_">findIndex</span>(<span class="function">(<span class="params">&#123; id &#125;</span>) =&gt;</span> id === a?.<span class="property">layer</span>)</span><br><span class="line">       )</span><br><span class="line">     &#125;)</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 渲染函数只渲染图层展示状态的元素</span></span><br><span class="line">   <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">     <span class="keyword">const</span> showLayerIds = <span class="keyword">new</span> <span class="title class_">Set</span>(</span><br><span class="line">       <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">stack</span>.<span class="property">reduce</span>&lt;number[]&gt;(<span class="function">(<span class="params">acc, cur</span>) =&gt;</span> &#123;</span><br><span class="line">         <span class="keyword">return</span> cur.<span class="property">show</span> ? [...acc, cur.<span class="property">id</span>] : acc</span><br><span class="line">       &#125;, [])</span><br><span class="line">     )</span><br><span class="line">     <span class="variable language_">this</span>.<span class="property">history</span>.<span class="title function_">each</span>(<span class="function">(<span class="params">ele</span>) =&gt;</span> &#123;</span><br><span class="line">       <span class="keyword">if</span> (ele?.<span class="property">layer</span> &amp;&amp; showLayerIds.<span class="title function_">has</span>(ele.<span class="property">layer</span>)) &#123;</span><br><span class="line">         ...</span><br><span class="line">       &#125;</span><br><span class="line">     &#125; </span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js">interface <span class="title class_">ILayer</span> &#123;
+  <span class="attr">id</span>: number <span class="comment">// 图层id</span>
+  <span class="attr">title</span>: string <span class="comment">// 图层名称</span>
+  <span class="attr">show</span>: boolean <span class="comment">// 图层展示状态</span>
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 图层</span>
+<span class="comment"> */</span>
+<span class="keyword">class</span> <span class="title class_">Layer</span> &#123;
+  <span class="attr">stack</span>: <span class="title class_">ILayer</span>[] <span class="comment">// 图层数据</span>
+  <span class="attr">current</span>: number <span class="comment">// 当前图层</span>
+  <span class="attr">render</span>: <span class="function">() =&gt;</span> <span class="keyword">void</span> <span class="comment">// 画板渲染事件</span>
+
+  <span class="title function_">constructor</span>(<span class="params">render: () =&gt; <span class="keyword">void</span>, initData?: Layer</span>) &#123;
+    <span class="keyword">const</span> &#123;
+      stack = [
+        &#123;
+          <span class="attr">id</span>: <span class="number">1</span>,
+          <span class="attr">title</span>: <span class="string">&#x27;item1&#x27;</span>,
+          <span class="attr">show</span>: <span class="literal">true</span>
+        &#125;
+      ],
+      id = <span class="number">1</span>,
+      current = <span class="number">1</span>
+    &#125; = initData || &#123;&#125;
+    <span class="variable language_">this</span>.<span class="property">stack</span> = stack
+    <span class="variable language_">this</span>.<span class="property">id</span> = id
+    <span class="variable language_">this</span>.<span class="property">current</span> = current
+    <span class="variable language_">this</span>.<span class="property">render</span> = render
+  &#125;
+  ...
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">PaintBoard</span> &#123;
+  <span class="comment">// 通过图层进行排序</span>
+   <span class="title function_">sortOnLayer</span>(<span class="params"></span>) &#123;
+     <span class="variable language_">this</span>.<span class="property">history</span>.<span class="title function_">sort</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> &#123;
+       <span class="keyword">return</span> (
+         <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">stack</span>.<span class="title function_">findIndex</span>(<span class="function">(<span class="params">&#123; id &#125;</span>) =&gt;</span> id === b?.<span class="property">layer</span>) -
+         <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">stack</span>.<span class="title function_">findIndex</span>(<span class="function">(<span class="params">&#123; id &#125;</span>) =&gt;</span> id === a?.<span class="property">layer</span>)
+       )
+     &#125;)
+   &#125;
+
+   <span class="comment">// 渲染函数只渲染图层展示状态的元素</span>
+   <span class="title function_">render</span>(<span class="params"></span>) &#123;
+     <span class="keyword">const</span> showLayerIds = <span class="keyword">new</span> <span class="title class_">Set</span>(
+       <span class="variable language_">this</span>.<span class="property">layer</span>.<span class="property">stack</span>.<span class="property">reduce</span>&lt;number[]&gt;(<span class="function">(<span class="params">acc, cur</span>) =&gt;</span> &#123;
+         <span class="keyword">return</span> cur.<span class="property">show</span> ? [...acc, cur.<span class="property">id</span>] : acc
+       &#125;, [])
+     )
+     <span class="variable language_">this</span>.<span class="property">history</span>.<span class="title function_">each</span>(<span class="function">(<span class="params">ele</span>) =&gt;</span> &#123;
+       <span class="keyword">if</span> (ele?.<span class="property">layer</span> &amp;&amp; showLayerIds.<span class="title function_">has</span>(ele.<span class="property">layer</span>)) &#123;
+         ...
+       &#125;
+     &#125; 
+   &#125;
+&#125;</code></pre>
 
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
 <li>我本篇主要是分享一些主要逻辑，还有一些兼容问题和一些UI交互就不叙述了</li>

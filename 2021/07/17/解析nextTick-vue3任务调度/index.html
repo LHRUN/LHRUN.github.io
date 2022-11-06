@@ -126,14 +126,14 @@
             
                 
                     <span class="post-tag">
-                        <a href="/tags/Vue3/">
-                            Vue3
+                        <a href="/tags/Vue/">
+                            Vue
                         </a>
                     </span>    
                 
                     <span class="post-tag">
-                        <a href="/tags/Vue/">
-                            Vue
+                        <a href="/tags/Vue3/">
+                            Vue3
                         </a>
                     </span>    
                            
@@ -156,31 +156,157 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
     <h3 id="nextTick"><a href="#nextTick" class="headerlink" title="nextTick"></a>nextTick</h3><ul>
 <li>定义：将回调推迟到下一个 DOM 更新周期之后执行，在更改了一些数据以等待 DOM 更新后立即使用它</li>
-<li>在实际中使用这个方法一般是用于组件更新，你需要获取更新后的数据，所以使用nextTick等待DOM更新<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createApp, nextTick &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">const</span> app = <span class="title function_">createApp</span>(&#123;</span><br><span class="line">    <span class="title function_">setup</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> message = <span class="title function_">ref</span>(<span class="string">&#x27;Hello!&#x27;</span>)</span><br><span class="line">      <span class="keyword">const</span> <span class="title function_">changeMessage</span> = <span class="keyword">async</span> newMessage =&gt; &#123;</span><br><span class="line">        message.<span class="property">value</span> = newMessage</span><br><span class="line">        <span class="comment">// 这里的value是旧值</span></span><br><span class="line">        <span class="keyword">await</span> <span class="title function_">nextTick</span>()</span><br><span class="line">        <span class="comment">// nextTick后获取的就是DOM更新后的value</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Now DOM is updated&#x27;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></li>
-<li>这个api使用时相当简单，而且相当容易理解，但是为了知其意，还是要翻一下源码了解它的执行机制<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">nextTick</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="variable language_">this</span>: ComponentPublicInstance | <span class="built_in">void</span>,</span></span><br><span class="line"><span class="params">  fn?: () =&gt; <span class="built_in">void</span></span></span><br><span class="line"><span class="params"></span>): <span class="title class_">Promise</span>&lt;<span class="built_in">void</span>&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> p = currentFlushPromise || resolvedPromise</span><br><span class="line">  <span class="keyword">return</span> fn ? p.<span class="title function_">then</span>(<span class="variable language_">this</span> ? fn.<span class="title function_">bind</span>(<span class="variable language_">this</span>) : fn) : p</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>在实际中使用这个方法一般是用于组件更新，你需要获取更新后的数据，所以使用nextTick等待DOM更新<pre><code class="highlight js"><span class="keyword">import</span> &#123; createApp, nextTick &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+<span class="keyword">const</span> app = <span class="title function_">createApp</span>(&#123;
+    <span class="title function_">setup</span>(<span class="params"></span>) &#123;
+      <span class="keyword">const</span> message = <span class="title function_">ref</span>(<span class="string">&#x27;Hello!&#x27;</span>)
+      <span class="keyword">const</span> <span class="title function_">changeMessage</span> = <span class="keyword">async</span> newMessage =&gt; &#123;
+        message.<span class="property">value</span> = newMessage
+        <span class="comment">// 这里的value是旧值</span>
+        <span class="keyword">await</span> <span class="title function_">nextTick</span>()
+        <span class="comment">// nextTick后获取的就是DOM更新后的value</span>
+        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Now DOM is updated&#x27;</span>)
+      &#125;
+    &#125;
+&#125;)</code></pre></li>
+<li>这个api使用时相当简单，而且相当容易理解，但是为了知其意，还是要翻一下源码了解它的执行机制<pre><code class="highlight ts"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">nextTick</span>(<span class="params"></span>
+<span class="params">  <span class="variable language_">this</span>: ComponentPublicInstance | <span class="built_in">void</span>,</span>
+<span class="params">  fn?: () =&gt; <span class="built_in">void</span></span>
+<span class="params"></span>): <span class="title class_">Promise</span>&lt;<span class="built_in">void</span>&gt; &#123;
+  <span class="keyword">const</span> p = currentFlushPromise || resolvedPromise
+  <span class="keyword">return</span> fn ? p.<span class="title function_">then</span>(<span class="variable language_">this</span> ? fn.<span class="title function_">bind</span>(<span class="variable language_">this</span>) : fn) : p
+&#125;</code></pre></li>
 <li>上面是vue源码中nextTick的实现，为了搞清楚实现逻辑，就必须搞懂<code>currentFlushPromise</code>这个变量的含义，所以要从任务的调度机制开始分析</li>
 </ul>
 <h3 id="任务调度"><a href="#任务调度" class="headerlink" title="任务调度"></a>任务调度</h3><p>首先这个调度机制的功能在<code>runtime-core</code>的<code>scheduler</code>文件</p>
 <ul>
 <li><p>API</p>
-<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这个文件会抛出以下几个API函数</span></span><br><span class="line"><span class="title function_">nextTick</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 将函数在任务队列清空后执行</span></span><br><span class="line"><span class="title function_">queueJob</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 添加任务并开始执行任务队列</span></span><br><span class="line"><span class="title function_">invalidateJob</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 删除任务</span></span><br><span class="line"><span class="title function_">queuePreFlushCb</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 添加前置回调函数并开始执行任务队列</span></span><br><span class="line"><span class="title function_">queuePostFlushCb</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 添加后置回调函数并开始执行任务队列</span></span><br><span class="line"><span class="title function_">flushPreFlushCbs</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 执行前置回调函数</span></span><br><span class="line"><span class="title function_">flushPostFlushCbs</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 执行后置回调函数</span></span><br></pre></td></tr></table></figure></li>
+<pre><code class="highlight ts"><span class="comment">// 这个文件会抛出以下几个API函数</span>
+<span class="title function_">nextTick</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 将函数在任务队列清空后执行</span>
+<span class="title function_">queueJob</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 添加任务并开始执行任务队列</span>
+<span class="title function_">invalidateJob</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 删除任务</span>
+<span class="title function_">queuePreFlushCb</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 添加前置回调函数并开始执行任务队列</span>
+<span class="title function_">queuePostFlushCb</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 添加后置回调函数并开始执行任务队列</span>
+<span class="title function_">flushPreFlushCbs</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 执行前置回调函数</span>
+<span class="title function_">flushPostFlushCbs</span>(<span class="params"></span>)&#123;&#125; <span class="comment">// 执行后置回调函数</span></code></pre></li>
 <li><p>我们首先要知道几个关键变量</p>
-<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> isFlushing = <span class="literal">false</span> <span class="comment">// 是否正在清空任务队列</span></span><br><span class="line"><span class="keyword">let</span> isFlushPending = <span class="literal">false</span> <span class="comment">// 清队任务已创建，等待清空状态</span></span><br><span class="line"><span class="keyword">const</span> <span class="attr">queue</span>: <span class="title class_">SchedulerJob</span>[] = [] <span class="comment">// 任务队列</span></span><br><span class="line"><span class="keyword">let</span> flushIndex = <span class="number">0</span> <span class="comment">// 当前正在执行的任务在任务队列中的索引</span></span><br></pre></td></tr></table></figure></li>
+<pre><code class="highlight ts"><span class="keyword">let</span> isFlushing = <span class="literal">false</span> <span class="comment">// 是否正在清空任务队列</span>
+<span class="keyword">let</span> isFlushPending = <span class="literal">false</span> <span class="comment">// 清队任务已创建，等待清空状态</span>
+<span class="keyword">const</span> <span class="attr">queue</span>: <span class="title class_">SchedulerJob</span>[] = [] <span class="comment">// 任务队列</span>
+<span class="keyword">let</span> flushIndex = <span class="number">0</span> <span class="comment">// 当前正在执行的任务在任务队列中的索引</span></code></pre></li>
 <li><p>然后我们从<code>queueJob</code>这个函数开始</p>
-<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment">  这个函数主要是将一个任务进行入队操作</span></span><br><span class="line"><span class="comment">  然后在满足条件的情况下启动queueFlush</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">queueJob</span>(<span class="params">job: SchedulerJob</span>) &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 任务可入队逻辑</span></span><br><span class="line"><span class="comment">     * 1. 任务队列为空</span></span><br><span class="line"><span class="comment">     * 2. 待入队任务不能存在于任务队列中(按情况分析)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">      (!queue.<span class="property">length</span> ||</span><br><span class="line">        !queue.<span class="title function_">includes</span>(</span><br><span class="line">          job,</span><br><span class="line">          <span class="comment">/* </span></span><br><span class="line"><span class="comment">            在正在清空队列且当前待入队任务是可以递归时，</span></span><br><span class="line"><span class="comment">            说明当前任务一定和当前正在执行任务是同一任务，所以+1，</span></span><br><span class="line"><span class="comment">            就是为了保证待入队任务和正在执行任务相同，但不能和后面待执行任务相同</span></span><br><span class="line"><span class="comment">           */</span></span><br><span class="line">          isFlushing &amp;&amp; job.<span class="property">allowRecurse</span> ? flushIndex + <span class="number">1</span> : flushIndex</span><br><span class="line">        )) &amp;&amp;</span><br><span class="line">      job !== currentPreFlushParentJob</span><br><span class="line">    ) &#123;</span><br><span class="line">      <span class="comment">// 二分查找任务在队列中的位置</span></span><br><span class="line">      <span class="keyword">const</span> pos = <span class="title function_">findInsertionIndex</span>(job)</span><br><span class="line">      <span class="keyword">if</span> (pos &gt; -<span class="number">1</span>) &#123;</span><br><span class="line">        queue.<span class="title function_">splice</span>(pos, <span class="number">0</span>, job)</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        queue.<span class="title function_">push</span>(job)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="title function_">queueFlush</span>()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight ts"><span class="comment">/* </span>
+<span class="comment">  这个函数主要是将一个任务进行入队操作</span>
+<span class="comment">  然后在满足条件的情况下启动queueFlush</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">queueJob</span>(<span class="params">job: SchedulerJob</span>) &#123;
+    <span class="comment">/**</span>
+<span class="comment">     * 任务可入队逻辑</span>
+<span class="comment">     * 1. 任务队列为空</span>
+<span class="comment">     * 2. 待入队任务不能存在于任务队列中(按情况分析)</span>
+<span class="comment">     */</span>
+    <span class="keyword">if</span> (
+      (!queue.<span class="property">length</span> ||
+        !queue.<span class="title function_">includes</span>(
+          job,
+          <span class="comment">/* </span>
+<span class="comment">            在正在清空队列且当前待入队任务是可以递归时，</span>
+<span class="comment">            说明当前任务一定和当前正在执行任务是同一任务，所以+1，</span>
+<span class="comment">            就是为了保证待入队任务和正在执行任务相同，但不能和后面待执行任务相同</span>
+<span class="comment">           */</span>
+          isFlushing &amp;&amp; job.<span class="property">allowRecurse</span> ? flushIndex + <span class="number">1</span> : flushIndex
+        )) &amp;&amp;
+      job !== currentPreFlushParentJob
+    ) &#123;
+      <span class="comment">// 二分查找任务在队列中的位置</span>
+      <span class="keyword">const</span> pos = <span class="title function_">findInsertionIndex</span>(job)
+      <span class="keyword">if</span> (pos &gt; -<span class="number">1</span>) &#123;
+        queue.<span class="title function_">splice</span>(pos, <span class="number">0</span>, job)
+      &#125; <span class="keyword">else</span> &#123;
+        queue.<span class="title function_">push</span>(job)
+      &#125;
+      <span class="title function_">queueFlush</span>()
+    &#125;
+&#125;</code></pre>
 </li>
 <li><p><code>queueFlush</code></p>
-<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">queueFlush</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">      清队任务创建后禁止再次创建更多的清队任务</span></span><br><span class="line"><span class="comment">      因为在入队操作完成后，flushJobs会在一次递归中将任务队列全部清空，所以只需要一次清队任务即可</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (!isFlushing &amp;&amp; !isFlushPending) &#123;</span><br><span class="line">      isFlushPending = <span class="literal">true</span></span><br><span class="line">      <span class="comment">/* </span></span><br><span class="line"><span class="comment">        清队任务创建成功，并记录下当前清队任务，这个标记可以用于nextTick创建自定义函数，</span></span><br><span class="line"><span class="comment">        说明nextTick的执行时机是在清队任务后的，其实从这个地方就可以理解nextTick的执行原理了</span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">      currentFlushPromise = resolvedPromise.<span class="title function_">then</span>(flushJobs)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight ts"><span class="keyword">function</span> <span class="title function_">queueFlush</span>(<span class="params"></span>) &#123;
+    <span class="comment">/**</span>
+<span class="comment">      清队任务创建后禁止再次创建更多的清队任务</span>
+<span class="comment">      因为在入队操作完成后，flushJobs会在一次递归中将任务队列全部清空，所以只需要一次清队任务即可</span>
+<span class="comment">     */</span>
+    <span class="keyword">if</span> (!isFlushing &amp;&amp; !isFlushPending) &#123;
+      isFlushPending = <span class="literal">true</span>
+      <span class="comment">/* </span>
+<span class="comment">        清队任务创建成功，并记录下当前清队任务，这个标记可以用于nextTick创建自定义函数，</span>
+<span class="comment">        说明nextTick的执行时机是在清队任务后的，其实从这个地方就可以理解nextTick的执行原理了</span>
+<span class="comment">      */</span>
+      currentFlushPromise = resolvedPromise.<span class="title function_">then</span>(flushJobs)
+    &#125;
+&#125;</code></pre>
 </li>
 <li><p><code>flushJobs</code></p>
-<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 清空任务队列</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">flushJobs</span>(<span class="params">seen?: CountMap</span>) &#123;</span><br><span class="line">    isFlushPending = <span class="literal">false</span> <span class="comment">// 关闭清队任务等待状态</span></span><br><span class="line">    isFlushing = <span class="literal">true</span> <span class="comment">// 开启正在清空队列状态</span></span><br><span class="line">    <span class="keyword">if</span> (__DEV__) &#123;</span><br><span class="line">      seen = seen || <span class="keyword">new</span> <span class="title class_">Map</span>()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 清空前置回调任务队列</span></span><br><span class="line">    <span class="title function_">flushPreFlushCbs</span>(seen)</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* </span></span><br><span class="line"><span class="comment">      任务队列中的任务根据ID进行排序的原因</span></span><br><span class="line"><span class="comment">        1. 因为组件更新是从父组件到子组件的，而任务更新是在数据源更新时触发的，所以为了更新任务的顺序就需要进行排序</span></span><br><span class="line"><span class="comment">        2. 如果在父组件更新期间已经卸载了组件，那么子组件的更新任务就可以跳过</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    queue.<span class="title function_">sort</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> <span class="title function_">getId</span>(a) - <span class="title function_">getId</span>(b))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 遍历任务队列</span></span><br><span class="line">      <span class="keyword">for</span> (flushIndex = <span class="number">0</span>; flushIndex &lt; queue.<span class="property">length</span>; flushIndex++) &#123;</span><br><span class="line">        <span class="keyword">const</span> job = queue[flushIndex]</span><br><span class="line">        <span class="keyword">if</span> (job &amp;&amp; job.<span class="property">active</span> !== <span class="literal">false</span>) &#123;</span><br><span class="line">          <span class="keyword">if</span> (__DEV__ &amp;&amp; <span class="title function_">checkRecursiveUpdates</span>(seen!, job)) &#123;</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">          &#125;</span><br><span class="line">          <span class="comment">// 执行当前任务</span></span><br><span class="line">          <span class="title function_">callWithErrorHandling</span>(job, <span class="literal">null</span>, <span class="title class_">ErrorCodes</span>.<span class="property">SCHEDULER</span>)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="comment">// 重置当前任务索引</span></span><br><span class="line">      flushIndex = <span class="number">0</span></span><br><span class="line">      <span class="comment">// 清空任务队列</span></span><br><span class="line">      queue.<span class="property">length</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">      <span class="comment">// 执行后置回调任务队列</span></span><br><span class="line">      <span class="title function_">flushPostFlushCbs</span>(seen)</span><br><span class="line">        <span class="comment">// 重置清队任务的状态</span></span><br><span class="line">      isFlushing = <span class="literal">false</span></span><br><span class="line">      currentFlushPromise = <span class="literal">null</span></span><br><span class="line">      <span class="comment">/* </span></span><br><span class="line"><span class="comment">        因为清队任务执行期间也会有任务入队，所以为了清队执行完成</span></span><br><span class="line"><span class="comment">        就需要判断各任务队列的长度，然后递归执行</span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">      <span class="keyword">if</span> (</span><br><span class="line">        queue.<span class="property">length</span> ||</span><br><span class="line">        pendingPreFlushCbs.<span class="property">length</span> ||</span><br><span class="line">        pendingPostFlushCbs.<span class="property">length</span></span><br><span class="line">      ) &#123;</span><br><span class="line">        <span class="title function_">flushJobs</span>(seen)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<pre><code class="highlight ts"><span class="comment">// 清空任务队列</span>
+<span class="keyword">function</span> <span class="title function_">flushJobs</span>(<span class="params">seen?: CountMap</span>) &#123;
+    isFlushPending = <span class="literal">false</span> <span class="comment">// 关闭清队任务等待状态</span>
+    isFlushing = <span class="literal">true</span> <span class="comment">// 开启正在清空队列状态</span>
+    <span class="keyword">if</span> (__DEV__) &#123;
+      seen = seen || <span class="keyword">new</span> <span class="title class_">Map</span>()
+    &#125;
+
+    <span class="comment">// 清空前置回调任务队列</span>
+    <span class="title function_">flushPreFlushCbs</span>(seen)
+
+    <span class="comment">/* </span>
+<span class="comment">      任务队列中的任务根据ID进行排序的原因</span>
+<span class="comment">        1. 因为组件更新是从父组件到子组件的，而任务更新是在数据源更新时触发的，所以为了更新任务的顺序就需要进行排序</span>
+<span class="comment">        2. 如果在父组件更新期间已经卸载了组件，那么子组件的更新任务就可以跳过</span>
+<span class="comment">    */</span>
+    queue.<span class="title function_">sort</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> <span class="title function_">getId</span>(a) - <span class="title function_">getId</span>(b))
+
+    <span class="keyword">try</span> &#123;
+      <span class="comment">// 遍历任务队列</span>
+      <span class="keyword">for</span> (flushIndex = <span class="number">0</span>; flushIndex &lt; queue.<span class="property">length</span>; flushIndex++) &#123;
+        <span class="keyword">const</span> job = queue[flushIndex]
+        <span class="keyword">if</span> (job &amp;&amp; job.<span class="property">active</span> !== <span class="literal">false</span>) &#123;
+          <span class="keyword">if</span> (__DEV__ &amp;&amp; <span class="title function_">checkRecursiveUpdates</span>(seen!, job)) &#123;
+            <span class="keyword">continue</span>
+          &#125;
+          <span class="comment">// 执行当前任务</span>
+          <span class="title function_">callWithErrorHandling</span>(job, <span class="literal">null</span>, <span class="title class_">ErrorCodes</span>.<span class="property">SCHEDULER</span>)
+        &#125;
+      &#125;
+    &#125; <span class="keyword">finally</span> &#123;
+      <span class="comment">// 重置当前任务索引</span>
+      flushIndex = <span class="number">0</span>
+      <span class="comment">// 清空任务队列</span>
+      queue.<span class="property">length</span> = <span class="number">0</span>
+
+      <span class="comment">// 执行后置回调任务队列</span>
+      <span class="title function_">flushPostFlushCbs</span>(seen)
+        <span class="comment">// 重置清队任务的状态</span>
+      isFlushing = <span class="literal">false</span>
+      currentFlushPromise = <span class="literal">null</span>
+      <span class="comment">/* </span>
+<span class="comment">        因为清队任务执行期间也会有任务入队，所以为了清队执行完成</span>
+<span class="comment">        就需要判断各任务队列的长度，然后递归执行</span>
+<span class="comment">      */</span>
+      <span class="keyword">if</span> (
+        queue.<span class="property">length</span> ||
+        pendingPreFlushCbs.<span class="property">length</span> ||
+        pendingPostFlushCbs.<span class="property">length</span>
+      ) &#123;
+        <span class="title function_">flushJobs</span>(seen)
+      &#125;
+    &#125;
+&#125;</code></pre></li>
 </ul>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
 <li>nextTick的执行时机是在任务队列(前置、主任务、后置)清除后的，<code>currentFlushPromise</code>是清队任务的promise标记</li>

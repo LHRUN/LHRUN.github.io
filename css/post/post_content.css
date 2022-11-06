@@ -32,8 +32,11 @@ blockquote blockquote {
 .post-content li {
   margin-top: $margin-m-0;
 }
+.post-content li li {
+  list-style-type: circle !important;
+}
 .post-content ol {
-  padding-left: $margin-l-0;
+  padding-left: $margin-m-0;
   margin-left: $margin-m-1;
   margin-right: $margin-m-1;
   margin-top: $margin-m-2;
@@ -42,7 +45,7 @@ blockquote blockquote {
   margin-top: $margin-m-0;
 }
 .post-content ul {
-  padding-left: $margin-l-0;
+  padding-left: $margin-m-0;
   margin-left: $margin-m-1;
   margin-right: $margin-m-1;
   margin-top: $margin-m-2;

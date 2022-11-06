@@ -162,8 +162,8 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
@@ -198,36 +198,316 @@
 <li>entry-server.js：服务端入口，处理服务端逻辑和静态资源</li>
 </ul>
 </li>
-<li>修改<code>package.json</code>运行脚本<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;scripts&quot;</span>: &#123;</span><br><span class="line">  <span class="string">&quot;dev&quot;</span>: <span class="string">&quot;node server&quot;</span>, <span class="comment">// 运行开发环境</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li>然后需要把应用创建都改为函数的方式进行调用创建，因为在SSR环境下，和纯客户端不一样，服务器只会初始化一次，所以为了防止状态污染，每次请求必须是全新的实例<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/main.ts</span></span><br><span class="line"><span class="keyword">import</span> &#123; createSSRApp &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">App</span> <span class="keyword">from</span> <span class="string">&#x27;./App.vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; createRouter &#125; <span class="keyword">from</span> <span class="string">&#x27;./router&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; createPinia &#125; <span class="keyword">from</span> <span class="string">&#x27;pinia&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">createApp</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> app = <span class="title function_">createSSRApp</span>(<span class="title class_">App</span>)</span><br><span class="line">  <span class="keyword">const</span> router = <span class="title function_">createRouter</span>()</span><br><span class="line">  <span class="keyword">const</span> pinia = <span class="title function_">createPinia</span>()</span><br><span class="line">  app.<span class="title function_">use</span>(router)</span><br><span class="line">  app.<span class="title function_">use</span>(pinia)</span><br><span class="line">  <span class="keyword">return</span> &#123; app, router, pinia &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li>roter同理<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/router/index</span></span><br><span class="line"><span class="keyword">import</span> &#123; createRouter <span class="keyword">as</span> _createRrouter, createMemoryHistory, createWebHistory, <span class="title class_">RouteRecordRaw</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="attr">routes</span>: <span class="title class_">RouteRecordRaw</span>[] = [</span><br><span class="line">  ...</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">createRouter</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">_createRrouter</span>(&#123;</span><br><span class="line">    <span class="attr">history</span>: <span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">env</span>.<span class="property">SSR</span> ? <span class="title function_">createMemoryHistory</span>() : <span class="title function_">createWebHistory</span>(),</span><br><span class="line">    routes,</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li>然后修改index.html，增加注释占位和客户端入口文件，在之后的服务端渲染时注入<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;icon&quot;</span> <span class="attr">type</span>=<span class="string">&quot;image/svg+xml&quot;</span> <span class="attr">href</span>=<span class="string">&quot;/vite.svg&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Vite + Vue + TS<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 静态资源占位 .js .css ... --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--preload-links--&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 应用代码占位 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span><span class="comment">&lt;!--ssr-outlet--&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;/src/main.ts&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 引用客户端入口文件 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;/src/entry-client.ts&quot;</span> &gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-handlebars"><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">      // 服务端获取的数据统一挂载到window上</span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">      window.__INITIAL_STATE__ = &#x27;<span class="comment">&lt;!--pinia-state--&gt;</span>&#x27;</span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">    </span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>修改<code>package.json</code>运行脚本<pre><code class="highlight js"><span class="string">&quot;scripts&quot;</span>: &#123;
+  <span class="string">&quot;dev&quot;</span>: <span class="string">&quot;node server&quot;</span>, <span class="comment">// 运行开发环境</span>
+&#125;</code></pre></li>
+<li>然后需要把应用创建都改为函数的方式进行调用创建，因为在SSR环境下，和纯客户端不一样，服务器只会初始化一次，所以为了防止状态污染，每次请求必须是全新的实例<pre><code class="highlight js"><span class="comment">// src/main.ts</span>
+<span class="keyword">import</span> &#123; createSSRApp &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+<span class="keyword">import</span> <span class="title class_">App</span> <span class="keyword">from</span> <span class="string">&#x27;./App.vue&#x27;</span>
+<span class="keyword">import</span> &#123; createRouter &#125; <span class="keyword">from</span> <span class="string">&#x27;./router&#x27;</span>
+<span class="keyword">import</span> &#123; createPinia &#125; <span class="keyword">from</span> <span class="string">&#x27;pinia&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">createApp</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> app = <span class="title function_">createSSRApp</span>(<span class="title class_">App</span>)
+  <span class="keyword">const</span> router = <span class="title function_">createRouter</span>()
+  <span class="keyword">const</span> pinia = <span class="title function_">createPinia</span>()
+  app.<span class="title function_">use</span>(router)
+  app.<span class="title function_">use</span>(pinia)
+  <span class="keyword">return</span> &#123; app, router, pinia &#125;
+&#125;</code></pre></li>
+<li>roter同理<pre><code class="highlight js"><span class="comment">// src/router/index</span>
+<span class="keyword">import</span> &#123; createRouter <span class="keyword">as</span> _createRrouter, createMemoryHistory, createWebHistory, <span class="title class_">RouteRecordRaw</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span>
+
+<span class="keyword">const</span> <span class="attr">routes</span>: <span class="title class_">RouteRecordRaw</span>[] = [
+  ...
+]
+
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">createRouter</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> <span class="title function_">_createRrouter</span>(&#123;
+    <span class="attr">history</span>: <span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">env</span>.<span class="property">SSR</span> ? <span class="title function_">createMemoryHistory</span>() : <span class="title function_">createWebHistory</span>(),
+    routes,
+  &#125;)
+&#125;</code></pre></li>
+<li>然后修改index.html，增加注释占位和客户端入口文件，在之后的服务端渲染时注入<pre><code class="highlight html"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span>
+    <span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;icon&quot;</span> <span class="attr">type</span>=<span class="string">&quot;image/svg+xml&quot;</span> <span class="attr">href</span>=<span class="string">&quot;/vite.svg&quot;</span> /&gt;</span>
+    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span>
+    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Vite + Vue + TS<span class="tag">&lt;/<span class="name">title</span>&gt;</span>
+    <span class="comment">&lt;!-- 静态资源占位 .js .css ... --&gt;</span>
+    <span class="comment">&lt;!--preload-links--&gt;</span>
+  <span class="tag">&lt;/<span class="name">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">body</span>&gt;</span>
+    <span class="comment">&lt;!-- 应用代码占位 --&gt;</span>
+    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span><span class="comment">&lt;!--ssr-outlet--&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;/src/main.ts&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
+    <span class="comment">&lt;!-- 引用客户端入口文件 --&gt;</span>
+    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;/src/entry-client.ts&quot;</span> &gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-handlebars"><span class="language-xml"></span></span>
+<span class="language-xml"><span class="language-handlebars">      // 服务端获取的数据统一挂载到window上</span></span>
+<span class="language-xml"><span class="language-handlebars">      window.__INITIAL_STATE__ = &#x27;<span class="comment">&lt;!--pinia-state--&gt;</span>&#x27;</span></span>
+<span class="language-xml"><span class="language-handlebars">    </span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
+  <span class="tag">&lt;/<span class="name">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">html</span>&gt;</span></code></pre></li>
 </ul>
 <h3 id="2-服务端启动文件"><a href="#2-服务端启动文件" class="headerlink" title="2. 服务端启动文件"></a>2. 服务端启动文件</h3><ul>
 <li>创建项目后，就开始编写服务端启动文件，也就是项目根路径下的server.js文件</li>
-<li>这个文件的功能是启动一个node服务，然后根据请求，读取html文件，处理资源后把注释进行替换，最后把html发送给客户端<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> fs <span class="keyword">from</span> <span class="string">&#x27;fs&#x27;</span></span><br><span class="line"><span class="keyword">import</span> path <span class="keyword">from</span> <span class="string">&#x27;path&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; fileURLToPath &#125; <span class="keyword">from</span> <span class="string">&#x27;url&#x27;</span></span><br><span class="line"><span class="keyword">import</span> express <span class="keyword">from</span> <span class="string">&#x27;express&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; createRequire &#125; <span class="keyword">from</span> <span class="string">&#x27;module&#x27;</span>;</span><br><span class="line"><span class="keyword">const</span> __dirname = path.<span class="title function_">dirname</span>(<span class="title function_">fileURLToPath</span>(<span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">url</span>))</span><br><span class="line"><span class="keyword">const</span> <span class="built_in">require</span> = <span class="title function_">createRequire</span>(<span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">url</span>);</span><br><span class="line"><span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">p</span>) =&gt; path.<span class="title function_">resolve</span>(__dirname, p);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">createServer</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 创建node服务</span></span><br><span class="line">  <span class="keyword">const</span> app = <span class="title function_">express</span>()</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * @官方解释</span></span><br><span class="line"><span class="comment">   * 以中间件模式创建vite应用，这将禁用vite自身的HTML服务逻辑</span></span><br><span class="line"><span class="comment">   * 并让上级服务器接管</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">const</span> vite = <span class="keyword">await</span> <span class="built_in">require</span>(<span class="string">&#x27;vite&#x27;</span>).<span class="title function_">createServer</span>(&#123;</span><br><span class="line">    <span class="attr">server</span>: &#123;</span><br><span class="line">      <span class="attr">middlewareMode</span>: <span class="literal">true</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">appType</span>: <span class="string">&#x27;custom&#x27;</span></span><br><span class="line">  &#125;);</span><br><span class="line">  app.<span class="title function_">use</span>(vite.<span class="property">middlewares</span>);</span><br><span class="line">  </span><br><span class="line">  app.<span class="title function_">use</span>(<span class="string">&#x27;*&#x27;</span>, <span class="keyword">async</span> (req, res, next) =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> url = req.<span class="property">originalUrl</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 读取index.html</span></span><br><span class="line">      <span class="keyword">let</span> template = fs.<span class="title function_">readFileSync</span>(</span><br><span class="line">        <span class="title function_">resolve</span>(<span class="string">&#x27;index.html&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;utf-8&#x27;</span></span><br><span class="line">      )</span><br><span class="line">      <span class="comment">// 应用vite html转换，会注入vite HMR</span></span><br><span class="line">      template = <span class="keyword">await</span> vite.<span class="title function_">transformIndexHtml</span>(url, template)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 加载服务端入口</span></span><br><span class="line">      <span class="keyword">const</span> render = (<span class="keyword">await</span> vite.<span class="title function_">ssrLoadModule</span>(<span class="string">&#x27;/src/entry-server.js&#x27;</span>)).<span class="property">render</span></span><br><span class="line">      <span class="keyword">const</span> [ appHtml, piniaState ] = <span class="keyword">await</span> <span class="title function_">render</span>(url)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 替换处理过后的模版</span></span><br><span class="line">      <span class="keyword">const</span> html = template</span><br><span class="line">        .<span class="title function_">replace</span>(<span class="string">`&lt;!--ssr-outlet--&gt;`</span>, appHtml)</span><br><span class="line">        .<span class="title function_">replace</span>(<span class="string">`&lt;!--pinia-state--&gt;`</span>, piniaState)</span><br><span class="line">      res.<span class="title function_">status</span>(<span class="number">200</span>).<span class="title function_">set</span>(&#123; <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;text/html&#x27;</span> &#125;).<span class="title function_">end</span>(html)</span><br><span class="line">    &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">      vite?.<span class="title function_">ssrFixStacktrace</span>(error)</span><br><span class="line">      <span class="title function_">next</span>(e)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 监听5100端口</span></span><br><span class="line">  app.<span class="title function_">listen</span>(<span class="number">5100</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">createServer</span>();</span><br></pre></td></tr></table></figure></li>
+<li>这个文件的功能是启动一个node服务，然后根据请求，读取html文件，处理资源后把注释进行替换，最后把html发送给客户端<pre><code class="highlight js"><span class="keyword">import</span> fs <span class="keyword">from</span> <span class="string">&#x27;fs&#x27;</span>
+<span class="keyword">import</span> path <span class="keyword">from</span> <span class="string">&#x27;path&#x27;</span>
+<span class="keyword">import</span> &#123; fileURLToPath &#125; <span class="keyword">from</span> <span class="string">&#x27;url&#x27;</span>
+<span class="keyword">import</span> express <span class="keyword">from</span> <span class="string">&#x27;express&#x27;</span>
+
+<span class="keyword">import</span> &#123; createRequire &#125; <span class="keyword">from</span> <span class="string">&#x27;module&#x27;</span>;
+<span class="keyword">const</span> __dirname = path.<span class="title function_">dirname</span>(<span class="title function_">fileURLToPath</span>(<span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">url</span>))
+<span class="keyword">const</span> <span class="built_in">require</span> = <span class="title function_">createRequire</span>(<span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">url</span>);
+<span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">p</span>) =&gt; path.<span class="title function_">resolve</span>(__dirname, p);
+
+<span class="keyword">const</span> <span class="title function_">createServer</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
+  <span class="comment">// 创建node服务</span>
+  <span class="keyword">const</span> app = <span class="title function_">express</span>()
+
+  <span class="comment">/**</span>
+<span class="comment">   * @官方解释</span>
+<span class="comment">   * 以中间件模式创建vite应用，这将禁用vite自身的HTML服务逻辑</span>
+<span class="comment">   * 并让上级服务器接管</span>
+<span class="comment">   */</span>
+  <span class="keyword">const</span> vite = <span class="keyword">await</span> <span class="built_in">require</span>(<span class="string">&#x27;vite&#x27;</span>).<span class="title function_">createServer</span>(&#123;
+    <span class="attr">server</span>: &#123;
+      <span class="attr">middlewareMode</span>: <span class="literal">true</span>,
+    &#125;,
+    <span class="attr">appType</span>: <span class="string">&#x27;custom&#x27;</span>
+  &#125;);
+  app.<span class="title function_">use</span>(vite.<span class="property">middlewares</span>);
+  
+  app.<span class="title function_">use</span>(<span class="string">&#x27;*&#x27;</span>, <span class="keyword">async</span> (req, res, next) =&gt; &#123;
+    <span class="keyword">const</span> url = req.<span class="property">originalUrl</span>
+    <span class="keyword">try</span> &#123;
+      <span class="comment">// 读取index.html</span>
+      <span class="keyword">let</span> template = fs.<span class="title function_">readFileSync</span>(
+        <span class="title function_">resolve</span>(<span class="string">&#x27;index.html&#x27;</span>),
+        <span class="string">&#x27;utf-8&#x27;</span>
+      )
+      <span class="comment">// 应用vite html转换，会注入vite HMR</span>
+      template = <span class="keyword">await</span> vite.<span class="title function_">transformIndexHtml</span>(url, template)
+
+      <span class="comment">// 加载服务端入口</span>
+      <span class="keyword">const</span> render = (<span class="keyword">await</span> vite.<span class="title function_">ssrLoadModule</span>(<span class="string">&#x27;/src/entry-server.js&#x27;</span>)).<span class="property">render</span>
+      <span class="keyword">const</span> [ appHtml, piniaState ] = <span class="keyword">await</span> <span class="title function_">render</span>(url)
+
+      <span class="comment">// 替换处理过后的模版</span>
+      <span class="keyword">const</span> html = template
+        .<span class="title function_">replace</span>(<span class="string">`&lt;!--ssr-outlet--&gt;`</span>, appHtml)
+        .<span class="title function_">replace</span>(<span class="string">`&lt;!--pinia-state--&gt;`</span>, piniaState)
+      res.<span class="title function_">status</span>(<span class="number">200</span>).<span class="title function_">set</span>(&#123; <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;text/html&#x27;</span> &#125;).<span class="title function_">end</span>(html)
+    &#125; <span class="keyword">catch</span> (error) &#123;
+      vite?.<span class="title function_">ssrFixStacktrace</span>(error)
+      <span class="title function_">next</span>(e)
+    &#125;
+  &#125;)
+
+  <span class="comment">// 监听5100端口</span>
+  app.<span class="title function_">listen</span>(<span class="number">5100</span>)
+&#125;
+
+<span class="title function_">createServer</span>();</code></pre></li>
 </ul>
 <h3 id="3-服务端入口文件"><a href="#3-服务端入口文件" class="headerlink" title="3. 服务端入口文件"></a>3. 服务端入口文件</h3><ul>
-<li>服务端入口文件主要是调用SSR的renderToString和收集需要发送的资源和数据<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; renderToString &#125; <span class="keyword">from</span> <span class="string">&#x27;vue/server-renderer&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&#x27;./main&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params">url, manifest</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; app, router, pinia &#125; = <span class="title function_">createApp</span>()</span><br><span class="line"></span><br><span class="line">  router.<span class="title function_">push</span>(url)</span><br><span class="line">  <span class="keyword">await</span> router.<span class="title function_">isReady</span>()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> ctx = &#123;&#125;</span><br><span class="line">  <span class="keyword">const</span> html = <span class="keyword">await</span> <span class="title function_">renderToString</span>(app, ctx)</span><br><span class="line">  <span class="keyword">return</span> [html, <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(pinia.<span class="property">state</span>.<span class="property">value</span>)]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>服务端入口文件主要是调用SSR的renderToString和收集需要发送的资源和数据<pre><code class="highlight js"><span class="keyword">import</span> &#123; renderToString &#125; <span class="keyword">from</span> <span class="string">&#x27;vue/server-renderer&#x27;</span>
+<span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&#x27;./main&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params">url, manifest</span>) &#123;
+  <span class="keyword">const</span> &#123; app, router, pinia &#125; = <span class="title function_">createApp</span>()
+
+  router.<span class="title function_">push</span>(url)
+  <span class="keyword">await</span> router.<span class="title function_">isReady</span>()
+
+  <span class="keyword">const</span> ctx = &#123;&#125;
+  <span class="keyword">const</span> html = <span class="keyword">await</span> <span class="title function_">renderToString</span>(app, ctx)
+  <span class="keyword">return</span> [html, <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(pinia.<span class="property">state</span>.<span class="property">value</span>)]
+&#125;</code></pre></li>
 </ul>
 <h3 id="4-客户端入口文件"><a href="#4-客户端入口文件" class="headerlink" title="4. 客户端入口文件"></a>4. 客户端入口文件</h3><ul>
-<li>客户端入口文件主要用于挂载节点和初始化数据<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&#x27;./main&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123; app, router, pinia &#125; = <span class="title function_">createApp</span>()</span><br><span class="line"></span><br><span class="line">router.<span class="title function_">isReady</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">window</span>.<span class="property">__INITIAL_STATE__</span>) &#123;</span><br><span class="line">    pinia.<span class="property">state</span>.<span class="property">value</span> = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(<span class="variable language_">window</span>.<span class="property">__INITIAL_STATE__</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  app.<span class="title function_">mount</span>(<span class="string">&#x27;#app&#x27;</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></li>
+<li>客户端入口文件主要用于挂载节点和初始化数据<pre><code class="highlight js"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&#x27;./main&#x27;</span>
+
+<span class="keyword">const</span> &#123; app, router, pinia &#125; = <span class="title function_">createApp</span>()
+
+router.<span class="title function_">isReady</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;
+  <span class="keyword">if</span> (<span class="variable language_">window</span>.<span class="property">__INITIAL_STATE__</span>) &#123;
+    pinia.<span class="property">state</span>.<span class="property">value</span> = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(<span class="variable language_">window</span>.<span class="property">__INITIAL_STATE__</span>);
+  &#125;
+
+  app.<span class="title function_">mount</span>(<span class="string">&#x27;#app&#x27;</span>)
+&#125;)</code></pre></li>
 </ul>
 <h3 id="5-组件和页面"><a href="#5-组件和页面" class="headerlink" title="5. 组件和页面"></a>5. 组件和页面</h3><ul>
-<li>组件和页面获取数据主要有两种方式，一种是增加一个<code>asyncData</code>选项，然后在enter-server.js的逻辑中增加遍历当前组件的逻辑，统一触发<code>asyncData</code>，但是现在都是用<code>script setup</code>的方式写业务代码，所以有点麻烦，<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">  <span class="keyword">export</span> defualt &#123;</span><br><span class="line">    <span class="title function_">asyncData</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="comment">// 服务端获取数据逻辑</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&lt;/script&gt;</span><br><span class="line"></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">script</span> <span class="attr">setup</span> <span class="attr">lang</span>=<span class="string">&#x27;ts&#x27;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  ...</span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure></li>
+<li>组件和页面获取数据主要有两种方式，一种是增加一个<code>asyncData</code>选项，然后在enter-server.js的逻辑中增加遍历当前组件的逻辑，统一触发<code>asyncData</code>，但是现在都是用<code>script setup</code>的方式写业务代码，所以有点麻烦，<pre><code class="highlight js">&lt;script&gt;
+  <span class="keyword">export</span> defualt &#123;
+    <span class="title function_">asyncData</span>(<span class="params"></span>) &#123;
+      <span class="comment">// 服务端获取数据逻辑</span>
+    &#125;
+  &#125;
+&lt;/script&gt;
+
+<span class="language-xml"><span class="tag">&lt;<span class="name">script</span> <span class="attr">setup</span> <span class="attr">lang</span>=<span class="string">&#x27;ts&#x27;</span>&gt;</span></span>
+<span class="language-xml">  ...</span>
+<span class="language-xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></code></pre></li>
 <li>另一种就是hook的方式，通过<code>import.meta.env.SSR</code>的方式进行判断</li>
 <li>对于数据具体存储方式，大概有三种，一种是存在vuex或者pinia这种全局状态库中，一种是存在context上下文中，还有一种是自定义数据</li>
 </ul>
 <h3 id="6-生产环境"><a href="#6-生产环境" class="headerlink" title="6. 生产环境"></a>6. 生产环境</h3><h4 id="6-1-pacnakge-json"><a href="#6-1-pacnakge-json" class="headerlink" title="6.1 pacnakge.json"></a>6.1 pacnakge.json</h4><ul>
-<li>增加构建脚本<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&quot;scripts&quot;: &#123;</span><br><span class="line">  &quot;dev&quot;: &quot;node server&quot;,</span><br><span class="line"><span class="addition">+ &quot;build&quot;: &quot;npm run build:client &amp;&amp; npm run build:server&quot;,</span></span><br><span class="line"><span class="addition">+  &quot;build:client&quot;: &quot;vite build --ssrManifest --outDir dist/client&quot;,</span></span><br><span class="line"><span class="addition">+  &quot;build:server&quot;: &quot;vite build --ssr src/entry-server.js --outDir dist/server&quot;,</span></span><br><span class="line"><span class="addition">+  &quot;serve&quot;: &quot;cross-env NODE_ENV=production node server&quot;</span></span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></li>
+<li>增加构建脚本<pre><code class="highlight diff">&quot;scripts&quot;: &#123;
+  &quot;dev&quot;: &quot;node server&quot;,
+<span class="addition">+ &quot;build&quot;: &quot;npm run build:client &amp;&amp; npm run build:server&quot;,</span>
+<span class="addition">+  &quot;build:client&quot;: &quot;vite build --ssrManifest --outDir dist/client&quot;,</span>
+<span class="addition">+  &quot;build:server&quot;: &quot;vite build --ssr src/entry-server.js --outDir dist/server&quot;,</span>
+<span class="addition">+  &quot;serve&quot;: &quot;cross-env NODE_ENV=production node server&quot;</span>
+&#125;,</code></pre></li>
 </ul>
 <h4 id="6-2-服务端运行文件"><a href="#6-2-服务端运行文件" class="headerlink" title="6.2 服务端运行文件"></a>6.2 服务端运行文件</h4><ul>
 <li>针对生产环境，需要启动静态资源服务，引用路径需要改为dist目录下</li>
 </ul>
-<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line">import fs from &#x27;fs&#x27;</span><br><span class="line">import path from &#x27;path&#x27;</span><br><span class="line">import &#123; fileURLToPath &#125; from &#x27;url&#x27;</span><br><span class="line">import express from &#x27;express&#x27;</span><br><span class="line"></span><br><span class="line">import &#123; createRequire &#125; from &#x27;module&#x27;;</span><br><span class="line">const __dirname = path.dirname(fileURLToPath(import.meta.url))</span><br><span class="line">const require = createRequire(import.meta.url);</span><br><span class="line">const resolve = (p) =&gt; path.resolve(__dirname, p);</span><br><span class="line"></span><br><span class="line">const createServer = async (isProd = process.env.NODE_ENV <span class="comment">=== &#x27;production&#x27;) =&gt; &#123;</span></span><br><span class="line">  const app = express()</span><br><span class="line"></span><br><span class="line"><span class="deletion">-  const vite = await require(&#x27;vite&#x27;).createServer(&#123;</span></span><br><span class="line"><span class="deletion">-    server: &#123;</span></span><br><span class="line"><span class="deletion">-      middlewareMode: true,</span></span><br><span class="line"><span class="deletion">-    &#125;,</span></span><br><span class="line"><span class="deletion">-    appType: &#x27;custom&#x27;</span></span><br><span class="line"><span class="deletion">-  &#125;);</span></span><br><span class="line"><span class="deletion">-  app.use(vite.middlewares);</span></span><br><span class="line"></span><br><span class="line"><span class="addition">+  let vite;</span></span><br><span class="line"><span class="addition">+  if (isProd) &#123;</span></span><br><span class="line"><span class="addition">+    app.use(require(&#x27;compression&#x27;)());</span></span><br><span class="line"><span class="addition">+    app.use(</span></span><br><span class="line"><span class="addition">+      require(&#x27;serve-static&#x27;)(resolve(&#x27;./dist/client&#x27;), &#123;</span></span><br><span class="line"><span class="addition">+        index: false</span></span><br><span class="line"><span class="addition">+      &#125;)</span></span><br><span class="line"><span class="addition">+    );</span></span><br><span class="line"><span class="addition">+  &#125; else &#123;</span></span><br><span class="line"><span class="addition">+    vite = await require(&#x27;vite&#x27;).createServer(&#123;</span></span><br><span class="line"><span class="addition">+      server: &#123;</span></span><br><span class="line"><span class="addition">+        middlewareMode: true,</span></span><br><span class="line"><span class="addition">+      &#125;,</span></span><br><span class="line"><span class="addition">+      appType: &#x27;custom&#x27;</span></span><br><span class="line"><span class="addition">+    &#125;);</span></span><br><span class="line"><span class="addition">+    app.use(vite.middlewares);</span></span><br><span class="line"><span class="addition">+  &#125;</span></span><br><span class="line">   // 通过bulid --ssrManifest命令生成的静态资源映射需要在生产环境下引用</span><br><span class="line"><span class="addition">+  const manifest = isProd ? fs.readFileSync(resolve(&#x27;./dist/client/ssr-manifest.json&#x27;), &#x27;utf-8&#x27;) :&#123;&#125;</span></span><br><span class="line">  </span><br><span class="line">  app.use(&#x27;*&#x27;, async (req, res, next) =&gt; &#123;</span><br><span class="line">    const url = req.originalUrl</span><br><span class="line">    try &#123;</span><br><span class="line"><span class="deletion">-      let template = fs.readFileSync(</span></span><br><span class="line"><span class="deletion">-        resolve(&#x27;index.html&#x27;),</span></span><br><span class="line"><span class="deletion">-        &#x27;utf-8&#x27;</span></span><br><span class="line"><span class="deletion">-      )</span></span><br><span class="line"><span class="deletion">-      template = await vite.transformIndexHtml(url, template)</span></span><br><span class="line"><span class="deletion">-      const render = (await vite.ssrLoadModule(&#x27;/src/entry-server.js&#x27;)).render</span></span><br><span class="line"><span class="deletion">-      const [ appHtml, piniaState ] = await render(url)</span></span><br><span class="line"></span><br><span class="line"><span class="addition">+      let template, render</span></span><br><span class="line"><span class="addition">+      if (isProd) &#123;</span></span><br><span class="line"><span class="addition">+        template = fs.readFileSync(resolve(&#x27;./dist/client/index.html&#x27;), &#x27;utf-8&#x27;)</span></span><br><span class="line"><span class="addition">+        render = (await import(&#x27;./dist/server/entry-server.js&#x27;)).render</span></span><br><span class="line"><span class="addition">+      &#125; else &#123;</span></span><br><span class="line"><span class="addition">+        template = fs.readFileSync(</span></span><br><span class="line"><span class="addition">+          resolve(&#x27;index.html&#x27;),</span></span><br><span class="line"><span class="addition">+          &#x27;utf-8&#x27;</span></span><br><span class="line"><span class="addition">+        )</span></span><br><span class="line"><span class="addition">+        template = await vite.transformIndexHtml(url, template)</span></span><br><span class="line"><span class="addition">+        render = (await vite.ssrLoadModule(&#x27;/src/entry-server.js&#x27;)).render</span></span><br><span class="line"><span class="addition">+      &#125;</span></span><br><span class="line"><span class="addition">+      const [ appHtml, preloadLinks, piniaState ] = await render(url, manifest)</span></span><br><span class="line">      const html = template</span><br><span class="line">        .replace(`&lt;!--preload-links--&gt;`, preloadLinks)</span><br><span class="line">        .replace(`&lt;!--ssr-outlet--&gt;`, appHtml)</span><br><span class="line"><span class="addition">+        .replace(`&lt;!--pinia-state--&gt;`, piniaState)</span></span><br><span class="line">      res.status(200).set(&#123; &#x27;Content-Type&#x27;: &#x27;text/html&#x27; &#125;).end(html)</span><br><span class="line">    &#125; catch (error) &#123;</span><br><span class="line">      vite?.ssrFixStacktrace(error)</span><br><span class="line">      next()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  app.listen(5100)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">createServer();</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<pre><code class="highlight diff">import fs from &#x27;fs&#x27;
+import path from &#x27;path&#x27;
+import &#123; fileURLToPath &#125; from &#x27;url&#x27;
+import express from &#x27;express&#x27;
+
+import &#123; createRequire &#125; from &#x27;module&#x27;;
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url);
+const resolve = (p) =&gt; path.resolve(__dirname, p);
+
+const createServer = async (isProd = process.env.NODE_ENV <span class="comment">=== &#x27;production&#x27;) =&gt; &#123;</span>
+  const app = express()
+
+<span class="deletion">-  const vite = await require(&#x27;vite&#x27;).createServer(&#123;</span>
+<span class="deletion">-    server: &#123;</span>
+<span class="deletion">-      middlewareMode: true,</span>
+<span class="deletion">-    &#125;,</span>
+<span class="deletion">-    appType: &#x27;custom&#x27;</span>
+<span class="deletion">-  &#125;);</span>
+<span class="deletion">-  app.use(vite.middlewares);</span>
+
+<span class="addition">+  let vite;</span>
+<span class="addition">+  if (isProd) &#123;</span>
+<span class="addition">+    app.use(require(&#x27;compression&#x27;)());</span>
+<span class="addition">+    app.use(</span>
+<span class="addition">+      require(&#x27;serve-static&#x27;)(resolve(&#x27;./dist/client&#x27;), &#123;</span>
+<span class="addition">+        index: false</span>
+<span class="addition">+      &#125;)</span>
+<span class="addition">+    );</span>
+<span class="addition">+  &#125; else &#123;</span>
+<span class="addition">+    vite = await require(&#x27;vite&#x27;).createServer(&#123;</span>
+<span class="addition">+      server: &#123;</span>
+<span class="addition">+        middlewareMode: true,</span>
+<span class="addition">+      &#125;,</span>
+<span class="addition">+      appType: &#x27;custom&#x27;</span>
+<span class="addition">+    &#125;);</span>
+<span class="addition">+    app.use(vite.middlewares);</span>
+<span class="addition">+  &#125;</span>
+   // 通过bulid --ssrManifest命令生成的静态资源映射需要在生产环境下引用
+<span class="addition">+  const manifest = isProd ? fs.readFileSync(resolve(&#x27;./dist/client/ssr-manifest.json&#x27;), &#x27;utf-8&#x27;) :&#123;&#125;</span>
+  
+  app.use(&#x27;*&#x27;, async (req, res, next) =&gt; &#123;
+    const url = req.originalUrl
+    try &#123;
+<span class="deletion">-      let template = fs.readFileSync(</span>
+<span class="deletion">-        resolve(&#x27;index.html&#x27;),</span>
+<span class="deletion">-        &#x27;utf-8&#x27;</span>
+<span class="deletion">-      )</span>
+<span class="deletion">-      template = await vite.transformIndexHtml(url, template)</span>
+<span class="deletion">-      const render = (await vite.ssrLoadModule(&#x27;/src/entry-server.js&#x27;)).render</span>
+<span class="deletion">-      const [ appHtml, piniaState ] = await render(url)</span>
+
+<span class="addition">+      let template, render</span>
+<span class="addition">+      if (isProd) &#123;</span>
+<span class="addition">+        template = fs.readFileSync(resolve(&#x27;./dist/client/index.html&#x27;), &#x27;utf-8&#x27;)</span>
+<span class="addition">+        render = (await import(&#x27;./dist/server/entry-server.js&#x27;)).render</span>
+<span class="addition">+      &#125; else &#123;</span>
+<span class="addition">+        template = fs.readFileSync(</span>
+<span class="addition">+          resolve(&#x27;index.html&#x27;),</span>
+<span class="addition">+          &#x27;utf-8&#x27;</span>
+<span class="addition">+        )</span>
+<span class="addition">+        template = await vite.transformIndexHtml(url, template)</span>
+<span class="addition">+        render = (await vite.ssrLoadModule(&#x27;/src/entry-server.js&#x27;)).render</span>
+<span class="addition">+      &#125;</span>
+<span class="addition">+      const [ appHtml, preloadLinks, piniaState ] = await render(url, manifest)</span>
+      const html = template
+        .replace(`&lt;!--preload-links--&gt;`, preloadLinks)
+        .replace(`&lt;!--ssr-outlet--&gt;`, appHtml)
+<span class="addition">+        .replace(`&lt;!--pinia-state--&gt;`, piniaState)</span>
+      res.status(200).set(&#123; &#x27;Content-Type&#x27;: &#x27;text/html&#x27; &#125;).end(html)
+    &#125; catch (error) &#123;
+      vite?.ssrFixStacktrace(error)
+      next()
+    &#125;
+  &#125;)
+
+  app.listen(5100)
+&#125;
+
+createServer();
+</code></pre>
 
 <h4 id="6-3-服务端入口文件"><a href="#6-3-服务端入口文件" class="headerlink" title="6.3 服务端入口文件"></a>6.3 服务端入口文件</h4><ul>
-<li>服务端入口文件主要是增加了构建时生成的静态资源映射处理的逻辑<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">import &#123; basename &#125; from &#x27;path&#x27;</span><br><span class="line">import &#123; renderToString &#125; from &#x27;vue/server-renderer&#x27;</span><br><span class="line">import &#123; createApp &#125; from &#x27;./main&#x27;</span><br><span class="line"></span><br><span class="line">export async function render(url, manifest) &#123;</span><br><span class="line">  const &#123; app, router, pinia &#125; = createApp()</span><br><span class="line"></span><br><span class="line">  router.push(url)</span><br><span class="line">  await router.isReady()</span><br><span class="line"></span><br><span class="line">  const ctx = &#123;&#125;</span><br><span class="line">  const html = await renderToString(app, ctx)</span><br><span class="line"><span class="addition">+  const preloadLinks = renderPreloadLinks(ctx.modules, manifest)</span></span><br><span class="line"><span class="addition">+  return [html, preloadLinks, JSON.stringify(pinia.state.value)]</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> function renderPreloadLinks(modules, manifest) &#123;</span><br><span class="line">   let links = &#x27;&#x27;</span><br><span class="line">   const seen = new Set()</span><br><span class="line">   modules.forEach((id) =&gt; &#123;</span><br><span class="line">     const files = manifest[id]</span><br><span class="line">     if (files) &#123;</span><br><span class="line">       files.forEach((file) =&gt; &#123;</span><br><span class="line">         if (!seen.has(file)) &#123;</span><br><span class="line">           seen.add(file)</span><br><span class="line">           const filename = basename(file)</span><br><span class="line">           if (manifest[filename]) &#123;</span><br><span class="line">             for (const depFile of manifest[filename]) &#123;</span><br><span class="line">               links += renderPreloadLink(depFile)</span><br><span class="line">               seen.add(depFile)</span><br><span class="line">             &#125;</span><br><span class="line">           &#125;</span><br><span class="line">           links += renderPreloadLink(file)</span><br><span class="line">         &#125;</span><br><span class="line">       &#125;)</span><br><span class="line">     &#125;</span><br><span class="line">   &#125;)</span><br><span class="line">   return links</span><br><span class="line"> &#125;</span><br><span class="line"> </span><br><span class="line"> function renderPreloadLink(file) &#123;</span><br><span class="line">   if (file.endsWith(&#x27;.js&#x27;)) &#123;</span><br><span class="line">     return `&lt;link rel=&quot;modulepreload&quot; crossorigin href=&quot;$&#123;file&#125;&quot;&gt;`</span><br><span class="line">   &#125; else if (file.endsWith(&#x27;.css&#x27;)) &#123;</span><br><span class="line">     return `&lt;link rel=&quot;stylesheet&quot; href=&quot;$&#123;file&#125;&quot;&gt;`</span><br><span class="line">   &#125; else if (file.endsWith(&#x27;.woff&#x27;)) &#123;</span><br><span class="line">     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff&quot; crossorigin&gt;`</span><br><span class="line">   &#125; else if (file.endsWith(&#x27;.woff2&#x27;)) &#123;</span><br><span class="line">     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&gt;`</span><br><span class="line">   &#125; else if (file.endsWith(&#x27;.gif&#x27;)) &#123;</span><br><span class="line">     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/gif&quot;&gt;`</span><br><span class="line">   &#125; else if (file.endsWith(&#x27;.jpg&#x27;) || file.endsWith(&#x27;.jpeg&#x27;)) &#123;</span><br><span class="line">     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/jpeg&quot;&gt;`</span><br><span class="line">   &#125; else if (file.endsWith(&#x27;.png&#x27;)) &#123;</span><br><span class="line">     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/png&quot;&gt;`</span><br><span class="line">   &#125; else &#123;</span><br><span class="line">     return &#x27;&#x27;</span><br><span class="line">   &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></li>
+<li>服务端入口文件主要是增加了构建时生成的静态资源映射处理的逻辑<pre><code class="highlight diff">import &#123; basename &#125; from &#x27;path&#x27;
+import &#123; renderToString &#125; from &#x27;vue/server-renderer&#x27;
+import &#123; createApp &#125; from &#x27;./main&#x27;
+
+export async function render(url, manifest) &#123;
+  const &#123; app, router, pinia &#125; = createApp()
+
+  router.push(url)
+  await router.isReady()
+
+  const ctx = &#123;&#125;
+  const html = await renderToString(app, ctx)
+<span class="addition">+  const preloadLinks = renderPreloadLinks(ctx.modules, manifest)</span>
+<span class="addition">+  return [html, preloadLinks, JSON.stringify(pinia.state.value)]</span>
+&#125;
+
+ function renderPreloadLinks(modules, manifest) &#123;
+   let links = &#x27;&#x27;
+   const seen = new Set()
+   modules.forEach((id) =&gt; &#123;
+     const files = manifest[id]
+     if (files) &#123;
+       files.forEach((file) =&gt; &#123;
+         if (!seen.has(file)) &#123;
+           seen.add(file)
+           const filename = basename(file)
+           if (manifest[filename]) &#123;
+             for (const depFile of manifest[filename]) &#123;
+               links += renderPreloadLink(depFile)
+               seen.add(depFile)
+             &#125;
+           &#125;
+           links += renderPreloadLink(file)
+         &#125;
+       &#125;)
+     &#125;
+   &#125;)
+   return links
+ &#125;
+ 
+ function renderPreloadLink(file) &#123;
+   if (file.endsWith(&#x27;.js&#x27;)) &#123;
+     return `&lt;link rel=&quot;modulepreload&quot; crossorigin href=&quot;$&#123;file&#125;&quot;&gt;`
+   &#125; else if (file.endsWith(&#x27;.css&#x27;)) &#123;
+     return `&lt;link rel=&quot;stylesheet&quot; href=&quot;$&#123;file&#125;&quot;&gt;`
+   &#125; else if (file.endsWith(&#x27;.woff&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff&quot; crossorigin&gt;`
+   &#125; else if (file.endsWith(&#x27;.woff2&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&gt;`
+   &#125; else if (file.endsWith(&#x27;.gif&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/gif&quot;&gt;`
+   &#125; else if (file.endsWith(&#x27;.jpg&#x27;) || file.endsWith(&#x27;.jpeg&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/jpeg&quot;&gt;`
+   &#125; else if (file.endsWith(&#x27;.png&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/png&quot;&gt;`
+   &#125; else &#123;
+     return &#x27;&#x27;
+   &#125;
+ &#125;</code></pre></li>
 </ul>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/LHRUN/vue-ssr">repo</a></li>

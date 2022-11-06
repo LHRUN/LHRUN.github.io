@@ -150,8 +150,8 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
@@ -213,7 +213,16 @@
 </li>
 </ul>
 <h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><ul>
-<li>Dockerfile是docker构建镜像的配置文件，比如一个简单的Dockerfile如下<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:<span class="number">16</span></span><br><span class="line"><span class="keyword">MAINTAINER</span> songlh</span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD</span><span class="language-bash"> . /app</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> npm install pnpm -g</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> pnpm install</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="language-bash"> pnpm run dev</span></span><br></pre></td></tr></table></figure></li>
+<li>Dockerfile是docker构建镜像的配置文件，比如一个简单的Dockerfile如下<pre><code class="highlight dockerfile"><span class="keyword">FROM</span> node:<span class="number">16</span>
+<span class="keyword">MAINTAINER</span> songlh
+
+<span class="keyword">ADD</span><span class="language-bash"> . /app</span>
+<span class="keyword">WORKDIR</span><span class="language-bash"> /app</span>
+
+<span class="keyword">RUN</span><span class="language-bash"> npm install pnpm -g</span>
+<span class="keyword">RUN</span><span class="language-bash"> pnpm install</span>
+
+<span class="keyword">CMD</span><span class="language-bash"> pnpm run dev</span></code></pre></li>
 <li>常用指令</li>
 <li><code>FROM</code>：表示基于一个已有的基础镜像，<code>FROM &lt;image&gt; [AS &lt;name&gt;]</code></li>
 <li><code>MAINTAINER</code>：声明dockerfile镜像构建的作者</li>
@@ -310,7 +319,21 @@
 </li>
 </ul>
 </li>
-<li>比如运行一个web项目和redis，可以编写一个如下的<code>docker-compose.yml</code>文件<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&quot;3&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">app:</span></span><br><span class="line">    <span class="attr">build:</span> <span class="string">./</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">80</span><span class="string">:8080</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./:/app</span></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">redis:5.0.13</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">redis:/data</span></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="attr">redis:</span></span><br></pre></td></tr></table></figure></li>
+<li>比如运行一个web项目和redis，可以编写一个如下的<code>docker-compose.yml</code>文件<pre><code class="highlight yml"><span class="attr">version:</span> <span class="string">&quot;3&quot;</span>
+
+<span class="attr">services:</span>
+  <span class="attr">app:</span>
+    <span class="attr">build:</span> <span class="string">./</span>
+    <span class="attr">ports:</span>
+      <span class="bullet">-</span> <span class="number">80</span><span class="string">:8080</span>
+    <span class="attr">volumes:</span>
+      <span class="bullet">-</span> <span class="string">./:/app</span>
+  <span class="attr">redis:</span>
+    <span class="attr">image:</span> <span class="string">redis:5.0.13</span>
+    <span class="attr">volumes:</span>
+      <span class="bullet">-</span> <span class="string">redis:/data</span>
+<span class="attr">volumes:</span>
+  <span class="attr">redis:</span></code></pre></li>
 <li>version：指定本yml依从的compose哪个版本指定的</li>
 <li>build: 指定构建镜像上下文路径</li>
 <li>image：指定启动容器的镜像</li>

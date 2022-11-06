@@ -150,8 +150,8 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
@@ -170,7 +170,14 @@
 <li><p>幽灵依赖就是你在引用npm包时，你会发现一些没有在<code>package.json</code>中出现的包也能引用，这个就是幽灵依赖，这是因为你在install下载npm包时，npm包也有它的依赖会下载，但是下载的依赖也会存在node_modules同一层级下，这样就会导致可以直接引用</p>
 </li>
 <li><p>版本冲突是因为不同的依赖可能依赖的包版本也不同，但是node_modules的同一层级只能存在一个包的一个版本号，如果有不同的版本号就只能存在依赖包的node_modules中，这样就会导致出现重复资源</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">├── package-A @<span class="number">1.0</span></span><br><span class="line">|── package-B @<span class="number">1.0</span></span><br><span class="line">├── package-C @<span class="number">1.0</span></span><br><span class="line">│   └── package-A @<span class="number">2.0</span></span><br><span class="line">│   └── package-B @<span class="number">2.0</span></span><br><span class="line">├── package-D @<span class="number">1.0</span></span><br><span class="line">│   └── package-A @<span class="number">2.0</span></span><br><span class="line">│   └── package-B @<span class="number">2.0</span></span><br></pre></td></tr></table></figure></li>
+<pre><code class="highlight js">├── package-A @<span class="number">1.0</span>
+|── package-B @<span class="number">1.0</span>
+├── package-C @<span class="number">1.0</span>
+│   └── package-A @<span class="number">2.0</span>
+│   └── package-B @<span class="number">2.0</span>
+├── package-D @<span class="number">1.0</span>
+│   └── package-A @<span class="number">2.0</span>
+│   └── package-B @<span class="number">2.0</span></code></pre></li>
 </ul>
 <h3 id="pnpm的出现"><a href="#pnpm的出现" class="headerlink" title="pnpm的出现"></a>pnpm的出现</h3><ul>
 <li><p>在所有前端苦npm久已时，pnpm出现了，并且在pnpm官网的简介上就简单说明了它的构造：<code>store + link</code><br><img src="https://img-blog.csdnimg.cn/20ef6cd68a0440c9841ea1450297c17a.jpeg#pic_center" alt="pnpm_node_modules"></p>
@@ -184,7 +191,21 @@
 </ul>
 </li>
 <li><p>然后拿react举例，当<code>pnpm add react</code>后，在node_modules终端输入<code>tree -a -L 3</code>会得到以下node_modules结构</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── .<span class="property">modules</span>.<span class="property">yaml</span></span><br><span class="line">├── .<span class="property">pnpm</span></span><br><span class="line">│   ├── js-tokens@<span class="number">4.0</span><span class="number">.0</span></span><br><span class="line">│   │   └── node_modules</span><br><span class="line">│   ├── lock.<span class="property">yaml</span></span><br><span class="line">│   ├── loose-envify@<span class="number">1.4</span><span class="number">.0</span></span><br><span class="line">│   │   └── node_modules</span><br><span class="line">│   ├── node_modules</span><br><span class="line">│   │   ├── .<span class="property">bin</span></span><br><span class="line">│   │   ├── js-tokens -&gt; ../js-tokens@<span class="number">4.0</span><span class="number">.0</span>/node_modules/js-tokens</span><br><span class="line">│   │   └── loose-envify -&gt; ../loose-envify@<span class="number">1.4</span><span class="number">.0</span>/node_modules/loose-envify</span><br><span class="line">│   └── react@<span class="number">18.2</span><span class="number">.0</span></span><br><span class="line">│       └── node_modules</span><br><span class="line">└── react -&gt; .<span class="property">pnpm</span>/react@<span class="number">18.2</span><span class="number">.0</span>/node_modules/react</span><br></pre></td></tr></table></figure></li>
+<pre><code class="highlight js">.
+├── .<span class="property">modules</span>.<span class="property">yaml</span>
+├── .<span class="property">pnpm</span>
+│   ├── js-tokens@<span class="number">4.0</span><span class="number">.0</span>
+│   │   └── node_modules
+│   ├── lock.<span class="property">yaml</span>
+│   ├── loose-envify@<span class="number">1.4</span><span class="number">.0</span>
+│   │   └── node_modules
+│   ├── node_modules
+│   │   ├── .<span class="property">bin</span>
+│   │   ├── js-tokens -&gt; ../js-tokens@<span class="number">4.0</span><span class="number">.0</span>/node_modules/js-tokens
+│   │   └── loose-envify -&gt; ../loose-envify@<span class="number">1.4</span><span class="number">.0</span>/node_modules/loose-envify
+│   └── react@<span class="number">18.2</span><span class="number">.0</span>
+│       └── node_modules
+└── react -&gt; .<span class="property">pnpm</span>/react@<span class="number">18.2</span><span class="number">.0</span>/node_modules/react</code></pre></li>
 <li><p>node_modules下除了.pnpm外只有一个react，这个react只是一个SymbolicLink，当node.js解析时，会找到react的真实位置<code>node_modules/.pnpm/react@18.2.0/node_modules/react</code></p>
 </li>
 <li><p>.pnpm就是将所有依赖放在同一层文件夹中，每个包都可以通过<code>.pnpm/&lt;name&gt;@&lt;version&gt;/node_modules/&lt;name&gt;</code>这种路径找到，然后通过<code>hand link</code>的方式在store中引用依赖文件</p>

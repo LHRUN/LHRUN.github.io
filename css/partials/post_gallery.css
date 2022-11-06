@@ -16,7 +16,11 @@
   flex-direction: column;
 }
 .post-gallery-item .post-info .post-title {
-  margin-bottom: $margin-m-1;
+  margin-bottom: 0.25rem;
+}
+.post-gallery-item .post-info .post-excerpt {
+  font-size: 14px;
+  margin-bottom: 5px;
 }
 .post-gallery-item .post-img {
   width: 50%;

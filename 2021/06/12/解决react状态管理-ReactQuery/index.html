@@ -156,8 +156,8 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
@@ -169,24 +169,109 @@
 </ul>
 <h3 id="初步使用"><a href="#初步使用" class="headerlink" title="初步使用"></a>初步使用</h3><ol>
 <li><code>yarn add react-query</code> or <code>npm i react-query</code>安装react-query</li>
-<li>使用<code>QueryClientProvider</code>组件连接并提供一个<code>QueryClient</code>到你的应用程序<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">QueryClient</span>, <span class="title class_">QueryClientProvider</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query&#x27;</span></span><br><span class="line"></span><br><span class="line">&lt;<span class="title class_">QueryClientProvider</span> client=&#123;<span class="keyword">new</span> <span class="title class_">QueryClient</span>()&#125;&gt;</span><br><span class="line">  &#123; ... &#125;</span><br><span class="line">&lt;/<span class="title class_">QueryClientProvider</span>&gt;</span><br></pre></td></tr></table></figure></li>
+<li>使用<code>QueryClientProvider</code>组件连接并提供一个<code>QueryClient</code>到你的应用程序<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">QueryClient</span>, <span class="title class_">QueryClientProvider</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query&#x27;</span>
+
+&lt;<span class="title class_">QueryClientProvider</span> client=&#123;<span class="keyword">new</span> <span class="title class_">QueryClient</span>()&#125;&gt;
+  &#123; ... &#125;
+&lt;/<span class="title class_">QueryClientProvider</span>&gt;</code></pre></li>
 </ol>
 <h4 id="Devtools"><a href="#Devtools" class="headerlink" title="Devtools"></a>Devtools</h4><ul>
 <li><code>yarn add react-query-devtools</code> or <code>npm i --save react-query-devtools</code>安装Devtools</li>
 <li><code>react-query-devtools</code>是与<code>react-query</code>相匹配的开发工具</li>
-<li>可在开发中实时查看缓存，手动获取和删除查询等等<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">ReactQueryDevtools</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query-devtools&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">App</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;&gt;</span>    </span></span><br><span class="line"><span class="language-xml">      &#123; ... &#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">ReactQueryDevtools</span> <span class="attr">initialIsOpen</span>=<span class="string">&#123;true&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></li>
+<li>可在开发中实时查看缓存，手动获取和删除查询等等<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">ReactQueryDevtools</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query-devtools&#x27;</span>
+
+<span class="keyword">const</span> <span class="title function_">App</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;&gt;</span>    </span>
+<span class="language-xml">      &#123; ... &#125;</span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">ReactQueryDevtools</span> <span class="attr">initialIsOpen</span>=<span class="string">&#123;true&#125;</span> /&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;/&gt;</span></span>
+  );
+&#125;;</code></pre></li>
 </ul>
 <h3 id="增删改查"><a href="#增删改查" class="headerlink" title="增删改查"></a>增删改查</h3><ul>
 <li>react-query最常用的两个hook，查询(<code>useQuery</code>)、增删改(<code>useMutation</code>)</li>
 </ul>
 <h4 id="useQuery"><a href="#useQuery" class="headerlink" title="useQuery"></a>useQuery</h4><ul>
-<li><code>useQuery</code>：在<code>React Query</code>中，查询是对某些异步数据源的声明性依赖。查询可以与任何基于Promise的方法(GET)一起使用，从服务器获取数据<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">useTodos</span> = (<span class="params">param</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 第一个参数是QueryKey，是查询的关键，是一个独一无二的key，并在之后的增删改中需要，</span></span><br><span class="line"><span class="comment">   *   如果需要动态的QueryKey，可以使用数组的方式，如[&#x27;todos&#x27;, params]</span></span><br><span class="line"><span class="comment">   * 第二个参数是用于获取数据的异步函数</span></span><br><span class="line"><span class="comment">   * useQuery的响应返回就是获取到的数据和一些中间状态，如isLoading，error，isIdle...</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">useQuery</span>(<span class="string">&#x27;todos&#x27;</span>, <span class="function">() =&gt;</span></span><br><span class="line">    <span class="title function_">request</span>(<span class="string">&#x27;todos&#x27;</span>, &#123; <span class="attr">data</span>: param &#125;)</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在UI组件调用</span></span><br><span class="line"><span class="keyword">const</span> &#123; isLoading, error, <span class="attr">data</span>: todos &#125; = <span class="title function_">useTodos</span>()</span><br></pre></td></tr></table></figure></li>
+<li><code>useQuery</code>：在<code>React Query</code>中，查询是对某些异步数据源的声明性依赖。查询可以与任何基于Promise的方法(GET)一起使用，从服务器获取数据<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">useTodos</span> = (<span class="params">param</span>) =&gt; &#123;
+  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()
+
+  <span class="comment">/**</span>
+<span class="comment">   * 第一个参数是QueryKey，是查询的关键，是一个独一无二的key，并在之后的增删改中需要，</span>
+<span class="comment">   *   如果需要动态的QueryKey，可以使用数组的方式，如[&#x27;todos&#x27;, params]</span>
+<span class="comment">   * 第二个参数是用于获取数据的异步函数</span>
+<span class="comment">   * useQuery的响应返回就是获取到的数据和一些中间状态，如isLoading，error，isIdle...</span>
+<span class="comment">   */</span>
+  <span class="keyword">return</span> <span class="title function_">useQuery</span>(<span class="string">&#x27;todos&#x27;</span>, <span class="function">() =&gt;</span>
+    <span class="title function_">request</span>(<span class="string">&#x27;todos&#x27;</span>, &#123; <span class="attr">data</span>: param &#125;)
+  )
+&#125;
+
+<span class="comment">// 在UI组件调用</span>
+<span class="keyword">const</span> &#123; isLoading, error, <span class="attr">data</span>: todos &#125; = <span class="title function_">useTodos</span>()</code></pre></li>
 </ul>
 <h4 id="useMutation"><a href="#useMutation" class="headerlink" title="useMutation"></a>useMutation</h4><ul>
-<li><code>useMutation</code>：常用于创建&#x2F;更新&#x2F;删除数据或执行服务器副作用<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">useAddTodo</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 第一个参数是执行操作的异步函数，在返回的mutate中触发</span></span><br><span class="line"><span class="comment">   * 第二个参数是执行成功或者失败的一些配置函数，可用于一些处理缓存的操作，例如乐观更新</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">useMutation</span>(</span><br><span class="line">    <span class="function">(<span class="params">data</span>) =&gt;</span></span><br><span class="line">      <span class="title function_">request</span>(<span class="string">`todos`</span>, &#123;</span><br><span class="line">        data,</span><br><span class="line">        <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">      &#125;),</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="title function_">onSuccess</span>(<span class="params"></span>)&#123;&#125;</span><br><span class="line">      <span class="title function_">onError</span>(<span class="params"></span>)&#123;&#125;</span><br><span class="line">      <span class="title function_">onSettled</span>(<span class="params"></span>)&#123;&#125;</span><br><span class="line">      ...</span><br><span class="line">    &#125;</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 操作组件调用</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">TodosAddBtn</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="keyword">const</span> &#123; mutateAsync, isLoading, error &#125; = <span class="title function_">useAddTodo</span>()</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> mutateAsync(todoData)&#125;&gt;add<span class="tag">&lt;/<span class="name">Button</span>&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><code>useMutation</code>：常用于创建&#x2F;更新&#x2F;删除数据或执行服务器副作用<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">useAddTodo</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()
+
+  <span class="comment">/**</span>
+<span class="comment">   * 第一个参数是执行操作的异步函数，在返回的mutate中触发</span>
+<span class="comment">   * 第二个参数是执行成功或者失败的一些配置函数，可用于一些处理缓存的操作，例如乐观更新</span>
+<span class="comment">   */</span>
+  <span class="keyword">return</span> <span class="title function_">useMutation</span>(
+    <span class="function">(<span class="params">data</span>) =&gt;</span>
+      <span class="title function_">request</span>(<span class="string">`todos`</span>, &#123;
+        data,
+        <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,
+      &#125;),
+    &#123;
+      <span class="title function_">onSuccess</span>(<span class="params"></span>)&#123;&#125;
+      <span class="title function_">onError</span>(<span class="params"></span>)&#123;&#125;
+      <span class="title function_">onSettled</span>(<span class="params"></span>)&#123;&#125;
+      ...
+    &#125;
+  )
+&#125;
+
+<span class="comment">// 操作组件调用</span>
+<span class="keyword">const</span> <span class="title function_">TodosAddBtn</span> = (<span class="params"></span>) =&gt; &#123;
+  ...
+  <span class="keyword">const</span> &#123; mutateAsync, isLoading, error &#125; = <span class="title function_">useAddTodo</span>()
+  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> mutateAsync(todoData)&#125;&gt;add<span class="tag">&lt;/<span class="name">Button</span>&gt;</span></span>
+&#125;</code></pre></li>
 </ul>
 <h5 id="例：用第二个参数配置乐观更新"><a href="#例：用第二个参数配置乐观更新" class="headerlink" title="例：用第二个参数配置乐观更新"></a>例：用第二个参数配置乐观更新</h5><ul>
-<li>乐观更新就是在一些请求或者数据处理没有结束的时候，提前给用户显示理想的结果，如果失败就回滚更新<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">useAddConfig</span> = (<span class="params">queryKey</span>) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 获取当前QueryClient的实例</span></span><br><span class="line">  <span class="keyword">const</span> queryClient = <span class="title function_">useQueryClient</span>()</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="comment">// 当mutate被调用时触发</span></span><br><span class="line">    <span class="keyword">async</span> <span class="title function_">onMutate</span>(<span class="params">target</span>) &#123;</span><br><span class="line">      <span class="comment">// 获取当前数据快照，用于错误时回滚更新</span></span><br><span class="line">      <span class="keyword">const</span> previousItems = queryClient.<span class="title function_">getQueryData</span>(queryKey)</span><br><span class="line">      <span class="comment">// 乐观更新为新值</span></span><br><span class="line">      queryClient.<span class="title function_">setQueryData</span>(queryKey, <span class="function">(<span class="params">old</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="function">(<span class="params">target, old</span>) =&gt;</span> (old ? [...old, target] : [])</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 这个返回值会作为最后一个参数传递给onError和onSettled</span></span><br><span class="line">      <span class="keyword">return</span> &#123; previousItems &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// 成功回调 清除缓存</span></span><br><span class="line">    <span class="attr">onSuccess</span>: <span class="function">() =&gt;</span> queryClient.<span class="title function_">invalidateQueries</span>(queryKey),</span><br><span class="line">    <span class="comment">// 失败回调</span></span><br><span class="line">    <span class="title function_">onError</span>(<span class="params">error, newItem, context</span>) &#123;</span><br><span class="line">      <span class="comment">// 当前queryKey的数据回滚</span></span><br><span class="line">      queryClient.<span class="title function_">setQueryData</span>(</span><br><span class="line">        queryKey,</span><br><span class="line">        context.<span class="property">previousItems</span></span><br><span class="line">      )</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// 无论错误或者成功都会触发，此例子没有使用</span></span><br><span class="line">    <span class="title function_">onSettled</span>(<span class="params"></span>) &#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>乐观更新就是在一些请求或者数据处理没有结束的时候，提前给用户显示理想的结果，如果失败就回滚更新<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">useAddConfig</span> = (<span class="params">queryKey</span>) =&gt; &#123;
+  <span class="comment">// 获取当前QueryClient的实例</span>
+  <span class="keyword">const</span> queryClient = <span class="title function_">useQueryClient</span>()
+  
+  <span class="keyword">return</span> &#123;
+    <span class="comment">// 当mutate被调用时触发</span>
+    <span class="keyword">async</span> <span class="title function_">onMutate</span>(<span class="params">target</span>) &#123;
+      <span class="comment">// 获取当前数据快照，用于错误时回滚更新</span>
+      <span class="keyword">const</span> previousItems = queryClient.<span class="title function_">getQueryData</span>(queryKey)
+      <span class="comment">// 乐观更新为新值</span>
+      queryClient.<span class="title function_">setQueryData</span>(queryKey, <span class="function">(<span class="params">old</span>) =&gt;</span> &#123;
+        <span class="keyword">return</span> <span class="function">(<span class="params">target, old</span>) =&gt;</span> (old ? [...old, target] : [])
+      &#125;)
+
+      <span class="comment">// 这个返回值会作为最后一个参数传递给onError和onSettled</span>
+      <span class="keyword">return</span> &#123; previousItems &#125;
+    &#125;,
+    <span class="comment">// 成功回调 清除缓存</span>
+    <span class="attr">onSuccess</span>: <span class="function">() =&gt;</span> queryClient.<span class="title function_">invalidateQueries</span>(queryKey),
+    <span class="comment">// 失败回调</span>
+    <span class="title function_">onError</span>(<span class="params">error, newItem, context</span>) &#123;
+      <span class="comment">// 当前queryKey的数据回滚</span>
+      queryClient.<span class="title function_">setQueryData</span>(
+        queryKey,
+        context.<span class="property">previousItems</span>
+      )
+    &#125;,
+    <span class="comment">// 无论错误或者成功都会触发，此例子没有使用</span>
+    <span class="title function_">onSettled</span>(<span class="params"></span>) &#123;&#125;
+  &#125;
+&#125;</code></pre></li>
 </ul>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
 <li>本地&#x2F;客户端中间状态<ul>

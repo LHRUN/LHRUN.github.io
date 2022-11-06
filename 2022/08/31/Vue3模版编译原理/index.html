@@ -126,14 +126,14 @@
             
                 
                     <span class="post-tag">
-                        <a href="/tags/Vue3/">
-                            Vue3
+                        <a href="/tags/Vue/">
+                            Vue
                         </a>
                     </span>    
                 
                     <span class="post-tag">
-                        <a href="/tags/Vue/">
-                            Vue
+                        <a href="/tags/Vue3/">
+                            Vue3
                         </a>
                     </span>    
                            
@@ -156,25 +156,124 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
     <h2 id="模版编译流程"><a href="#模版编译流程" class="headerlink" title="模版编译流程"></a>模版编译流程</h2><p>Vue3模版编译就是把template字符串编译成渲染函数</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// template</span></span><br><span class="line">&lt;div&gt;<span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;&#123;LH_R&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span>&lt;/div&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">// render</span></span><br><span class="line"><span class="keyword">import</span> &#123; toDisplayString <span class="keyword">as</span> _toDisplayString, createElementVNode <span class="keyword">as</span> _createElementVNode, openBlock <span class="keyword">as</span> _openBlock, createElementBlock <span class="keyword">as</span> _createElementBlock &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params">_ctx, _cache, $props, $setup, $data, $options</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> (<span class="title function_">_openBlock</span>(), <span class="title function_">_createElementBlock</span>(<span class="string">&quot;div&quot;</span>, <span class="literal">null</span>, [</span><br><span class="line">    <span class="title function_">_createElementVNode</span>(<span class="string">&quot;p&quot;</span>, <span class="literal">null</span>, <span class="title function_">_toDisplayString</span>(_ctx.<span class="property">LH_R</span>), <span class="number">1</span> <span class="comment">/* TEXT */</span>)</span><br><span class="line">  ]))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="comment">// template</span>
+&lt;div&gt;<span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;&#123;LH_R&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span>&lt;/div&gt;
+
+<span class="comment">// render</span>
+<span class="keyword">import</span> &#123; toDisplayString <span class="keyword">as</span> _toDisplayString, createElementVNode <span class="keyword">as</span> _createElementVNode, openBlock <span class="keyword">as</span> _openBlock, createElementBlock <span class="keyword">as</span> _createElementBlock &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span>
+
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params">_ctx, _cache, $props, $setup, $data, $options</span>) &#123;
+  <span class="keyword">return</span> (<span class="title function_">_openBlock</span>(), <span class="title function_">_createElementBlock</span>(<span class="string">&quot;div&quot;</span>, <span class="literal">null</span>, [
+    <span class="title function_">_createElementVNode</span>(<span class="string">&quot;p&quot;</span>, <span class="literal">null</span>, <span class="title function_">_toDisplayString</span>(_ctx.<span class="property">LH_R</span>), <span class="number">1</span> <span class="comment">/* TEXT */</span>)
+  ]))
+&#125;</code></pre>
 
 <p>我会按照编译流程分3步分析</p>
 <ol>
 <li><strong>parse</strong>：将模版字符串转换成模版AST</li>
 <li><strong>transform</strong>：将模版AST转换为用于描述渲染函数的AST</li>
-<li><strong>generate</strong>：根据AST生成渲染函数<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">baseCompile</span>(<span class="params"></span></span><br><span class="line"><span class="params">  template: <span class="built_in">string</span> | RootNode,</span></span><br><span class="line"><span class="params">  options: CompilerOptions = &#123;&#125;</span></span><br><span class="line"><span class="params"></span>): <span class="title class_">CodegenResult</span> &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">const</span> ast = <span class="title function_">isString</span>(template) ? <span class="title function_">baseParse</span>(template, options) : template</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> [nodeTransforms, directiveTransforms] = <span class="title function_">getBaseTransformPreset</span>(</span><br><span class="line">    prefixIdentifiers</span><br><span class="line">  )</span><br><span class="line">  <span class="title function_">transform</span>(</span><br><span class="line">    ast,</span><br><span class="line">    <span class="title function_">extend</span>(&#123;&#125;, options, &#123;</span><br><span class="line">      prefixIdentifiers,</span><br><span class="line">      <span class="attr">nodeTransforms</span>: [</span><br><span class="line">        ...nodeTransforms,</span><br><span class="line">        ...(options.<span class="property">nodeTransforms</span> || []) <span class="comment">// user transforms</span></span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">directiveTransforms</span>: <span class="title function_">extend</span>(</span><br><span class="line">        &#123;&#125;,</span><br><span class="line">        directiveTransforms,</span><br><span class="line">        options.<span class="property">directiveTransforms</span> || &#123;&#125; <span class="comment">// user transforms</span></span><br><span class="line">      )</span><br><span class="line">    &#125;)</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">generate</span>(</span><br><span class="line">    ast,</span><br><span class="line">    <span class="title function_">extend</span>(&#123;&#125;, options, &#123;</span><br><span class="line">      prefixIdentifiers</span><br><span class="line">    &#125;)</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><strong>generate</strong>：根据AST生成渲染函数<pre><code class="highlight ts"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">baseCompile</span>(<span class="params"></span>
+<span class="params">  template: <span class="built_in">string</span> | RootNode,</span>
+<span class="params">  options: CompilerOptions = &#123;&#125;</span>
+<span class="params"></span>): <span class="title class_">CodegenResult</span> &#123;
+  <span class="comment">// ...</span>
+  <span class="keyword">const</span> ast = <span class="title function_">isString</span>(template) ? <span class="title function_">baseParse</span>(template, options) : template
+
+  <span class="keyword">const</span> [nodeTransforms, directiveTransforms] = <span class="title function_">getBaseTransformPreset</span>(
+    prefixIdentifiers
+  )
+  <span class="title function_">transform</span>(
+    ast,
+    <span class="title function_">extend</span>(&#123;&#125;, options, &#123;
+      prefixIdentifiers,
+      <span class="attr">nodeTransforms</span>: [
+        ...nodeTransforms,
+        ...(options.<span class="property">nodeTransforms</span> || []) <span class="comment">// user transforms</span>
+      ],
+      <span class="attr">directiveTransforms</span>: <span class="title function_">extend</span>(
+        &#123;&#125;,
+        directiveTransforms,
+        options.<span class="property">directiveTransforms</span> || &#123;&#125; <span class="comment">// user transforms</span>
+      )
+    &#125;)
+  )
+
+  <span class="keyword">return</span> <span class="title function_">generate</span>(
+    ast,
+    <span class="title function_">extend</span>(&#123;&#125;, options, &#123;
+      prefixIdentifiers
+    &#125;)
+  )
+&#125;</code></pre></li>
 </ol>
 <h2 id="parse"><a href="#parse" class="headerlink" title="parse"></a>parse</h2><ul>
 <li><p>parse对模版字符串进行遍历，然后循环判断开始标签和结束标签把字符串分割成一个个<strong>token</strong>，存在一个token列表，然后扫描token列表并维护一个开始标签栈，每当扫描一个开始标签节点，就将其压入栈顶，栈顶的节点始终作为下一个扫描的节点的父节点。这样，当所有Token扫描完成后，即可构建成一颗树形AST</p>
 </li>
 <li><p>以下是简化版<strong>parseChildren</strong>源码，是parse的主入口</p>
-<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">parseChildren</span>(<span class="params"></span></span><br><span class="line"><span class="params">  context: ParserContext,</span></span><br><span class="line"><span class="params">  mode: TextModes,</span></span><br><span class="line"><span class="params">  ancestors: ElementNode[] <span class="comment">// 节点栈结构，用于维护节点嵌套关系</span></span></span><br><span class="line"><span class="params"></span>): <span class="title class_">TemplateChildNode</span>[] &#123;</span><br><span class="line">  <span class="comment">// 获取父节点</span></span><br><span class="line">  <span class="keyword">const</span> parent = <span class="title function_">last</span>(ancestors)</span><br><span class="line">  <span class="keyword">const</span> ns = parent ? parent.<span class="property">ns</span> : <span class="title class_">Namespaces</span>.<span class="property">HTML</span></span><br><span class="line">  <span class="keyword">const</span> <span class="attr">nodes</span>: <span class="title class_">TemplateChildNode</span>[] = [] <span class="comment">// 存储解析出来的AST子节点</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 遇到闭合标签结束解析</span></span><br><span class="line">  <span class="keyword">while</span> (!<span class="title function_">isEnd</span>(context, mode, ancestors)) &#123;</span><br><span class="line">    <span class="comment">// 切割处理的模版字符串</span></span><br><span class="line">    <span class="keyword">const</span> s = context.<span class="property">source</span></span><br><span class="line">    <span class="keyword">let</span> <span class="attr">node</span>: <span class="title class_">TemplateChildNode</span> | <span class="title class_">TemplateChildNode</span>[] | <span class="literal">undefined</span> = <span class="literal">undefined</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mode === <span class="title class_">TextModes</span>.<span class="property">DATA</span> || mode === <span class="title class_">TextModes</span>.<span class="property">RCDATA</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (!context.<span class="property">inVPre</span> &amp;&amp; <span class="title function_">startsWith</span>(s, context.<span class="property">options</span>.<span class="property">delimiters</span>[<span class="number">0</span>])) &#123;</span><br><span class="line">        <span class="comment">// 解析插值表达式&#123;&#123;&#125;&#125;</span></span><br><span class="line">        node = parseInterpolation(context, mode)</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mode === <span class="title class_">TextModes</span>.<span class="property">DATA</span> &amp;&amp; s[<span class="number">0</span>] === <span class="string">&#x27;&lt;&#x27;</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (s[<span class="number">1</span>] === <span class="string">&#x27;!&#x27;</span>) &#123;</span><br><span class="line">          <span class="comment">// 解析注释节点和文档声明...</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (s[<span class="number">1</span>] === <span class="string">&#x27;/&#x27;</span>) &#123;</span><br><span class="line">          <span class="keyword">if</span> (s[<span class="number">2</span>] === <span class="string">&#x27;&gt;&#x27;</span>) &#123;</span><br><span class="line">            <span class="comment">// 针对自闭合标签，前进三个字符</span></span><br><span class="line">            <span class="title function_">advanceBy</span>(context, <span class="number">3</span>)</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="regexp">/[a-z]/i</span>.<span class="title function_">test</span>(s[<span class="number">2</span>])) &#123;</span><br><span class="line">            <span class="comment">// 解析结束标签</span></span><br><span class="line">            <span class="title function_">parseTag</span>(context, <span class="title class_">TagType</span>.<span class="property">End</span>, parent)</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 如果不符合上述情况，就作为伪注释解析</span></span><br><span class="line">            node = <span class="title function_">parseBogusComment</span>(context)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="regexp">/[a-z]/i</span>.<span class="title function_">test</span>(s[<span class="number">1</span>])) &#123;</span><br><span class="line">          <span class="comment">// 解析html开始标签，获得解析到的AST节点</span></span><br><span class="line">          node = <span class="title function_">parseElement</span>(context, ancestors)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!node) &#123;</span><br><span class="line">      <span class="comment">// 普通文本节点</span></span><br><span class="line">      node = <span class="title function_">parseText</span>(context, mode)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果节点是数组，就遍历添加到nodes中</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">isArray</span>(node)) &#123;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; node.<span class="property">length</span>; i++) &#123;</span><br><span class="line">        <span class="title function_">pushNode</span>(nodes, node[i])</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="title function_">pushNode</span>(nodes, node)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> nodes</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight ts"><span class="keyword">function</span> <span class="title function_">parseChildren</span>(<span class="params"></span>
+<span class="params">  context: ParserContext,</span>
+<span class="params">  mode: TextModes,</span>
+<span class="params">  ancestors: ElementNode[] <span class="comment">// 节点栈结构，用于维护节点嵌套关系</span></span>
+<span class="params"></span>): <span class="title class_">TemplateChildNode</span>[] &#123;
+  <span class="comment">// 获取父节点</span>
+  <span class="keyword">const</span> parent = <span class="title function_">last</span>(ancestors)
+  <span class="keyword">const</span> ns = parent ? parent.<span class="property">ns</span> : <span class="title class_">Namespaces</span>.<span class="property">HTML</span>
+  <span class="keyword">const</span> <span class="attr">nodes</span>: <span class="title class_">TemplateChildNode</span>[] = [] <span class="comment">// 存储解析出来的AST子节点</span>
+
+  <span class="comment">// 遇到闭合标签结束解析</span>
+  <span class="keyword">while</span> (!<span class="title function_">isEnd</span>(context, mode, ancestors)) &#123;
+    <span class="comment">// 切割处理的模版字符串</span>
+    <span class="keyword">const</span> s = context.<span class="property">source</span>
+    <span class="keyword">let</span> <span class="attr">node</span>: <span class="title class_">TemplateChildNode</span> | <span class="title class_">TemplateChildNode</span>[] | <span class="literal">undefined</span> = <span class="literal">undefined</span>
+
+    <span class="keyword">if</span> (mode === <span class="title class_">TextModes</span>.<span class="property">DATA</span> || mode === <span class="title class_">TextModes</span>.<span class="property">RCDATA</span>) &#123;
+      <span class="keyword">if</span> (!context.<span class="property">inVPre</span> &amp;&amp; <span class="title function_">startsWith</span>(s, context.<span class="property">options</span>.<span class="property">delimiters</span>[<span class="number">0</span>])) &#123;
+        <span class="comment">// 解析插值表达式&#123;&#123;&#125;&#125;</span>
+        node = parseInterpolation(context, mode)
+      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mode === <span class="title class_">TextModes</span>.<span class="property">DATA</span> &amp;&amp; s[<span class="number">0</span>] === <span class="string">&#x27;&lt;&#x27;</span>) &#123;
+        <span class="keyword">if</span> (s[<span class="number">1</span>] === <span class="string">&#x27;!&#x27;</span>) &#123;
+          <span class="comment">// 解析注释节点和文档声明...</span>
+        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (s[<span class="number">1</span>] === <span class="string">&#x27;/&#x27;</span>) &#123;
+          <span class="keyword">if</span> (s[<span class="number">2</span>] === <span class="string">&#x27;&gt;&#x27;</span>) &#123;
+            <span class="comment">// 针对自闭合标签，前进三个字符</span>
+            <span class="title function_">advanceBy</span>(context, <span class="number">3</span>)
+            <span class="keyword">continue</span>
+          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="regexp">/[a-z]/i</span>.<span class="title function_">test</span>(s[<span class="number">2</span>])) &#123;
+            <span class="comment">// 解析结束标签</span>
+            <span class="title function_">parseTag</span>(context, <span class="title class_">TagType</span>.<span class="property">End</span>, parent)
+            <span class="keyword">continue</span>
+          &#125; <span class="keyword">else</span> &#123;
+            <span class="comment">// 如果不符合上述情况，就作为伪注释解析</span>
+            node = <span class="title function_">parseBogusComment</span>(context)
+          &#125;
+        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="regexp">/[a-z]/i</span>.<span class="title function_">test</span>(s[<span class="number">1</span>])) &#123;
+          <span class="comment">// 解析html开始标签，获得解析到的AST节点</span>
+          node = <span class="title function_">parseElement</span>(context, ancestors)
+        &#125;
+      &#125;
+    &#125;
+    <span class="keyword">if</span> (!node) &#123;
+      <span class="comment">// 普通文本节点</span>
+      node = <span class="title function_">parseText</span>(context, mode)
+    &#125;
+
+    <span class="comment">// 如果节点是数组，就遍历添加到nodes中</span>
+    <span class="keyword">if</span> (<span class="title function_">isArray</span>(node)) &#123;
+      <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; node.<span class="property">length</span>; i++) &#123;
+        <span class="title function_">pushNode</span>(nodes, node[i])
+      &#125;
+    &#125; <span class="keyword">else</span> &#123;
+      <span class="title function_">pushNode</span>(nodes, node)
+    &#125;
+  &#125;
+  <span class="keyword">return</span> nodes
+&#125;</code></pre>
 </li>
 <li><p>就拿<code>&lt;div&gt;&lt;p&gt;LH_R&lt;/p&gt;&lt;/div&gt;</code>流程举例</p>
 </li>
@@ -190,7 +289,89 @@
 <h2 id="transform"><a href="#transform" class="headerlink" title="transform"></a>transform</h2><ul>
 <li>transform采用深度优先的方式对AST进行遍历，在遍历过程中，对节点的操作与转换采用插件化架构，都封装为独立的函数，然后转换函数通过<code>context.nodeTransforms</code>来注册</li>
 <li>转换过程是优先转换子节点，因为有的父节点的转换依赖子节点</li>
-<li>以下是AST遍历<code>traverseNode</code>核心源码<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment">  遍历AST节点树，通过node转换器对当前节点进行node转换</span></span><br><span class="line"><span class="comment">  子节点全部遍历完成后执行对应指令的onExit回调退出转换</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">traverseNode</span>(<span class="params"></span></span><br><span class="line"><span class="params">  node: RootNode | TemplateChildNode,</span></span><br><span class="line"><span class="params">  context: TransformContext</span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 记录当前正在遍历的节点</span></span><br><span class="line">  context.<span class="property">currentNode</span> = node</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* </span></span><br><span class="line"><span class="comment">    nodeTransforms：transformElement、transformExpression、transformText...</span></span><br><span class="line"><span class="comment">    transformElement：负责整个节点层面的转换</span></span><br><span class="line"><span class="comment">    transformExpression：负责节点中表达式的转化</span></span><br><span class="line"><span class="comment">    transformText：负责节点中文本的转换</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  <span class="keyword">const</span> &#123; nodeTransforms &#125; = context</span><br><span class="line">  <span class="keyword">const</span> exitFns = []</span><br><span class="line">  <span class="comment">// 依次调用转换工具</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; nodeTransforms.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    <span class="comment">/* </span></span><br><span class="line"><span class="comment">      转换器只负责生成onExit回调，onExit函数才是执行转换主逻辑的地方，为什么要推到栈中先不执行呢？</span></span><br><span class="line"><span class="comment">      因为要等到子节点都转换完成挂载gencodeNode后，也就是深度遍历完成后</span></span><br><span class="line"><span class="comment">      再执行当前节点栈中的onExit，这样保证了子节点的表达式全部生成完毕</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="keyword">const</span> onExit = nodeTransforms[i](node, context)</span><br><span class="line">    <span class="keyword">if</span> (onExit) &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="title function_">isArray</span>(onExit)) &#123;</span><br><span class="line">        <span class="comment">// v-if、v-for为结构化指令，其onExit是数组形式</span></span><br><span class="line">        exitFns.<span class="title function_">push</span>(...onExit)</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        exitFns.<span class="title function_">push</span>(onExit)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!context.<span class="property">currentNode</span>) &#123;</span><br><span class="line">      <span class="comment">// node was removed 节点被移除</span></span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// node may have been replaced</span></span><br><span class="line">      <span class="comment">// 因为在转换的过程中节点可能被替换，恢复到之前的节点</span></span><br><span class="line">      node = context.<span class="property">currentNode</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">switch</span> (node.<span class="property">type</span>) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">COMMENT</span>:</span><br><span class="line">      <span class="keyword">if</span> (!context.<span class="property">ssr</span>) &#123;</span><br><span class="line">        <span class="comment">// inject import for the Comment symbol, which is needed for creating</span></span><br><span class="line">        <span class="comment">// comment nodes with `createVNode`</span></span><br><span class="line">        <span class="comment">// 需要导入createComment辅助函数</span></span><br><span class="line">        context.<span class="title function_">helper</span>(<span class="variable constant_">CREATE_COMMENT</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">INTERPOLATION</span>:</span><br><span class="line">      <span class="comment">// no need to traverse, but we need to inject toString helper</span></span><br><span class="line">      <span class="keyword">if</span> (!context.<span class="property">ssr</span>) &#123;</span><br><span class="line">        context.<span class="title function_">helper</span>(<span class="variable constant_">TO_DISPLAY_STRING</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// for container types, further traverse downwards</span></span><br><span class="line">    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">IF</span>:</span><br><span class="line">      <span class="comment">// 对v-if生成的节点束进行遍历</span></span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; node.<span class="property">branches</span>.<span class="property">length</span>; i++) &#123;</span><br><span class="line">        <span class="title function_">traverseNode</span>(node.<span class="property">branches</span>[i], context)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">IF_BRANCH</span>:</span><br><span class="line">    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">FOR</span>:</span><br><span class="line">    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">ELEMENT</span>:</span><br><span class="line">    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">ROOT</span>:</span><br><span class="line">      <span class="comment">// 遍历子节点</span></span><br><span class="line">      <span class="title function_">traverseChildren</span>(node, context)</span><br><span class="line">      <span class="keyword">break</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 当前节点树遍历完成，依次执行栈中的指令退出回调onExit</span></span><br><span class="line">  context.<span class="property">currentNode</span> = node</span><br><span class="line">  <span class="keyword">let</span> i = exitFns.<span class="property">length</span></span><br><span class="line">  <span class="keyword">while</span> (i--) &#123;</span><br><span class="line">    exitFns[i]()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>以下是AST遍历<code>traverseNode</code>核心源码<pre><code class="highlight ts"><span class="comment">/* </span>
+<span class="comment">  遍历AST节点树，通过node转换器对当前节点进行node转换</span>
+<span class="comment">  子节点全部遍历完成后执行对应指令的onExit回调退出转换</span>
+<span class="comment">*/</span>
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">traverseNode</span>(<span class="params"></span>
+<span class="params">  node: RootNode | TemplateChildNode,</span>
+<span class="params">  context: TransformContext</span>
+<span class="params"></span>) &#123;
+  <span class="comment">// 记录当前正在遍历的节点</span>
+  context.<span class="property">currentNode</span> = node
+
+  <span class="comment">/* </span>
+<span class="comment">    nodeTransforms：transformElement、transformExpression、transformText...</span>
+<span class="comment">    transformElement：负责整个节点层面的转换</span>
+<span class="comment">    transformExpression：负责节点中表达式的转化</span>
+<span class="comment">    transformText：负责节点中文本的转换</span>
+<span class="comment">  */</span>
+  <span class="keyword">const</span> &#123; nodeTransforms &#125; = context
+  <span class="keyword">const</span> exitFns = []
+  <span class="comment">// 依次调用转换工具</span>
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; nodeTransforms.<span class="property">length</span>; i++) &#123;
+    <span class="comment">/* </span>
+<span class="comment">      转换器只负责生成onExit回调，onExit函数才是执行转换主逻辑的地方，为什么要推到栈中先不执行呢？</span>
+<span class="comment">      因为要等到子节点都转换完成挂载gencodeNode后，也就是深度遍历完成后</span>
+<span class="comment">      再执行当前节点栈中的onExit，这样保证了子节点的表达式全部生成完毕</span>
+<span class="comment">    */</span>
+    <span class="keyword">const</span> onExit = nodeTransforms[i](node, context)
+    <span class="keyword">if</span> (onExit) &#123;
+      <span class="keyword">if</span> (<span class="title function_">isArray</span>(onExit)) &#123;
+        <span class="comment">// v-if、v-for为结构化指令，其onExit是数组形式</span>
+        exitFns.<span class="title function_">push</span>(...onExit)
+      &#125; <span class="keyword">else</span> &#123;
+        exitFns.<span class="title function_">push</span>(onExit)
+      &#125;
+    &#125;
+    <span class="keyword">if</span> (!context.<span class="property">currentNode</span>) &#123;
+      <span class="comment">// node was removed 节点被移除</span>
+      <span class="keyword">return</span>
+    &#125; <span class="keyword">else</span> &#123;
+      <span class="comment">// node may have been replaced</span>
+      <span class="comment">// 因为在转换的过程中节点可能被替换，恢复到之前的节点</span>
+      node = context.<span class="property">currentNode</span>
+    &#125;
+  &#125;
+
+  <span class="keyword">switch</span> (node.<span class="property">type</span>) &#123;
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">COMMENT</span>:
+      <span class="keyword">if</span> (!context.<span class="property">ssr</span>) &#123;
+        <span class="comment">// inject import for the Comment symbol, which is needed for creating</span>
+        <span class="comment">// comment nodes with `createVNode`</span>
+        <span class="comment">// 需要导入createComment辅助函数</span>
+        context.<span class="title function_">helper</span>(<span class="variable constant_">CREATE_COMMENT</span>)
+      &#125;
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">INTERPOLATION</span>:
+      <span class="comment">// no need to traverse, but we need to inject toString helper</span>
+      <span class="keyword">if</span> (!context.<span class="property">ssr</span>) &#123;
+        context.<span class="title function_">helper</span>(<span class="variable constant_">TO_DISPLAY_STRING</span>)
+      &#125;
+      <span class="keyword">break</span>
+
+    <span class="comment">// for container types, further traverse downwards</span>
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">IF</span>:
+      <span class="comment">// 对v-if生成的节点束进行遍历</span>
+      <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; node.<span class="property">branches</span>.<span class="property">length</span>; i++) &#123;
+        <span class="title function_">traverseNode</span>(node.<span class="property">branches</span>[i], context)
+      &#125;
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">IF_BRANCH</span>:
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">FOR</span>:
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">ELEMENT</span>:
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">ROOT</span>:
+      <span class="comment">// 遍历子节点</span>
+      <span class="title function_">traverseChildren</span>(node, context)
+      <span class="keyword">break</span>
+  &#125;
+  <span class="comment">// 当前节点树遍历完成，依次执行栈中的指令退出回调onExit</span>
+  context.<span class="property">currentNode</span> = node
+  <span class="keyword">let</span> i = exitFns.<span class="property">length</span>
+  <span class="keyword">while</span> (i--) &#123;
+    exitFns[i]()
+  &#125;
+&#125;</code></pre></li>
 </ul>
 <h2 id="generate"><a href="#generate" class="headerlink" title="generate"></a>generate</h2><p><code>generate</code>生成代码大致分为3步</p>
 <ol>

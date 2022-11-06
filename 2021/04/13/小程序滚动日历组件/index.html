@@ -150,21 +150,152 @@
               
     </div>
 </div>
-    <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
-<script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 <div class="post-content">
     <h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
 <ol>
 <li><p>在ready中初始化组件数据</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 初始化</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">ready</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 这两个数据是从页面中传过来的，起始时间和结束时间</span></span><br><span class="line">  <span class="comment">// 数组类型 [year, month, day]</span></span><br><span class="line">  <span class="keyword">const</span> &#123; endDate, startDate &#125; = <span class="variable language_">this</span>.<span class="property">data</span></span><br><span class="line">  <span class="keyword">let</span> monthList = [] <span class="comment">// 这个用于wxml中遍历，以每月为item</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 未跨年</span></span><br><span class="line">  <span class="keyword">if</span> ( endDate[<span class="number">0</span>] === startDate[<span class="number">0</span>]) &#123;</span><br><span class="line">    <span class="keyword">let</span> rangeMonth = endDate[<span class="number">1</span>] - startDate[<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= rangeMonth; i++) &#123;</span><br><span class="line">      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]</span><br><span class="line">      <span class="comment">// monthInitData()初始化每月数据</span></span><br><span class="line">      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)</span><br><span class="line">      monthList.<span class="title function_">push</span>(&#123;</span><br><span class="line">        date,</span><br><span class="line">        days,</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 跨年前月份</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, lng = <span class="number">12</span> - startDate[<span class="number">1</span>]; i &lt; lng; i++) &#123;</span><br><span class="line">      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]</span><br><span class="line">      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)</span><br><span class="line">      monthList.<span class="title function_">push</span>(&#123;</span><br><span class="line">        date,</span><br><span class="line">        days,</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 跨年后月份</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= endDate[<span class="number">1</span>]; i++) &#123;</span><br><span class="line">      <span class="keyword">let</span> date = [endDate[<span class="number">0</span>], i + <span class="number">1</span>]</span><br><span class="line">      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(endDate[<span class="number">0</span>], i)</span><br><span class="line">      monthList.<span class="title function_">push</span>(&#123;</span><br><span class="line">        date,</span><br><span class="line">        days,</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;</span><br><span class="line">    monthList,</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * <span class="doctag">@description</span>: 初始化</span>
+<span class="comment"> */</span>
+<span class="title function_">ready</span>(<span class="params"></span>) &#123;
+  <span class="comment">// 这两个数据是从页面中传过来的，起始时间和结束时间</span>
+  <span class="comment">// 数组类型 [year, month, day]</span>
+  <span class="keyword">const</span> &#123; endDate, startDate &#125; = <span class="variable language_">this</span>.<span class="property">data</span>
+  <span class="keyword">let</span> monthList = [] <span class="comment">// 这个用于wxml中遍历，以每月为item</span>
+
+  <span class="comment">// 未跨年</span>
+  <span class="keyword">if</span> ( endDate[<span class="number">0</span>] === startDate[<span class="number">0</span>]) &#123;
+    <span class="keyword">let</span> rangeMonth = endDate[<span class="number">1</span>] - startDate[<span class="number">1</span>]
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= rangeMonth; i++) &#123;
+      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
+      <span class="comment">// monthInitData()初始化每月数据</span>
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="comment">// 跨年前月份</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, lng = <span class="number">12</span> - startDate[<span class="number">1</span>]; i &lt; lng; i++) &#123;
+      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+
+    <span class="comment">// 跨年后月份</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= endDate[<span class="number">1</span>]; i++) &#123;
+      <span class="keyword">let</span> date = [endDate[<span class="number">0</span>], i + <span class="number">1</span>]
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(endDate[<span class="number">0</span>], i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+  &#125;
+  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
+    monthList,
+  &#125;)
+&#125;</code></pre>
 </li>
 <li><p>初始化每月数据: </p>
 <blockquote>
 <p>逻辑是获取每个月第一天的星期数和每个月的最大天数，然后在之前和之后的空数据填充item占位<br>然后遍历，根据不同的需求，在遍历中处理，最后在html中flex布局即可</p>
 </blockquote>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 初始化每月数据</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">monthInitData</span>(<span class="params">year, month</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> &#123; calendarValue, startDate, endDate &#125;= <span class="variable language_">this</span>.<span class="property">data</span>, <span class="comment">// 当前点击时间，起始时间，结束时间</span></span><br><span class="line">    firstWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, <span class="number">1</span>).<span class="title function_">getDay</span>(), <span class="comment">// 本月的第一天的星期数</span></span><br><span class="line">    days = [], <span class="comment">// 日期数组</span></span><br><span class="line">    max = <span class="variable language_">this</span>.<span class="title function_">getMonthMax</span>(year, month + <span class="number">1</span>), <span class="comment">// 每月最大天数</span></span><br><span class="line">    lastWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, (month + <span class="number">1</span>), <span class="number">0</span>).<span class="title function_">getDay</span>() <span class="comment">// 本月的最后一天的星期数</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 填充每月一号之前的空数据</span></span><br><span class="line">  <span class="keyword">if</span> (firstWeek &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; firstWeek; i++) &#123;</span><br><span class="line">      days.<span class="title function_">push</span>(&#123;</span><br><span class="line">        <span class="attr">day</span>: <span class="number">0</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> currentTime = <span class="number">0</span>, </span><br><span class="line">      startTime = <span class="number">0</span>,</span><br><span class="line">      endTime = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (calendarValue[<span class="number">0</span>]) &#123;</span><br><span class="line">    currentTime = <span class="keyword">new</span> <span class="title class_">Date</span>(calendarValue[<span class="number">0</span>], calendarValue[<span class="number">1</span>], calendarValue[<span class="number">2</span>]).<span class="title function_">getTime</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (startDate[<span class="number">0</span>]) &#123;</span><br><span class="line">    startTime = <span class="keyword">new</span> <span class="title class_">Date</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>], startDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (endDate[<span class="number">0</span>]) &#123;</span><br><span class="line">    endTime = <span class="keyword">new</span> <span class="title class_">Date</span>(endDate[<span class="number">0</span>], endDate[<span class="number">1</span>], endDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;</span><br><span class="line">    <span class="comment">// 以下状态是需要在html中判断处理，根据自己需求改变</span></span><br><span class="line">    <span class="keyword">let</span> current = <span class="literal">false</span>, <span class="comment">// 当前点击状态</span></span><br><span class="line">      disabled = <span class="literal">false</span>, <span class="comment">// 禁止状态</span></span><br><span class="line">      now = <span class="literal">false</span>, <span class="comment">// 今天显示文案</span></span><br><span class="line">      time = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, i).<span class="title function_">getTime</span>(),</span><br><span class="line">      nowTime = [<span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getFullYear</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getMonth</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getDate</span>()]</span><br><span class="line">    <span class="keyword">if</span> (currentTime &amp;&amp; currentTime == time) current = <span class="literal">true</span></span><br><span class="line">    <span class="keyword">if</span> (startTime &amp;&amp; startTime &gt; time) disabled = <span class="literal">true</span></span><br><span class="line">    <span class="keyword">if</span> (endTime &amp;&amp; endTime &lt; time) disabled = <span class="literal">true</span></span><br><span class="line">    <span class="keyword">if</span> (year === nowTime[<span class="number">0</span>] &amp;&amp; month === nowTime[<span class="number">1</span>] &amp;&amp; i === nowTime[<span class="number">2</span>]) now = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">    days.<span class="title function_">push</span>(&#123;</span><br><span class="line">      <span class="attr">day</span>: i,</span><br><span class="line">      current,</span><br><span class="line">      disabled,</span><br><span class="line">      now,</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 填充每月最后一天之后的空数据</span></span><br><span class="line">  <span class="keyword">if</span> (lastWeek != <span class="number">6</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = (<span class="number">6</span> - lastWeek); i &lt; l; i++) &#123;</span><br><span class="line">      days.<span class="title function_">push</span>(&#123;</span><br><span class="line">        <span class="attr">day</span>: <span class="number">0</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> days</span><br><span class="line">&#125;,</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取一个月最大天数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@method</span> <span class="variable">getMonthMax</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年份</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月份</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="title function_">getMonthMax</span>(<span class="params">year, month</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> max = <span class="number">31</span></span><br><span class="line">  <span class="keyword">if</span> (month == <span class="number">4</span> || month == <span class="number">6</span> || month == <span class="number">9</span> || month == <span class="number">11</span>) &#123;</span><br><span class="line">    max = <span class="number">30</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (month == <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (((year % <span class="number">4</span>) == <span class="number">0</span> &amp;&amp; (year % <span class="number">100</span>) &gt; <span class="number">0</span>) || (year % <span class="number">400</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">      max = <span class="number">29</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      max = <span class="number">28</span></span><br><span class="line">    &#125; </span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> max</span><br><span class="line">&#125;,</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * <span class="doctag">@description</span>: 初始化每月数据</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月</span>
+<span class="comment"> */</span>
+<span class="title function_">monthInitData</span>(<span class="params">year, month</span>) &#123;
+  <span class="keyword">let</span> &#123; calendarValue, startDate, endDate &#125;= <span class="variable language_">this</span>.<span class="property">data</span>, <span class="comment">// 当前点击时间，起始时间，结束时间</span>
+    firstWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, <span class="number">1</span>).<span class="title function_">getDay</span>(), <span class="comment">// 本月的第一天的星期数</span>
+    days = [], <span class="comment">// 日期数组</span>
+    max = <span class="variable language_">this</span>.<span class="title function_">getMonthMax</span>(year, month + <span class="number">1</span>), <span class="comment">// 每月最大天数</span>
+    lastWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, (month + <span class="number">1</span>), <span class="number">0</span>).<span class="title function_">getDay</span>() <span class="comment">// 本月的最后一天的星期数</span>
+
+  <span class="comment">// 填充每月一号之前的空数据</span>
+  <span class="keyword">if</span> (firstWeek &gt; <span class="number">0</span>) &#123;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; firstWeek; i++) &#123;
+      days.<span class="title function_">push</span>(&#123;
+        <span class="attr">day</span>: <span class="number">0</span>
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="keyword">let</span> currentTime = <span class="number">0</span>, 
+      startTime = <span class="number">0</span>,
+      endTime = <span class="number">0</span>
+
+  <span class="keyword">if</span> (calendarValue[<span class="number">0</span>]) &#123;
+    currentTime = <span class="keyword">new</span> <span class="title class_">Date</span>(calendarValue[<span class="number">0</span>], calendarValue[<span class="number">1</span>], calendarValue[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+  <span class="keyword">if</span> (startDate[<span class="number">0</span>]) &#123;
+    startTime = <span class="keyword">new</span> <span class="title class_">Date</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>], startDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+  <span class="keyword">if</span> (endDate[<span class="number">0</span>]) &#123;
+    endTime = <span class="keyword">new</span> <span class="title class_">Date</span>(endDate[<span class="number">0</span>], endDate[<span class="number">1</span>], endDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;
+    <span class="comment">// 以下状态是需要在html中判断处理，根据自己需求改变</span>
+    <span class="keyword">let</span> current = <span class="literal">false</span>, <span class="comment">// 当前点击状态</span>
+      disabled = <span class="literal">false</span>, <span class="comment">// 禁止状态</span>
+      now = <span class="literal">false</span>, <span class="comment">// 今天显示文案</span>
+      time = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, i).<span class="title function_">getTime</span>(),
+      nowTime = [<span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getFullYear</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getMonth</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getDate</span>()]
+    <span class="keyword">if</span> (currentTime &amp;&amp; currentTime == time) current = <span class="literal">true</span>
+    <span class="keyword">if</span> (startTime &amp;&amp; startTime &gt; time) disabled = <span class="literal">true</span>
+    <span class="keyword">if</span> (endTime &amp;&amp; endTime &lt; time) disabled = <span class="literal">true</span>
+    <span class="keyword">if</span> (year === nowTime[<span class="number">0</span>] &amp;&amp; month === nowTime[<span class="number">1</span>] &amp;&amp; i === nowTime[<span class="number">2</span>]) now = <span class="literal">true</span>
+
+    days.<span class="title function_">push</span>(&#123;
+      <span class="attr">day</span>: i,
+      current,
+      disabled,
+      now,
+    &#125;)
+  &#125;
+
+  <span class="comment">// 填充每月最后一天之后的空数据</span>
+  <span class="keyword">if</span> (lastWeek != <span class="number">6</span>) &#123;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = (<span class="number">6</span> - lastWeek); i &lt; l; i++) &#123;
+      days.<span class="title function_">push</span>(&#123;
+        <span class="attr">day</span>: <span class="number">0</span>
+      &#125;)
+    &#125;
+  &#125;
+  <span class="keyword">return</span> days
+&#125;,
+
+<span class="comment">/**</span>
+<span class="comment"> * 获取一个月最大天数</span>
+<span class="comment"> * <span class="doctag">@method</span> <span class="variable">getMonthMax</span></span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年份</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月份</span>
+<span class="comment"> */</span>
+<span class="title function_">getMonthMax</span>(<span class="params">year, month</span>) &#123;
+  <span class="keyword">let</span> max = <span class="number">31</span>
+  <span class="keyword">if</span> (month == <span class="number">4</span> || month == <span class="number">6</span> || month == <span class="number">9</span> || month == <span class="number">11</span>) &#123;
+    max = <span class="number">30</span>
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (month == <span class="number">2</span>) &#123;
+    <span class="keyword">if</span> (((year % <span class="number">4</span>) == <span class="number">0</span> &amp;&amp; (year % <span class="number">100</span>) &gt; <span class="number">0</span>) || (year % <span class="number">400</span>) == <span class="number">0</span>) &#123;
+      max = <span class="number">29</span>
+    &#125; <span class="keyword">else</span> &#123;
+      max = <span class="number">28</span>
+    &#125; 
+  &#125;
+
+  <span class="keyword">return</span> max
+&#125;,
+</code></pre></li>
 </ol>
 <ul>
 <li>以上就是核心逻辑，像一些弹窗事件和一些点击事件就不附上来了</li>
