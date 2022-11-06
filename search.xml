@@ -1129,6 +1129,80 @@ export async function render(url, manifest) &#123;
       </tags>
   </entry>
   <entry>
+    <title>pnpm的node_modules结构设计</title>
+    <url>/2022/08/24/pnpm%E7%9A%84node-modules%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/</url>
+    <content><![CDATA[<h2 id="pnpm的node-modules结构设计"><a href="#pnpm的node-modules结构设计" class="headerlink" title="pnpm的node_modules结构设计"></a>pnpm的node_modules结构设计</h2><p>分析pnpm之前，先说一下npm现在的一些问题</p>
+<h3 id="npm的问题"><a href="#npm的问题" class="headerlink" title="npm的问题"></a>npm的问题</h3><ul>
+<li><p>平时我们使用<code>npm install</code>命令后，node_modules就会呈现以下类似内容<br><img src="https://img-blog.csdnimg.cn/7396b28d86f84a21b15b4ef6026ddd45.png#pic_center" alt="npm_node_modules"></p>
+</li>
+<li><p>之所以出现这种扁平的结构，最初时初衷是好的，为了更好的利用资源，把每个依赖全部放到顶层，这样就不会造成每个依赖嵌套过深，导致很多重复依赖文件</p>
+</li>
+<li><p>但是随着这种文件结构逐步使用后，就会暴露出来两个问题</p>
+<ul>
+<li><strong>幽灵依赖</strong></li>
+<li><strong>版本冲突</strong></li>
+</ul>
+</li>
+<li><p>幽灵依赖就是你在引用npm包时，你会发现一些没有在<code>package.json</code>中出现的包也能引用，这个就是幽灵依赖，这是因为你在install下载npm包时，npm包也有它的依赖会下载，但是下载的依赖也会存在node_modules同一层级下，这样就会导致可以直接引用</p>
+</li>
+<li><p>版本冲突是因为不同的依赖可能依赖的包版本也不同，但是node_modules的同一层级只能存在一个包的一个版本号，如果有不同的版本号就只能存在依赖包的node_modules中，这样就会导致出现重复资源</p>
+<pre><code class="highlight js">├── package-A @<span class="number">1.0</span>
+|── package-B @<span class="number">1.0</span>
+├── package-C @<span class="number">1.0</span>
+│   └── package-A @<span class="number">2.0</span>
+│   └── package-B @<span class="number">2.0</span>
+├── package-D @<span class="number">1.0</span>
+│   └── package-A @<span class="number">2.0</span>
+│   └── package-B @<span class="number">2.0</span></code></pre></li>
+</ul>
+<h3 id="pnpm的出现"><a href="#pnpm的出现" class="headerlink" title="pnpm的出现"></a>pnpm的出现</h3><ul>
+<li><p>在所有前端苦npm久已时，pnpm出现了，并且在pnpm官网的简介上就简单说明了它的构造：<code>store + link</code><br><img src="https://img-blog.csdnimg.cn/20ef6cd68a0440c9841ea1450297c17a.jpeg#pic_center" alt="pnpm_node_modules"></p>
+<ul>
+<li>store就是依赖的实际存储位置，Mac&#x2F;linux在<code>&#123;home dir&#125;&gt;/.pnpm-store/v3</code>，windows在<code>当前盘/.pnpm-store/v3</code>。这样就会有个好处，你在多个项目使用的是同一个依赖时，就不用重复下载，这样就极大的减少存储空间</li>
+<li>link是指符号链接(<code>SymbolicLink</code>)和硬链接(<code>HardLink</code>)<ul>
+<li>SymbolicLink是一种特殊的文件，包含一条以绝对路径或者相对路径的形式指向其他文件或者目录的引用，它的存在不依赖于目标文件，如果目标文件被删除或者移动，指向目标文件的符号链接依然存在，但是它们会指向一个不复存在的文件</li>
+<li>相比于SymbolicLink，HardLink不是引用文件，而是引用<strong>inode</strong>，inode是文件系统的一种数据结构，用于描述文件系统对象。所以你即使更改目标文件的内容或位置，HardLink仍然指向目标文件，因为inode指向该文件</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>然后拿react举例，当<code>pnpm add react</code>后，在node_modules终端输入<code>tree -a -L 3</code>会得到以下node_modules结构</p>
+<pre><code class="highlight js">.
+├── .<span class="property">modules</span>.<span class="property">yaml</span>
+├── .<span class="property">pnpm</span>
+│   ├── js-tokens@<span class="number">4.0</span><span class="number">.0</span>
+│   │   └── node_modules
+│   ├── lock.<span class="property">yaml</span>
+│   ├── loose-envify@<span class="number">1.4</span><span class="number">.0</span>
+│   │   └── node_modules
+│   ├── node_modules
+│   │   ├── .<span class="property">bin</span>
+│   │   ├── js-tokens -&gt; ../js-tokens@<span class="number">4.0</span><span class="number">.0</span>/node_modules/js-tokens
+│   │   └── loose-envify -&gt; ../loose-envify@<span class="number">1.4</span><span class="number">.0</span>/node_modules/loose-envify
+│   └── react@<span class="number">18.2</span><span class="number">.0</span>
+│       └── node_modules
+└── react -&gt; .<span class="property">pnpm</span>/react@<span class="number">18.2</span><span class="number">.0</span>/node_modules/react</code></pre></li>
+<li><p>node_modules下除了.pnpm外只有一个react，这个react只是一个SymbolicLink，当node.js解析时，会找到react的真实位置<code>node_modules/.pnpm/react@18.2.0/node_modules/react</code></p>
+</li>
+<li><p>.pnpm就是将所有依赖放在同一层文件夹中，每个包都可以通过<code>.pnpm/&lt;name&gt;@&lt;version&gt;/node_modules/&lt;name&gt;</code>这种路径找到，然后通过<code>hand link</code>的方式在store中引用依赖文件</p>
+</li>
+<li><p>通过这种文件结构，pnpm就解决了npm的两个问题，首先node_modules下不会有你未在package.json中声明的依赖，这样就不会有幽灵依赖的问题。然后.pnpm下会有name+version的方式链接到store中，这样就不会出现因为版本冲突造成资源重复的问题</p>
+</li>
+</ul>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
+<li><a href="https://www.pnpm.cn/blog/2020/05/27/flat-node-modules-is-not-the-only-way">Flat node_modules is not the only way</a></li>
+<li><a href="https://www.pnpm.cn/symlinked-node-modules-structure">Symlinked node_modules structure</a></li>
+<li><a href="https://juejin.cn/post/7043998041786810398">One For All：基于pnpm + lerna + typescript的最佳项目实践 - 理论篇</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>pnpm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>前端的Docker学习记录</title>
     <url>/2022/10/30/%E5%89%8D%E7%AB%AF%E7%9A%84Docker%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</url>
     <content><![CDATA[<h2 id="Docker简介"><a href="#Docker简介" class="headerlink" title="Docker简介"></a>Docker简介</h2><ul>
@@ -1752,77 +1826,352 @@ export async function render(url, manifest) &#123;
       </tags>
   </entry>
   <entry>
-    <title>pnpm的node_modules结构设计</title>
-    <url>/2022/08/24/pnpm%E7%9A%84node-modules%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/</url>
-    <content><![CDATA[<h2 id="pnpm的node-modules结构设计"><a href="#pnpm的node-modules结构设计" class="headerlink" title="pnpm的node_modules结构设计"></a>pnpm的node_modules结构设计</h2><p>分析pnpm之前，先说一下npm现在的一些问题</p>
-<h3 id="npm的问题"><a href="#npm的问题" class="headerlink" title="npm的问题"></a>npm的问题</h3><ul>
-<li><p>平时我们使用<code>npm install</code>命令后，node_modules就会呈现以下类似内容<br><img src="https://img-blog.csdnimg.cn/7396b28d86f84a21b15b4ef6026ddd45.png#pic_center" alt="npm_node_modules"></p>
-</li>
-<li><p>之所以出现这种扁平的结构，最初时初衷是好的，为了更好的利用资源，把每个依赖全部放到顶层，这样就不会造成每个依赖嵌套过深，导致很多重复依赖文件</p>
-</li>
-<li><p>但是随着这种文件结构逐步使用后，就会暴露出来两个问题</p>
+    <title>微信小程序前端登录模块设计</title>
+    <url>/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案</p>
+<h2 id="基本登录流程"><a href="#基本登录流程" class="headerlink" title="基本登录流程"></a>基本登录流程</h2><ol>
+<li>获取微信登录凭证，通过<code>wx.login</code>获取，这个api会返回一个带有时效性的code</li>
+<li>发送code给服务端，这一步就是通过你和后端定义的接口发送</li>
+<li>服务端根据前端发送的code获取用户身份信息，当然这一步就不是前端的逻辑了</li>
+<li>服务端处理完后，会把用户信息和sessinId发送给前端，然后前端把需要的信息进行存储，接下来的请求就可以带着sessinId来表示身份</li>
+<li>下面是微信官方的流程图<br><img src="https://img-blog.csdnimg.cn/3b0b114c140247ebbc666b027dfbda66.png#pic_center" alt="在这里插入图片描述"></li>
+</ol>
+<h2 id="逻辑封装"><a href="#逻辑封装" class="headerlink" title="逻辑封装"></a>逻辑封装</h2><p>针对以上登录流程，我会封装以下几个方法供业务层调用</p>
+<table>
+<thead>
+<tr>
+<th>方法名</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>getLoginCode</code></td>
+<td>获取微信登录凭证</td>
+</tr>
+<tr>
+<td><code>staticLogin</code></td>
+<td>静默登录</td>
+</tr>
+<tr>
+<td><code>singleLogin</code></td>
+<td>登录请求封装</td>
+</tr>
+<tr>
+<td><code>checkLogin</code></td>
+<td>判断是否登录</td>
+</tr>
+<tr>
+<td><code>getPhoneNum</code></td>
+<td>获取微信授权手机号</td>
+</tr>
+</tbody></table>
 <ul>
-<li><strong>幽灵依赖</strong></li>
-<li><strong>版本冲突</strong></li>
-</ul>
-</li>
-<li><p>幽灵依赖就是你在引用npm包时，你会发现一些没有在<code>package.json</code>中出现的包也能引用，这个就是幽灵依赖，这是因为你在install下载npm包时，npm包也有它的依赖会下载，但是下载的依赖也会存在node_modules同一层级下，这样就会导致可以直接引用</p>
-</li>
-<li><p>版本冲突是因为不同的依赖可能依赖的包版本也不同，但是node_modules的同一层级只能存在一个包的一个版本号，如果有不同的版本号就只能存在依赖包的node_modules中，这样就会导致出现重复资源</p>
-<pre><code class="highlight js">├── package-A @<span class="number">1.0</span>
-|── package-B @<span class="number">1.0</span>
-├── package-C @<span class="number">1.0</span>
-│   └── package-A @<span class="number">2.0</span>
-│   └── package-B @<span class="number">2.0</span>
-├── package-D @<span class="number">1.0</span>
-│   └── package-A @<span class="number">2.0</span>
-│   └── package-B @<span class="number">2.0</span></code></pre></li>
-</ul>
-<h3 id="pnpm的出现"><a href="#pnpm的出现" class="headerlink" title="pnpm的出现"></a>pnpm的出现</h3><ul>
-<li><p>在所有前端苦npm久已时，pnpm出现了，并且在pnpm官网的简介上就简单说明了它的构造：<code>store + link</code><br><img src="https://img-blog.csdnimg.cn/20ef6cd68a0440c9841ea1450297c17a.jpeg#pic_center" alt="pnpm_node_modules"></p>
+<li><p>我习惯在promise请求中使用await-to方法，这是一个针对异步比较优雅的方案</p>
 <ul>
-<li>store就是依赖的实际存储位置，Mac&#x2F;linux在<code>&#123;home dir&#125;&gt;/.pnpm-store/v3</code>，windows在<code>当前盘/.pnpm-store/v3</code>。这样就会有个好处，你在多个项目使用的是同一个依赖时，就不用重复下载，这样就极大的减少存储空间</li>
-<li>link是指符号链接(<code>SymbolicLink</code>)和硬链接(<code>HardLink</code>)<ul>
-<li>SymbolicLink是一种特殊的文件，包含一条以绝对路径或者相对路径的形式指向其他文件或者目录的引用，它的存在不依赖于目标文件，如果目标文件被删除或者移动，指向目标文件的符号链接依然存在，但是它们会指向一个不复存在的文件</li>
-<li>相比于SymbolicLink，HardLink不是引用文件，而是引用<strong>inode</strong>，inode是文件系统的一种数据结构，用于描述文件系统对象。所以你即使更改目标文件的内容或位置，HardLink仍然指向目标文件，因为inode指向该文件</li>
+<li><a href="https://blog.grossman.io/how-to-write-async-await-without-try-catch-blocks-in-javascript/">How to write async await without try-catch blocks in Javascript</a></li>
 </ul>
 </li>
+<li><p>getLoginCode，一个简单的promise封装获取code</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getLoginCode</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;
+      wx.<span class="title function_">login</span>(&#123;
+        success (res) &#123;
+          <span class="keyword">if</span> (res.<span class="property">code</span>) &#123;
+            <span class="title function_">resolve</span>(res.<span class="property">code</span>)
+          &#125; <span class="keyword">else</span> &#123;
+            <span class="title function_">reject</span>(res)
+          &#125;
+        &#125;,
+        <span class="title function_">fail</span>(<span class="params">err</span>) &#123;
+          <span class="title function_">reject</span>(err)
+        &#125;
+      &#125;)
+  &#125;)
+&#125;</code></pre>
+</li>
+<li><p>静默登录封装，获取用户信息，并进行存储</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">staticLogin</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
+  <span class="comment">// 如果已经登录，直接返回登录信息</span>
+  <span class="keyword">if</span> (<span class="title function_">checkLogin</span>()) &#123;
+    <span class="keyword">return</span> <span class="title function_">getLoginInfo</span>()
+  &#125;
+  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">singleLogin</span>());
+  <span class="keyword">if</span> (loginErr) &#123;
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
+  &#125;
+  <span class="comment">// 存储用户信息，这个就根据自己的情况了，我这随便定个方法</span>
+  <span class="title function_">setLoginInfo</span>(&#123;
+    ...loginRes,
+  &#125;)
+  <span class="keyword">return</span> loginRes;
+&#125;</code></pre>
+</li>
+<li><p>登录请求封装，这里我是用单例模式并返回了一个promise，这样做是为了，你多次调用singleLogin时，比如快速切换页面，快速点击多个需登录区域，在数据没有返回的时候，都会等待，而不是触发多次请求</p>
+<pre><code class="highlight js"><span class="keyword">let</span> loginInstance = <span class="literal">null</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">singleLogin</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">if</span> (loginInstance) &#123;
+    <span class="keyword">return</span> loginInstance
+  &#125;
+  <span class="comment">// loginReq：封装请求，包括请求后端和getLoginCode</span>
+  loginInstance = <span class="title function_">loginReq</span>()
+  loginInstance.<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;
+    loginInstance = <span class="literal">null</span>;
+    <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(err);
+  &#125;)
+  <span class="keyword">return</span> loginInstance
+&#125;</code></pre>
+</li>
+<li><p>checkLogin，检查是否登录，这个就看你存储在那个地方了，视情况而定</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">checkLogin</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">return</span> <span class="title class_">Boolean</span>(loginInfo?.<span class="property">sid</span>)
+&#125;</code></pre>
+</li>
+<li><p>getPhoneNum</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getPhoneNum</span> = <span class="keyword">async</span> (<span class="params">iv, encryptedData</span>) =&gt; &#123;
+  <span class="keyword">const</span> [codeErr, codeRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getLoginCode</span>())
+  <span class="keyword">if</span> (codeErr) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(codeErr);
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(codeErr);
+  &#125;
+  <span class="comment">// decrypt：请求后端</span>
+  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">decrypt</span>(&#123;
+    iv,
+    encryptedData,
+    <span class="attr">code</span>: codeRes.<span class="property">code</span>
+  &#125;))
+  <span class="keyword">if</span> (phoneErr) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(phoneErr);
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(phoneErr);
+  &#125;
+  <span class="keyword">const</span> phoneNumber = phoneRes.<span class="property">result</span>.<span class="property">phoneNumber</span>
+  <span class="title function_">setLoginInfo</span>(&#123;
+    phoneNumber,
+  &#125;)
+  <span class="keyword">return</span> phoneNumber
+&#125;</code></pre></li>
 </ul>
+<h2 id="业务层"><a href="#业务层" class="headerlink" title="业务层"></a>业务层</h2><p>业务层我会在以下几个地方调用</p>
+<ol>
+<li><p>请求前根据options判断是否需登录，并进行处理</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">REQUEST</span> = <span class="keyword">async</span> (<span class="params">requestObj</span>) =&gt; &#123;
+  <span class="comment">// isLogin 当前接口请求是否需要登录</span>
+  <span class="keyword">if</span> (requestObj.<span class="property">isLogin</span> &amp;&amp; !<span class="title function_">checkLogin</span>()) &#123;
+    <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
+    <span class="keyword">if</span> (loginErr) &#123;
+      <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>)
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
+    &#125;
+  &#125;
+  ...
+&#125;</code></pre>
 </li>
-<li><p>然后拿react举例，当<code>pnpm add react</code>后，在node_modules终端输入<code>tree -a -L 3</code>会得到以下node_modules结构</p>
-<pre><code class="highlight js">.
-├── .<span class="property">modules</span>.<span class="property">yaml</span>
-├── .<span class="property">pnpm</span>
-│   ├── js-tokens@<span class="number">4.0</span><span class="number">.0</span>
-│   │   └── node_modules
-│   ├── lock.<span class="property">yaml</span>
-│   ├── loose-envify@<span class="number">1.4</span><span class="number">.0</span>
-│   │   └── node_modules
-│   ├── node_modules
-│   │   ├── .<span class="property">bin</span>
-│   │   ├── js-tokens -&gt; ../js-tokens@<span class="number">4.0</span><span class="number">.0</span>/node_modules/js-tokens
-│   │   └── loose-envify -&gt; ../loose-envify@<span class="number">1.4</span><span class="number">.0</span>/node_modules/loose-envify
-│   └── react@<span class="number">18.2</span><span class="number">.0</span>
-│       └── node_modules
-└── react -&gt; .<span class="property">pnpm</span>/react@<span class="number">18.2</span><span class="number">.0</span>/node_modules/react</code></pre></li>
-<li><p>node_modules下除了.pnpm外只有一个react，这个react只是一个SymbolicLink，当node.js解析时，会找到react的真实位置<code>node_modules/.pnpm/react@18.2.0/node_modules/react</code></p>
+<li><p>登录按钮，这个主要用于登录失败兜底的情况，让用户主动点击，用于登录弹窗等组件，只需调用<code>staticLogin</code>即可</p>
 </li>
-<li><p>.pnpm就是将所有依赖放在同一层文件夹中，每个包都可以通过<code>.pnpm/&lt;name&gt;@&lt;version&gt;/node_modules/&lt;name&gt;</code>这种路径找到，然后通过<code>hand link</code>的方式在store中引用依赖文件</p>
+<li><p>获取用户授权手机号按钮</p>
+<pre><code class="highlight js"><span class="comment">// index.html</span>
+<span class="comment">// 用户主动触发进行授权手机号</span>
+&lt;button open-type=<span class="string">&quot;getPhoneNumber&quot;</span> bindgetphonenumber=<span class="string">&quot;bindPhoneNumber&quot;</span>&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">slot</span>&gt;</span><span class="tag">&lt;/<span class="name">slot</span>&gt;</span></span>
+&lt;/button&gt;
+
+<span class="comment">// index.js</span>
+<span class="keyword">async</span> <span class="title function_">bindPhoneNumber</span>(<span class="params">e</span>) &#123;
+  <span class="keyword">const</span> iv = e.<span class="property">detail</span>.<span class="property">iv</span>;
+  <span class="keyword">const</span> encryptedData = e.<span class="property">detail</span>.<span class="property">encryptedData</span>;
+  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getPhoneNum</span>(iv, encryptedData));
+  <span class="keyword">if</span> (phoneErr) &#123;
+    <span class="title class_">Toast</span>(<span class="string">&#x27;获取手机号失败&#x27;</span>);
+    <span class="keyword">return</span>;
+  &#125;
+  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;getPhoneNumber&#x27;</span>, phoneRes);
+&#125;</code></pre>
 </li>
-<li><p>通过这种文件结构，pnpm就解决了npm的两个问题，首先node_modules下不会有你未在package.json中声明的依赖，这样就不会有幽灵依赖的问题。然后.pnpm下会有name+version的方式链接到store中，这样就不会出现因为版本冲突造成资源重复的问题</p>
+<li><p>页面组件，在小程序中一般都有一个页面组件，用于封装一些页面必需的功能，比如loading，导航栏，无效页面等等，登录也是必需的，所以我把登录逻辑封装到页面组件上，如果成功会通过triggerEvent触发给页面，如果失败就弹出登录弹窗，当然这种处理不太细，根据业务的不同改变相关的逻辑<br><img src="https://img-blog.csdnimg.cn/f6cd710acc4d45a1a7d88042623ad4bc.png#pic_center" alt="在这里插入图片描述"></p>
 </li>
-</ul>
-<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
-<li><a href="https://www.pnpm.cn/blog/2020/05/27/flat-node-modules-is-not-the-only-way">Flat node_modules is not the only way</a></li>
-<li><a href="https://www.pnpm.cn/symlinked-node-modules-structure">Symlinked node_modules structure</a></li>
-<li><a href="https://juejin.cn/post/7043998041786810398">One For All：基于pnpm + lerna + typescript的最佳项目实践 - 理论篇</a></li>
+</ol>
+<pre><code class="highlight js"><span class="comment">// index.html</span>
+&lt;view&gt;
+  ...
+  &lt;login-modal show=&#123;loginShow&#125; &#123;...props&#125; /&gt;
+&lt;/view&gt;
+
+<span class="comment">// index.js</span>
+<span class="keyword">async</span> <span class="title function_">created</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
+  <span class="keyword">if</span> (loginErr) &#123;
+    <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>);
+    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
+      <span class="attr">loginShow</span>: <span class="literal">true</span>,
+    &#125;);
+    <span class="keyword">return</span>;
+  &#125;
+  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;login&#x27;</span>, loginRes);
+&#125;</code></pre>
+<ol start="5">
+<li>还有一些不是太通用的业务组件就不叙述了…</li>
+</ol>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>微信小程序</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>小程序滚动日历组件</title>
+    <url>/2021/04/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6/</url>
+    <content><![CDATA[<h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
+<ol>
+<li><p>在ready中初始化组件数据</p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * <span class="doctag">@description</span>: 初始化</span>
+<span class="comment"> */</span>
+<span class="title function_">ready</span>(<span class="params"></span>) &#123;
+  <span class="comment">// 这两个数据是从页面中传过来的，起始时间和结束时间</span>
+  <span class="comment">// 数组类型 [year, month, day]</span>
+  <span class="keyword">const</span> &#123; endDate, startDate &#125; = <span class="variable language_">this</span>.<span class="property">data</span>
+  <span class="keyword">let</span> monthList = [] <span class="comment">// 这个用于wxml中遍历，以每月为item</span>
+
+  <span class="comment">// 未跨年</span>
+  <span class="keyword">if</span> ( endDate[<span class="number">0</span>] === startDate[<span class="number">0</span>]) &#123;
+    <span class="keyword">let</span> rangeMonth = endDate[<span class="number">1</span>] - startDate[<span class="number">1</span>]
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= rangeMonth; i++) &#123;
+      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
+      <span class="comment">// monthInitData()初始化每月数据</span>
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="comment">// 跨年前月份</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, lng = <span class="number">12</span> - startDate[<span class="number">1</span>]; i &lt; lng; i++) &#123;
+      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+
+    <span class="comment">// 跨年后月份</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= endDate[<span class="number">1</span>]; i++) &#123;
+      <span class="keyword">let</span> date = [endDate[<span class="number">0</span>], i + <span class="number">1</span>]
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(endDate[<span class="number">0</span>], i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+  &#125;
+  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
+    monthList,
+  &#125;)
+&#125;</code></pre>
+</li>
+<li><p>初始化每月数据: </p>
+<blockquote>
+<p>逻辑是获取每个月第一天的星期数和每个月的最大天数，然后在之前和之后的空数据填充item占位<br>然后遍历，根据不同的需求，在遍历中处理，最后在html中flex布局即可</p>
+</blockquote>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * <span class="doctag">@description</span>: 初始化每月数据</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月</span>
+<span class="comment"> */</span>
+<span class="title function_">monthInitData</span>(<span class="params">year, month</span>) &#123;
+  <span class="keyword">let</span> &#123; calendarValue, startDate, endDate &#125;= <span class="variable language_">this</span>.<span class="property">data</span>, <span class="comment">// 当前点击时间，起始时间，结束时间</span>
+    firstWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, <span class="number">1</span>).<span class="title function_">getDay</span>(), <span class="comment">// 本月的第一天的星期数</span>
+    days = [], <span class="comment">// 日期数组</span>
+    max = <span class="variable language_">this</span>.<span class="title function_">getMonthMax</span>(year, month + <span class="number">1</span>), <span class="comment">// 每月最大天数</span>
+    lastWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, (month + <span class="number">1</span>), <span class="number">0</span>).<span class="title function_">getDay</span>() <span class="comment">// 本月的最后一天的星期数</span>
+
+  <span class="comment">// 填充每月一号之前的空数据</span>
+  <span class="keyword">if</span> (firstWeek &gt; <span class="number">0</span>) &#123;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; firstWeek; i++) &#123;
+      days.<span class="title function_">push</span>(&#123;
+        <span class="attr">day</span>: <span class="number">0</span>
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="keyword">let</span> currentTime = <span class="number">0</span>, 
+      startTime = <span class="number">0</span>,
+      endTime = <span class="number">0</span>
+
+  <span class="keyword">if</span> (calendarValue[<span class="number">0</span>]) &#123;
+    currentTime = <span class="keyword">new</span> <span class="title class_">Date</span>(calendarValue[<span class="number">0</span>], calendarValue[<span class="number">1</span>], calendarValue[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+  <span class="keyword">if</span> (startDate[<span class="number">0</span>]) &#123;
+    startTime = <span class="keyword">new</span> <span class="title class_">Date</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>], startDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+  <span class="keyword">if</span> (endDate[<span class="number">0</span>]) &#123;
+    endTime = <span class="keyword">new</span> <span class="title class_">Date</span>(endDate[<span class="number">0</span>], endDate[<span class="number">1</span>], endDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;
+    <span class="comment">// 以下状态是需要在html中判断处理，根据自己需求改变</span>
+    <span class="keyword">let</span> current = <span class="literal">false</span>, <span class="comment">// 当前点击状态</span>
+      disabled = <span class="literal">false</span>, <span class="comment">// 禁止状态</span>
+      now = <span class="literal">false</span>, <span class="comment">// 今天显示文案</span>
+      time = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, i).<span class="title function_">getTime</span>(),
+      nowTime = [<span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getFullYear</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getMonth</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getDate</span>()]
+    <span class="keyword">if</span> (currentTime &amp;&amp; currentTime == time) current = <span class="literal">true</span>
+    <span class="keyword">if</span> (startTime &amp;&amp; startTime &gt; time) disabled = <span class="literal">true</span>
+    <span class="keyword">if</span> (endTime &amp;&amp; endTime &lt; time) disabled = <span class="literal">true</span>
+    <span class="keyword">if</span> (year === nowTime[<span class="number">0</span>] &amp;&amp; month === nowTime[<span class="number">1</span>] &amp;&amp; i === nowTime[<span class="number">2</span>]) now = <span class="literal">true</span>
+
+    days.<span class="title function_">push</span>(&#123;
+      <span class="attr">day</span>: i,
+      current,
+      disabled,
+      now,
+    &#125;)
+  &#125;
+
+  <span class="comment">// 填充每月最后一天之后的空数据</span>
+  <span class="keyword">if</span> (lastWeek != <span class="number">6</span>) &#123;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = (<span class="number">6</span> - lastWeek); i &lt; l; i++) &#123;
+      days.<span class="title function_">push</span>(&#123;
+        <span class="attr">day</span>: <span class="number">0</span>
+      &#125;)
+    &#125;
+  &#125;
+  <span class="keyword">return</span> days
+&#125;,
+
+<span class="comment">/**</span>
+<span class="comment"> * 获取一个月最大天数</span>
+<span class="comment"> * <span class="doctag">@method</span> <span class="variable">getMonthMax</span></span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年份</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月份</span>
+<span class="comment"> */</span>
+<span class="title function_">getMonthMax</span>(<span class="params">year, month</span>) &#123;
+  <span class="keyword">let</span> max = <span class="number">31</span>
+  <span class="keyword">if</span> (month == <span class="number">4</span> || month == <span class="number">6</span> || month == <span class="number">9</span> || month == <span class="number">11</span>) &#123;
+    max = <span class="number">30</span>
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (month == <span class="number">2</span>) &#123;
+    <span class="keyword">if</span> (((year % <span class="number">4</span>) == <span class="number">0</span> &amp;&amp; (year % <span class="number">100</span>) &gt; <span class="number">0</span>) || (year % <span class="number">400</span>) == <span class="number">0</span>) &#123;
+      max = <span class="number">29</span>
+    &#125; <span class="keyword">else</span> &#123;
+      max = <span class="number">28</span>
+    &#125; 
+  &#125;
+
+  <span class="keyword">return</span> max
+&#125;,
+</code></pre></li>
+</ol>
+<ul>
+<li>以上就是核心逻辑，像一些弹窗事件和一些点击事件就不附上来了</li>
 </ul>
 ]]></content>
       <categories>
         <category>gallery</category>
       </categories>
       <tags>
-        <tag>pnpm</tag>
+        <tag>微信小程序</tag>
       </tags>
   </entry>
   <entry>
@@ -2125,355 +2474,6 @@ export async function render(url, manifest) &#123;
       <tags>
         <tag>markdown</tag>
         <tag>markdown-it</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>小程序滚动日历组件</title>
-    <url>/2021/04/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6/</url>
-    <content><![CDATA[<h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
-<ol>
-<li><p>在ready中初始化组件数据</p>
-<pre><code class="highlight js"><span class="comment">/**</span>
-<span class="comment"> * <span class="doctag">@description</span>: 初始化</span>
-<span class="comment"> */</span>
-<span class="title function_">ready</span>(<span class="params"></span>) &#123;
-  <span class="comment">// 这两个数据是从页面中传过来的，起始时间和结束时间</span>
-  <span class="comment">// 数组类型 [year, month, day]</span>
-  <span class="keyword">const</span> &#123; endDate, startDate &#125; = <span class="variable language_">this</span>.<span class="property">data</span>
-  <span class="keyword">let</span> monthList = [] <span class="comment">// 这个用于wxml中遍历，以每月为item</span>
-
-  <span class="comment">// 未跨年</span>
-  <span class="keyword">if</span> ( endDate[<span class="number">0</span>] === startDate[<span class="number">0</span>]) &#123;
-    <span class="keyword">let</span> rangeMonth = endDate[<span class="number">1</span>] - startDate[<span class="number">1</span>]
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= rangeMonth; i++) &#123;
-      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
-      <span class="comment">// monthInitData()初始化每月数据</span>
-      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
-      monthList.<span class="title function_">push</span>(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-  &#125; <span class="keyword">else</span> &#123;
-    <span class="comment">// 跨年前月份</span>
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, lng = <span class="number">12</span> - startDate[<span class="number">1</span>]; i &lt; lng; i++) &#123;
-      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
-      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
-      monthList.<span class="title function_">push</span>(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-
-    <span class="comment">// 跨年后月份</span>
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= endDate[<span class="number">1</span>]; i++) &#123;
-      <span class="keyword">let</span> date = [endDate[<span class="number">0</span>], i + <span class="number">1</span>]
-      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(endDate[<span class="number">0</span>], i)
-      monthList.<span class="title function_">push</span>(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-  &#125;
-  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
-    monthList,
-  &#125;)
-&#125;</code></pre>
-</li>
-<li><p>初始化每月数据: </p>
-<blockquote>
-<p>逻辑是获取每个月第一天的星期数和每个月的最大天数，然后在之前和之后的空数据填充item占位<br>然后遍历，根据不同的需求，在遍历中处理，最后在html中flex布局即可</p>
-</blockquote>
-<pre><code class="highlight js"><span class="comment">/**</span>
-<span class="comment"> * <span class="doctag">@description</span>: 初始化每月数据</span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年</span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月</span>
-<span class="comment"> */</span>
-<span class="title function_">monthInitData</span>(<span class="params">year, month</span>) &#123;
-  <span class="keyword">let</span> &#123; calendarValue, startDate, endDate &#125;= <span class="variable language_">this</span>.<span class="property">data</span>, <span class="comment">// 当前点击时间，起始时间，结束时间</span>
-    firstWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, <span class="number">1</span>).<span class="title function_">getDay</span>(), <span class="comment">// 本月的第一天的星期数</span>
-    days = [], <span class="comment">// 日期数组</span>
-    max = <span class="variable language_">this</span>.<span class="title function_">getMonthMax</span>(year, month + <span class="number">1</span>), <span class="comment">// 每月最大天数</span>
-    lastWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, (month + <span class="number">1</span>), <span class="number">0</span>).<span class="title function_">getDay</span>() <span class="comment">// 本月的最后一天的星期数</span>
-
-  <span class="comment">// 填充每月一号之前的空数据</span>
-  <span class="keyword">if</span> (firstWeek &gt; <span class="number">0</span>) &#123;
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; firstWeek; i++) &#123;
-      days.<span class="title function_">push</span>(&#123;
-        <span class="attr">day</span>: <span class="number">0</span>
-      &#125;)
-    &#125;
-  &#125;
-
-  <span class="keyword">let</span> currentTime = <span class="number">0</span>, 
-      startTime = <span class="number">0</span>,
-      endTime = <span class="number">0</span>
-
-  <span class="keyword">if</span> (calendarValue[<span class="number">0</span>]) &#123;
-    currentTime = <span class="keyword">new</span> <span class="title class_">Date</span>(calendarValue[<span class="number">0</span>], calendarValue[<span class="number">1</span>], calendarValue[<span class="number">2</span>]).<span class="title function_">getTime</span>()
-  &#125;
-  <span class="keyword">if</span> (startDate[<span class="number">0</span>]) &#123;
-    startTime = <span class="keyword">new</span> <span class="title class_">Date</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>], startDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
-  &#125;
-  <span class="keyword">if</span> (endDate[<span class="number">0</span>]) &#123;
-    endTime = <span class="keyword">new</span> <span class="title class_">Date</span>(endDate[<span class="number">0</span>], endDate[<span class="number">1</span>], endDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
-  &#125;
-
-  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;
-    <span class="comment">// 以下状态是需要在html中判断处理，根据自己需求改变</span>
-    <span class="keyword">let</span> current = <span class="literal">false</span>, <span class="comment">// 当前点击状态</span>
-      disabled = <span class="literal">false</span>, <span class="comment">// 禁止状态</span>
-      now = <span class="literal">false</span>, <span class="comment">// 今天显示文案</span>
-      time = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, i).<span class="title function_">getTime</span>(),
-      nowTime = [<span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getFullYear</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getMonth</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getDate</span>()]
-    <span class="keyword">if</span> (currentTime &amp;&amp; currentTime == time) current = <span class="literal">true</span>
-    <span class="keyword">if</span> (startTime &amp;&amp; startTime &gt; time) disabled = <span class="literal">true</span>
-    <span class="keyword">if</span> (endTime &amp;&amp; endTime &lt; time) disabled = <span class="literal">true</span>
-    <span class="keyword">if</span> (year === nowTime[<span class="number">0</span>] &amp;&amp; month === nowTime[<span class="number">1</span>] &amp;&amp; i === nowTime[<span class="number">2</span>]) now = <span class="literal">true</span>
-
-    days.<span class="title function_">push</span>(&#123;
-      <span class="attr">day</span>: i,
-      current,
-      disabled,
-      now,
-    &#125;)
-  &#125;
-
-  <span class="comment">// 填充每月最后一天之后的空数据</span>
-  <span class="keyword">if</span> (lastWeek != <span class="number">6</span>) &#123;
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = (<span class="number">6</span> - lastWeek); i &lt; l; i++) &#123;
-      days.<span class="title function_">push</span>(&#123;
-        <span class="attr">day</span>: <span class="number">0</span>
-      &#125;)
-    &#125;
-  &#125;
-  <span class="keyword">return</span> days
-&#125;,
-
-<span class="comment">/**</span>
-<span class="comment"> * 获取一个月最大天数</span>
-<span class="comment"> * <span class="doctag">@method</span> <span class="variable">getMonthMax</span></span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年份</span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月份</span>
-<span class="comment"> */</span>
-<span class="title function_">getMonthMax</span>(<span class="params">year, month</span>) &#123;
-  <span class="keyword">let</span> max = <span class="number">31</span>
-  <span class="keyword">if</span> (month == <span class="number">4</span> || month == <span class="number">6</span> || month == <span class="number">9</span> || month == <span class="number">11</span>) &#123;
-    max = <span class="number">30</span>
-  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (month == <span class="number">2</span>) &#123;
-    <span class="keyword">if</span> (((year % <span class="number">4</span>) == <span class="number">0</span> &amp;&amp; (year % <span class="number">100</span>) &gt; <span class="number">0</span>) || (year % <span class="number">400</span>) == <span class="number">0</span>) &#123;
-      max = <span class="number">29</span>
-    &#125; <span class="keyword">else</span> &#123;
-      max = <span class="number">28</span>
-    &#125; 
-  &#125;
-
-  <span class="keyword">return</span> max
-&#125;,
-</code></pre></li>
-</ol>
-<ul>
-<li>以上就是核心逻辑，像一些弹窗事件和一些点击事件就不附上来了</li>
-</ul>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>微信小程序</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>微信小程序前端登录模块设计</title>
-    <url>/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案</p>
-<h2 id="基本登录流程"><a href="#基本登录流程" class="headerlink" title="基本登录流程"></a>基本登录流程</h2><ol>
-<li>获取微信登录凭证，通过<code>wx.login</code>获取，这个api会返回一个带有时效性的code</li>
-<li>发送code给服务端，这一步就是通过你和后端定义的接口发送</li>
-<li>服务端根据前端发送的code获取用户身份信息，当然这一步就不是前端的逻辑了</li>
-<li>服务端处理完后，会把用户信息和sessinId发送给前端，然后前端把需要的信息进行存储，接下来的请求就可以带着sessinId来表示身份</li>
-<li>下面是微信官方的流程图<br><img src="https://img-blog.csdnimg.cn/3b0b114c140247ebbc666b027dfbda66.png#pic_center" alt="在这里插入图片描述"></li>
-</ol>
-<h2 id="逻辑封装"><a href="#逻辑封装" class="headerlink" title="逻辑封装"></a>逻辑封装</h2><p>针对以上登录流程，我会封装以下几个方法供业务层调用</p>
-<table>
-<thead>
-<tr>
-<th>方法名</th>
-<th>功能</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>getLoginCode</code></td>
-<td>获取微信登录凭证</td>
-</tr>
-<tr>
-<td><code>staticLogin</code></td>
-<td>静默登录</td>
-</tr>
-<tr>
-<td><code>singleLogin</code></td>
-<td>登录请求封装</td>
-</tr>
-<tr>
-<td><code>checkLogin</code></td>
-<td>判断是否登录</td>
-</tr>
-<tr>
-<td><code>getPhoneNum</code></td>
-<td>获取微信授权手机号</td>
-</tr>
-</tbody></table>
-<ul>
-<li><p>我习惯在promise请求中使用await-to方法，这是一个针对异步比较优雅的方案</p>
-<ul>
-<li><a href="https://blog.grossman.io/how-to-write-async-await-without-try-catch-blocks-in-javascript/">How to write async await without try-catch blocks in Javascript</a></li>
-</ul>
-</li>
-<li><p>getLoginCode，一个简单的promise封装获取code</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getLoginCode</span> = (<span class="params"></span>) =&gt; &#123;
-  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;
-      wx.<span class="title function_">login</span>(&#123;
-        success (res) &#123;
-          <span class="keyword">if</span> (res.<span class="property">code</span>) &#123;
-            <span class="title function_">resolve</span>(res.<span class="property">code</span>)
-          &#125; <span class="keyword">else</span> &#123;
-            <span class="title function_">reject</span>(res)
-          &#125;
-        &#125;,
-        <span class="title function_">fail</span>(<span class="params">err</span>) &#123;
-          <span class="title function_">reject</span>(err)
-        &#125;
-      &#125;)
-  &#125;)
-&#125;</code></pre>
-</li>
-<li><p>静默登录封装，获取用户信息，并进行存储</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">staticLogin</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
-  <span class="comment">// 如果已经登录，直接返回登录信息</span>
-  <span class="keyword">if</span> (<span class="title function_">checkLogin</span>()) &#123;
-    <span class="keyword">return</span> <span class="title function_">getLoginInfo</span>()
-  &#125;
-  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">singleLogin</span>());
-  <span class="keyword">if</span> (loginErr) &#123;
-    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
-  &#125;
-  <span class="comment">// 存储用户信息，这个就根据自己的情况了，我这随便定个方法</span>
-  <span class="title function_">setLoginInfo</span>(&#123;
-    ...loginRes,
-  &#125;)
-  <span class="keyword">return</span> loginRes;
-&#125;</code></pre>
-</li>
-<li><p>登录请求封装，这里我是用单例模式并返回了一个promise，这样做是为了，你多次调用singleLogin时，比如快速切换页面，快速点击多个需登录区域，在数据没有返回的时候，都会等待，而不是触发多次请求</p>
-<pre><code class="highlight js"><span class="keyword">let</span> loginInstance = <span class="literal">null</span>
-<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">singleLogin</span> = (<span class="params"></span>) =&gt; &#123;
-  <span class="keyword">if</span> (loginInstance) &#123;
-    <span class="keyword">return</span> loginInstance
-  &#125;
-  <span class="comment">// loginReq：封装请求，包括请求后端和getLoginCode</span>
-  loginInstance = <span class="title function_">loginReq</span>()
-  loginInstance.<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;
-    loginInstance = <span class="literal">null</span>;
-    <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(err);
-  &#125;)
-  <span class="keyword">return</span> loginInstance
-&#125;</code></pre>
-</li>
-<li><p>checkLogin，检查是否登录，这个就看你存储在那个地方了，视情况而定</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">checkLogin</span> = (<span class="params"></span>) =&gt; &#123;
-  <span class="keyword">return</span> <span class="title class_">Boolean</span>(loginInfo?.<span class="property">sid</span>)
-&#125;</code></pre>
-</li>
-<li><p>getPhoneNum</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getPhoneNum</span> = <span class="keyword">async</span> (<span class="params">iv, encryptedData</span>) =&gt; &#123;
-  <span class="keyword">const</span> [codeErr, codeRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getLoginCode</span>())
-  <span class="keyword">if</span> (codeErr) &#123;
-    <span class="variable language_">console</span>.<span class="title function_">log</span>(codeErr);
-    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(codeErr);
-  &#125;
-  <span class="comment">// decrypt：请求后端</span>
-  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">decrypt</span>(&#123;
-    iv,
-    encryptedData,
-    <span class="attr">code</span>: codeRes.<span class="property">code</span>
-  &#125;))
-  <span class="keyword">if</span> (phoneErr) &#123;
-    <span class="variable language_">console</span>.<span class="title function_">log</span>(phoneErr);
-    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(phoneErr);
-  &#125;
-  <span class="keyword">const</span> phoneNumber = phoneRes.<span class="property">result</span>.<span class="property">phoneNumber</span>
-  <span class="title function_">setLoginInfo</span>(&#123;
-    phoneNumber,
-  &#125;)
-  <span class="keyword">return</span> phoneNumber
-&#125;</code></pre></li>
-</ul>
-<h2 id="业务层"><a href="#业务层" class="headerlink" title="业务层"></a>业务层</h2><p>业务层我会在以下几个地方调用</p>
-<ol>
-<li><p>请求前根据options判断是否需登录，并进行处理</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">REQUEST</span> = <span class="keyword">async</span> (<span class="params">requestObj</span>) =&gt; &#123;
-  <span class="comment">// isLogin 当前接口请求是否需要登录</span>
-  <span class="keyword">if</span> (requestObj.<span class="property">isLogin</span> &amp;&amp; !<span class="title function_">checkLogin</span>()) &#123;
-    <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
-    <span class="keyword">if</span> (loginErr) &#123;
-      <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>)
-      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
-    &#125;
-  &#125;
-  ...
-&#125;</code></pre>
-</li>
-<li><p>登录按钮，这个主要用于登录失败兜底的情况，让用户主动点击，用于登录弹窗等组件，只需调用<code>staticLogin</code>即可</p>
-</li>
-<li><p>获取用户授权手机号按钮</p>
-<pre><code class="highlight js"><span class="comment">// index.html</span>
-<span class="comment">// 用户主动触发进行授权手机号</span>
-&lt;button open-type=<span class="string">&quot;getPhoneNumber&quot;</span> bindgetphonenumber=<span class="string">&quot;bindPhoneNumber&quot;</span>&gt;
-  <span class="language-xml"><span class="tag">&lt;<span class="name">slot</span>&gt;</span><span class="tag">&lt;/<span class="name">slot</span>&gt;</span></span>
-&lt;/button&gt;
-
-<span class="comment">// index.js</span>
-<span class="keyword">async</span> <span class="title function_">bindPhoneNumber</span>(<span class="params">e</span>) &#123;
-  <span class="keyword">const</span> iv = e.<span class="property">detail</span>.<span class="property">iv</span>;
-  <span class="keyword">const</span> encryptedData = e.<span class="property">detail</span>.<span class="property">encryptedData</span>;
-  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getPhoneNum</span>(iv, encryptedData));
-  <span class="keyword">if</span> (phoneErr) &#123;
-    <span class="title class_">Toast</span>(<span class="string">&#x27;获取手机号失败&#x27;</span>);
-    <span class="keyword">return</span>;
-  &#125;
-  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;getPhoneNumber&#x27;</span>, phoneRes);
-&#125;</code></pre>
-</li>
-<li><p>页面组件，在小程序中一般都有一个页面组件，用于封装一些页面必需的功能，比如loading，导航栏，无效页面等等，登录也是必需的，所以我把登录逻辑封装到页面组件上，如果成功会通过triggerEvent触发给页面，如果失败就弹出登录弹窗，当然这种处理不太细，根据业务的不同改变相关的逻辑<br><img src="https://img-blog.csdnimg.cn/f6cd710acc4d45a1a7d88042623ad4bc.png#pic_center" alt="在这里插入图片描述"></p>
-</li>
-</ol>
-<pre><code class="highlight js"><span class="comment">// index.html</span>
-&lt;view&gt;
-  ...
-  &lt;login-modal show=&#123;loginShow&#125; &#123;...props&#125; /&gt;
-&lt;/view&gt;
-
-<span class="comment">// index.js</span>
-<span class="keyword">async</span> <span class="title function_">created</span>(<span class="params"></span>) &#123;
-  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
-  <span class="keyword">if</span> (loginErr) &#123;
-    <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>);
-    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
-      <span class="attr">loginShow</span>: <span class="literal">true</span>,
-    &#125;);
-    <span class="keyword">return</span>;
-  &#125;
-  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;login&#x27;</span>, loginRes);
-&#125;</code></pre>
-<ol start="5">
-<li>还有一些不是太通用的业务组件就不叙述了…</li>
-</ol>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>微信小程序</tag>
       </tags>
   </entry>
   <entry>
@@ -4097,6 +4097,240 @@ j = increasingNewIndexSequence.<span class="property">length</span> - <span clas
       </tags>
   </entry>
   <entry>
+    <title>颜色选择器的纯JS实现</title>
+    <url>/2022/11/05/%E9%A2%9C%E8%89%B2%E9%80%89%E6%8B%A9%E5%99%A8%E7%9A%84%E7%BA%AFJS%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在逛论坛的时候发现了一个新API：<code>EyeDropper</code>，仅需创建一个实例，然后调用open方法，就可以取到你屏幕内所有可以取到的颜色，可惜兼容性不太行，只有Chrome，Edge，Opera支持，<a href="https://developer.mozilla.org/en-US/docs/Web/API/EyeDropper">MDN文档</a><br>知道了这个API后我也有了一个想实现取色器的想法，工作摸鱼期间👻折腾了几天搞了出来，实现步骤大致以下几步</p>
+<ol>
+<li>所需页面创建实例，初始化所需属性</li>
+<li>需开启时调用open方法开启取色器，网页截屏生成canvas，初始化监听事件和浮动元素(放大镜)</li>
+<li>鼠标移动时根据坐标获取颜色数据修改放大镜颜色</li>
+<li>鼠标点击或者按Esc键后销毁</li>
+</ol>
+<h2 id="预览"><a href="#预览" class="headerlink" title="预览"></a>预览</h2><p>预览地址：<a href="https://songlh.top/page-color-picker/">https://songlh.top/page-color-picker/</a><br>github：<a href="https://github.com/LHRUN/page-color-picker">https://github.com/LHRUN/page-color-picker</a><br><img src="https://s1.ax1x.com/2022/11/05/xOoXo4.png"></p>
+<h2 id="初始化方法"><a href="#初始化方法" class="headerlink" title="初始化方法"></a>初始化方法</h2><p>初始化方法没什么说的，就是把需要的属性和方法赋值一遍初始值，然后接收一个鼠标点击时的回调</p>
+<pre><code class="highlight ts"><span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">ColorPicker</span> &#123;
+  <span class="attr">canvasContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// canvas容器元素</span>
+  <span class="attr">canvas</span>: <span class="title class_">HTMLCanvasElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas</span>
+  <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas[context]</span>
+  <span class="attr">floatContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 鼠标移动时的浮动容器元素</span>
+  onChange?: <span class="function">(<span class="params">color: <span class="built_in">string</span></span>) =&gt;</span> <span class="built_in">void</span> <span class="comment">// 点击鼠标后的回调</span>
+  color = <span class="string">&#x27;&#x27;</span> <span class="comment">// 颜色值</span>
+  elementId = <span class="string">&#x27;&#x27;</span> <span class="comment">// 元素唯一id</span>
+  <span class="attr">colorArr</span>: &#123;
+    <span class="attr">el</span>: <span class="title class_">HTMLDivElement</span>
+    <span class="attr">row</span>: <span class="built_in">number</span>
+    <span class="attr">col</span>: <span class="built_in">number</span>
+  &#125;[] = [] <span class="comment">// 放大镜颜色数组</span>
+
+  <span class="title function_">constructor</span>(<span class="params"></span>
+<span class="params">    onChange?: (color: <span class="built_in">string</span>) =&gt; <span class="built_in">void</span> <span class="comment">// 点击后回调</span></span>
+<span class="params">  </span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">onChange</span> = onChange
+  &#125;
+  <span class="comment">// ...</span>
+&#125;</code></pre>
+
+<h2 id="开启取色器"><a href="#开启取色器" class="headerlink" title="开启取色器"></a>开启取色器</h2><p>开启取色器分为4步</p>
+<ol>
+<li>初始化canvas容器</li>
+<li>生成canvas，我使用的是<a href="https://www.npmjs.com/package/html2canvas">html2canvas</a></li>
+<li>初始化监听事件</li>
+<li>创建浮动元素</li>
+</ol>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment">* 开启取色器</span>
+<span class="comment">*/</span>
+<span class="title function_">open</span>(<span class="params"></span>) &#123;
+  <span class="comment">// 获取随机id</span>
+  <span class="variable language_">this</span>.<span class="property">elementId</span> = <span class="title function_">getId</span>()
+  <span class="comment">// 初始化canvas容器</span>
+  <span class="variable language_">this</span>.<span class="title function_">initContainer</span>()
+  <span class="title function_">html2canvas</span>(<span class="variable language_">document</span>.<span class="property">body</span>).<span class="title function_">then</span>(<span class="function">(<span class="params">canvas</span>) =&gt;</span> &#123;
+    <span class="keyword">if</span> (canvas &amp;&amp; <span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
+      <span class="comment">// 初始化事件</span>
+      <span class="variable language_">this</span>.<span class="title function_">initEvent</span>(canvas)
+      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="property">style</span>.<span class="property">display</span> = <span class="string">&#x27;block&#x27;</span>
+      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="title function_">appendChild</span>(canvas)
+      <span class="variable language_">this</span>.<span class="property">canvas</span> = canvas
+      <span class="variable language_">this</span>.<span class="property">context</span> = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>)
+      <span class="comment">// 创建浮动元素</span>
+      <span class="variable language_">this</span>.<span class="title function_">initFloatContainer</span>()
+    &#125;
+  &#125;)
+&#125;</code></pre>
+<ul>
+<li><p>初始化canvas容器</p>
+<pre><code class="highlight ts"><span class="title function_">initContainer</span>(<span class="params"></span>) &#123;
+  <span class="comment">// 创建元素我封装了一个方法</span>
+  <span class="keyword">const</span> canvasContainer = <span class="title function_">createDocument</span>(
+    <span class="string">&#x27;div&#x27;</span>,
+    styleObj.<span class="property">canvasContainer</span>,
+    <span class="variable language_">document</span>.<span class="property">body</span>
+  )
+  <span class="variable language_">this</span>.<span class="property">canvasContainer</span> = canvasContainer
+  <span class="keyword">return</span> canvasContainer
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 创建元素</span>
+<span class="comment"> * <span class="doctag">@param</span> elType 元素类型</span>
+<span class="comment"> * <span class="doctag">@param</span> styleObj 样式对象</span>
+<span class="comment"> * <span class="doctag">@param</span> parent 父级元素</span>
+<span class="comment"> * <span class="doctag">@returns</span> <span class="variable">element</span></span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> createDocument = &lt;T <span class="keyword">extends</span> keyof <span class="title class_">HTMLElementTagNameMap</span>&gt;(
+  <span class="attr">elType</span>: T,
+  <span class="attr">styleObj</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">string</span> | <span class="built_in">number</span>&gt;,
+  <span class="attr">parent</span>: <span class="title class_">HTMLElement</span> | <span class="title class_">DocumentFragment</span>
+): <span class="title class_">HTMLElementTagNameMap</span>[T] =&gt; &#123;
+  <span class="keyword">const</span> el = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(elType)
+  <span class="title class_">Object</span>.<span class="title function_">keys</span>(styleObj).<span class="title function_">forEach</span>(<span class="function">(<span class="params">key</span>) =&gt;</span> &#123;
+    <span class="keyword">if</span> (<span class="title function_">isValidKey</span>(key, styleObj)) &#123;
+      <span class="title class_">Reflect</span>.<span class="title function_">set</span>(el.<span class="property">style</span>, key, styleObj[key])
+    &#125;
+  &#125;)
+  parent.<span class="title function_">appendChild</span>(el)
+  <span class="keyword">return</span> el
+&#125;</code></pre>
+</li>
+<li><p>初始化事件</p>
+<pre><code class="highlight ts"><span class="comment">/**</span>
+<span class="comment"> * 初始化事件</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">canvas</span></span>
+<span class="comment"> */</span>
+<span class="title function_">initEvent</span>(<span class="params">canvas: HTMLCanvasElement</span>) &#123;
+  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)
+  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)
+  <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)
+&#125;</code></pre>
+</li>
+<li><p>创建浮动元素容器</p>
+<pre><code class="highlight js"><span class="title function_">initFloatCOntainer</span>(<span class="params"></span>) &#123;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
+    <span class="comment">// 创建浮动元素容器</span>
+    <span class="keyword">const</span> floatContainer = <span class="title function_">createDocument</span>(
+      <span class="string">&#x27;div&#x27;</span>,
+      styleObj.<span class="property">floatContainer</span>,
+      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>
+    )
+
+    <span class="comment">// 创建放大镜的小颜色块</span>
+    <span class="keyword">const</span> fragment = <span class="variable language_">document</span>.<span class="title function_">createDocumentFragment</span>()
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>; i++) &#123;
+      <span class="keyword">const</span> row = <span class="title class_">Math</span>.<span class="title function_">ceil</span>(i / <span class="variable constant_">COLOR_ITEM_SIZE</span>)
+      <span class="keyword">const</span> col = i - (row - <span class="number">1</span>) * <span class="variable constant_">COLOR_ITEM_SIZE</span>
+      <span class="keyword">const</span> <span class="attr">style</span>: <span class="title class_">Record</span>&lt;string, string | number&gt; = &#123;
+        ...styleObj.<span class="property">colorItem</span>
+      &#125;
+
+      <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span>) &#123;
+        style.<span class="property">borderColor</span> = <span class="string">&#x27;#000000&#x27;</span>
+      &#125;
+      <span class="keyword">const</span> itemEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, style, fragment)
+      itemEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span><span class="subst">$&#123;i&#125;</span>`</span>)
+      <span class="variable language_">this</span>.<span class="property">colorArr</span>.<span class="title function_">push</span>(&#123;
+        <span class="attr">el</span>: itemEl,
+        row,
+        col
+      &#125;)
+    &#125;
+    floatContainer.<span class="title function_">appendChild</span>(fragment)
+    <span class="keyword">const</span> textEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, styleObj.<span class="property">text</span>, floatContainer)
+    textEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)
+    <span class="variable language_">this</span>.<span class="property">floatContainer</span> = floatContainer
+  &#125;
+&#125;</code></pre></li>
+</ul>
+<h2 id="鼠标移动"><a href="#鼠标移动" class="headerlink" title="鼠标移动"></a>鼠标移动</h2><ul>
+<li>根据鼠标移动时的坐标，计算需要处理的颜色区域，然后调用<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/getImageData">CanvasRenderingContext2D.getImageData()</a>方法，这个方法会返回一个ImageData对象，这个对象里就包含RGBA数据，然后把这些数据展示到放大镜元素上，就有了放大的效果<pre><code class="highlight ts">canvasMouseMove = <span class="function">(<span class="params">e: MouseEvent</span>) =&gt;</span> &#123;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;
+    <span class="keyword">const</span> x = e.<span class="property">pageX</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span>
+    <span class="keyword">const</span> y = e.<span class="property">pageY</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span>
+    <span class="comment">// 获取放大镜所需区域颜色</span>
+    <span class="keyword">const</span> colors = <span class="variable language_">this</span>.<span class="title function_">getColors</span>(x, y)
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span> &amp;&amp; colors) &#123;
+      <span class="comment">// 根据坐标改变放大镜位置</span>
+      <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">transform</span> = <span class="string">`translate(<span class="subst">$&#123;e.pageX - <span class="number">82.5</span>&#125;</span>px, <span class="subst">$&#123;</span></span>
+<span class="subst"><span class="string">        e.pageY - <span class="number">82.5</span></span></span>
+<span class="subst"><span class="string">      &#125;</span>px )`</span>
+      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">visibility</span> === <span class="string">&#x27;hidden&#x27;</span>) &#123;
+        <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">visibility</span> = <span class="string">&#x27;visible&#x27;</span>
+      &#125;
+      <span class="keyword">const</span> textEl = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)
+
+      <span class="comment">// 遍历每个颜色块，修改颜色</span>
+      <span class="keyword">for</span> (
+        <span class="keyword">let</span> i = <span class="number">0</span>;
+        i &lt; <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>;
+        i++
+      ) &#123;
+        <span class="keyword">const</span> &#123; el, row, col &#125; = <span class="variable language_">this</span>.<span class="property">colorArr</span>[i]
+        <span class="keyword">const</span> [r, g, b, a] = colors[i]
+        <span class="comment">// toHexString rgba转16进制</span>
+        <span class="keyword">const</span> hexStr = <span class="title function_">toHexString</span>(&#123; r, g, b, <span class="attr">a</span>: a / <span class="number">255</span> &#125;)
+
+        <span class="comment">//  最中间的颜色保存起来</span>
+        <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span> &amp;&amp; textEl) &#123;
+          textEl.<span class="property">textContent</span> = hexStr
+          textEl.<span class="property">style</span>.<span class="property">color</span> = hexStr
+          <span class="variable language_">this</span>.<span class="property">color</span> = hexStr
+        &#125;
+
+        el.<span class="property">style</span>.<span class="property">backgroundColor</span> = hexStr
+      &#125;
+    &#125;
+  &#125;
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 获取放大镜所需区域颜色</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">x</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">y</span></span>
+<span class="comment"> * <span class="doctag">@returns</span></span>
+<span class="comment"> */</span>
+<span class="title function_">getColors</span>(<span class="params">x: <span class="built_in">number</span>, y: <span class="built_in">number</span></span>) &#123;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;
+    <span class="keyword">const</span> &#123; data &#125; = <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">getImageData</span>(
+      x - <span class="number">5</span>,
+      y - <span class="number">5</span>,
+      <span class="variable constant_">COLOR_ITEM_SIZE</span>,
+      <span class="variable constant_">COLOR_ITEM_SIZE</span>
+    )
+    <span class="keyword">const</span> colors = []
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; data.<span class="property">length</span>; i += <span class="number">4</span>) &#123;
+      colors.<span class="title function_">push</span>([data[i], data[i + <span class="number">1</span>], data[i + <span class="number">2</span>], data[i + <span class="number">3</span>]])
+    &#125;
+    <span class="keyword">return</span> colors
+  &#125;
+&#125;</code></pre></li>
+</ul>
+<h2 id="鼠标点击"><a href="#鼠标点击" class="headerlink" title="鼠标点击"></a>鼠标点击</h2><ul>
+<li>鼠标点击触发回调，销毁元素<pre><code class="highlight ts">canvasMouseDown = <span class="function">() =&gt;</span> &#123;
+  <span class="variable language_">this</span>?.<span class="property">onChange</span>?.(<span class="variable language_">this</span>.<span class="property">color</span>)
+  <span class="variable language_">this</span>.<span class="title function_">destroy</span>()
+&#125;
+
+<span class="title function_">destroy</span>(<span class="params"></span>) &#123;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvas</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)
+    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)
+  &#125;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
+    <span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">removeChild</span>(<span class="variable language_">this</span>.<span class="property">canvasContainer</span>)
+  &#125;
+  <span class="variable language_">window</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)
+&#125;</code></pre></li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>有问题欢迎讨论👻</p>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>微信小程序</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>vue3响应式分析</title>
     <url>/2021/08/01/%E8%A7%A3%E6%9E%90reactive-vue3%E5%93%8D%E5%BA%94%E5%BC%8F/</url>
     <content><![CDATA[<h2 id="vue3响应式分析"><a href="#vue3响应式分析" class="headerlink" title="vue3响应式分析"></a>vue3响应式分析</h2><ol>
@@ -4657,245 +4891,6 @@ targetMap = &#123;
       </tags>
   </entry>
   <entry>
-    <title>颜色选择器的纯JS实现</title>
-    <url>/2022/11/05/%E9%A2%9C%E8%89%B2%E9%80%89%E6%8B%A9%E5%99%A8%E7%9A%84%E7%BA%AFJS%E5%AE%9E%E7%8E%B0/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在逛论坛的时候发现了一个新API：<code>EyeDropper</code>，仅需创建一个实例，然后调用open方法，就可以取到你屏幕内所有可以取到的颜色，可惜兼容性不太行，只有Chrome，Edge，Opera支持，<a href="https://developer.mozilla.org/en-US/docs/Web/API/EyeDropper">MDN文档</a><br>知道了这个API后我也有了一个想实现取色器的想法，工作摸鱼期间👻折腾了几天搞了出来，实现步骤大致以下几步</p>
-<ol>
-<li>所需页面创建实例，初始化所需属性</li>
-<li>需开启时调用open方法开启取色器，网页截屏生成canvas，初始化监听事件和浮动元素(放大镜)</li>
-<li>鼠标移动时根据坐标获取颜色数据修改放大镜颜色</li>
-<li>鼠标点击或者按Esc键后销毁</li>
-</ol>
-<h2 id="预览"><a href="#预览" class="headerlink" title="预览"></a>预览</h2><p>预览地址：<a href="https://lhrun.github.io/page-color-picker/">https://lhrun.github.io/page-color-picker/</a><br>github：<a href="https://github.com/LHRUN/page-color-picker">https://github.com/LHRUN/page-color-picker</a><br><img src="https://s1.ax1x.com/2022/11/05/xOoXo4.png"></p>
-<h2 id="初始化方法"><a href="#初始化方法" class="headerlink" title="初始化方法"></a>初始化方法</h2><p>初始化方法没什么说的，就是把需要的属性和方法赋值一遍初始值，然后接收一个鼠标点击时的回调</p>
-<pre><code class="highlight ts"><span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">ColorPicker</span> &#123;
-  <span class="attr">canvasContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// canvas容器元素</span>
-  <span class="attr">canvas</span>: <span class="title class_">HTMLCanvasElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas</span>
-  <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas[context]</span>
-  <span class="attr">floatContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 鼠标移动时的浮动容器元素</span>
-  onChange?: <span class="function">(<span class="params">color: <span class="built_in">string</span></span>) =&gt;</span> <span class="built_in">void</span> <span class="comment">// 点击鼠标后的回调</span>
-  color = <span class="string">&#x27;&#x27;</span> <span class="comment">// 颜色值</span>
-  elementId = <span class="string">&#x27;&#x27;</span> <span class="comment">// 元素唯一id</span>
-  <span class="attr">colorArr</span>: &#123;
-    <span class="attr">el</span>: <span class="title class_">HTMLDivElement</span>
-    <span class="attr">row</span>: <span class="built_in">number</span>
-    <span class="attr">col</span>: <span class="built_in">number</span>
-  &#125;[] = [] <span class="comment">// 放大镜颜色数组</span>
-
-  <span class="title function_">constructor</span>(<span class="params"></span>
-<span class="params">    onChange?: (color: <span class="built_in">string</span>) =&gt; <span class="built_in">void</span> <span class="comment">// 点击后回调</span></span>
-<span class="params">  </span>) &#123;
-    <span class="variable language_">this</span>.<span class="property">onChange</span> = onChange
-  &#125;
-  <span class="comment">// ...</span>
-&#125;</code></pre>
-
-<h2 id="开启取色器"><a href="#开启取色器" class="headerlink" title="开启取色器"></a>开启取色器</h2><p>开启取色器分为4步</p>
-<ol>
-<li>初始化canvas容器</li>
-<li>生成canvas，我使用的是<a href="https://www.npmjs.com/package/html2canvas">html2canvas</a></li>
-<li>初始化监听事件</li>
-<li>创建浮动元素</li>
-</ol>
-<pre><code class="highlight js"><span class="comment">/**</span>
-<span class="comment">* 开启取色器</span>
-<span class="comment">*/</span>
-<span class="title function_">open</span>(<span class="params"></span>) &#123;
-  <span class="comment">// 获取随机id</span>
-  <span class="variable language_">this</span>.<span class="property">elementId</span> = <span class="title function_">getId</span>()
-  <span class="comment">// 初始化canvas容器</span>
-  <span class="variable language_">this</span>.<span class="title function_">initContainer</span>()
-  <span class="title function_">html2canvas</span>(<span class="variable language_">document</span>.<span class="property">body</span>).<span class="title function_">then</span>(<span class="function">(<span class="params">canvas</span>) =&gt;</span> &#123;
-    <span class="keyword">if</span> (canvas &amp;&amp; <span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
-      <span class="comment">// 初始化事件</span>
-      <span class="variable language_">this</span>.<span class="title function_">initEvent</span>(canvas)
-      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="property">style</span>.<span class="property">display</span> = <span class="string">&#x27;block&#x27;</span>
-      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="title function_">appendChild</span>(canvas)
-      <span class="variable language_">this</span>.<span class="property">canvas</span> = canvas
-      <span class="variable language_">this</span>.<span class="property">context</span> = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>)
-      <span class="comment">// 创建浮动元素</span>
-      <span class="variable language_">this</span>.<span class="title function_">initFloatContainer</span>()
-    &#125;
-  &#125;)
-&#125;</code></pre>
-<ul>
-<li><p>初始化canvas容器</p>
-<pre><code class="highlight ts"><span class="title function_">initContainer</span>(<span class="params"></span>) &#123;
-  <span class="comment">// 创建元素我封装了一个方法</span>
-  <span class="keyword">const</span> canvasContainer = <span class="title function_">createDocument</span>(
-    <span class="string">&#x27;div&#x27;</span>,
-    styleObj.<span class="property">canvasContainer</span>,
-    <span class="variable language_">document</span>.<span class="property">body</span>
-  )
-  <span class="variable language_">this</span>.<span class="property">canvasContainer</span> = canvasContainer
-  <span class="keyword">return</span> canvasContainer
-&#125;
-
-<span class="comment">/**</span>
-<span class="comment"> * 创建元素</span>
-<span class="comment"> * <span class="doctag">@param</span> elType 元素类型</span>
-<span class="comment"> * <span class="doctag">@param</span> styleObj 样式对象</span>
-<span class="comment"> * <span class="doctag">@param</span> parent 父级元素</span>
-<span class="comment"> * <span class="doctag">@returns</span> <span class="variable">element</span></span>
-<span class="comment"> */</span>
-<span class="keyword">export</span> <span class="keyword">const</span> createDocument = &lt;T <span class="keyword">extends</span> keyof <span class="title class_">HTMLElementTagNameMap</span>&gt;(
-  <span class="attr">elType</span>: T,
-  <span class="attr">styleObj</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">string</span> | <span class="built_in">number</span>&gt;,
-  <span class="attr">parent</span>: <span class="title class_">HTMLElement</span> | <span class="title class_">DocumentFragment</span>
-): <span class="title class_">HTMLElementTagNameMap</span>[T] =&gt; &#123;
-  <span class="keyword">const</span> el = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(elType)
-  <span class="title class_">Object</span>.<span class="title function_">keys</span>(styleObj).<span class="title function_">forEach</span>(<span class="function">(<span class="params">key</span>) =&gt;</span> &#123;
-    <span class="keyword">if</span> (<span class="title function_">isValidKey</span>(key, styleObj)) &#123;
-      <span class="title class_">Reflect</span>.<span class="title function_">set</span>(el.<span class="property">style</span>, key, styleObj[key])
-    &#125;
-  &#125;)
-  parent.<span class="title function_">appendChild</span>(el)
-  <span class="keyword">return</span> el
-&#125;</code></pre>
-</li>
-<li><p>初始化事件</p>
-<pre><code class="highlight ts"><span class="comment">/**</span>
-<span class="comment"> * 初始化事件</span>
-<span class="comment"> * <span class="doctag">@param</span> <span class="variable">canvas</span></span>
-<span class="comment"> */</span>
-<span class="title function_">initEvent</span>(<span class="params">canvas: HTMLCanvasElement</span>) &#123;
-  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)
-  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)
-  <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)
-&#125;</code></pre>
-</li>
-<li><p>创建浮动元素容器</p>
-<pre><code class="highlight js"><span class="title function_">initFloatCOntainer</span>(<span class="params"></span>) &#123;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
-    <span class="comment">// 创建浮动元素容器</span>
-    <span class="keyword">const</span> floatContainer = <span class="title function_">createDocument</span>(
-      <span class="string">&#x27;div&#x27;</span>,
-      styleObj.<span class="property">floatContainer</span>,
-      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>
-    )
-
-    <span class="comment">// 创建放大镜的小颜色块</span>
-    <span class="keyword">const</span> fragment = <span class="variable language_">document</span>.<span class="title function_">createDocumentFragment</span>()
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>; i++) &#123;
-      <span class="keyword">const</span> row = <span class="title class_">Math</span>.<span class="title function_">ceil</span>(i / <span class="variable constant_">COLOR_ITEM_SIZE</span>)
-      <span class="keyword">const</span> col = i - (row - <span class="number">1</span>) * <span class="variable constant_">COLOR_ITEM_SIZE</span>
-      <span class="keyword">const</span> <span class="attr">style</span>: <span class="title class_">Record</span>&lt;string, string | number&gt; = &#123;
-        ...styleObj.<span class="property">colorItem</span>
-      &#125;
-
-      <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span>) &#123;
-        style.<span class="property">borderColor</span> = <span class="string">&#x27;#000000&#x27;</span>
-      &#125;
-      <span class="keyword">const</span> itemEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, style, fragment)
-      itemEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span><span class="subst">$&#123;i&#125;</span>`</span>)
-      <span class="variable language_">this</span>.<span class="property">colorArr</span>.<span class="title function_">push</span>(&#123;
-        <span class="attr">el</span>: itemEl,
-        row,
-        col
-      &#125;)
-    &#125;
-    floatContainer.<span class="title function_">appendChild</span>(fragment)
-    <span class="keyword">const</span> textEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, styleObj.<span class="property">text</span>, floatContainer)
-    textEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)
-    <span class="variable language_">this</span>.<span class="property">floatContainer</span> = floatContainer
-  &#125;
-&#125;</code></pre></li>
-</ul>
-<h2 id="鼠标移动"><a href="#鼠标移动" class="headerlink" title="鼠标移动"></a>鼠标移动</h2><ul>
-<li>根据鼠标移动时的坐标，计算需要处理的颜色区域，然后调用<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/getImageData">CanvasRenderingContext2D.getImageData()</a>方法，这个方法会返回一个ImageData对象，这个对象里就包含RGBA数据，然后把这些数据展示到放大镜元素上，就有了放大的效果<pre><code class="highlight ts">canvasMouseMove = <span class="function">(<span class="params">e: MouseEvent</span>) =&gt;</span> &#123;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;
-    <span class="keyword">const</span> x = e.<span class="property">pageX</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span>
-    <span class="keyword">const</span> y = e.<span class="property">pageY</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span>
-    <span class="comment">// 获取放大镜所需区域颜色</span>
-    <span class="keyword">const</span> colors = <span class="variable language_">this</span>.<span class="title function_">getColors</span>(x, y)
-    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span> &amp;&amp; colors) &#123;
-      <span class="comment">// 根据坐标改变放大镜位置</span>
-      <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">transform</span> = <span class="string">`translate(<span class="subst">$&#123;e.pageX - <span class="number">82.5</span>&#125;</span>px, <span class="subst">$&#123;</span></span>
-<span class="subst"><span class="string">        e.pageY - <span class="number">82.5</span></span></span>
-<span class="subst"><span class="string">      &#125;</span>px )`</span>
-      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">display</span> === <span class="string">&#x27;none&#x27;</span>) &#123;
-        <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">display</span> = <span class="string">&#x27;flex&#x27;</span>
-      &#125;
-      <span class="keyword">const</span> textEl = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)
-
-      <span class="comment">// 遍历每个颜色块，修改颜色</span>
-      <span class="keyword">for</span> (
-        <span class="keyword">let</span> i = <span class="number">0</span>;
-        i &lt; <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>;
-        i++
-      ) &#123;
-        <span class="keyword">const</span> &#123; el, row, col &#125; = <span class="variable language_">this</span>.<span class="property">colorArr</span>[i]
-        <span class="keyword">const</span> [r, g, b, a] = colors[i]
-        <span class="comment">// toHexString rgba转16进制</span>
-        <span class="keyword">const</span> hexStr = <span class="title function_">toHexString</span>(&#123; r, g, b, <span class="attr">a</span>: a / <span class="number">255</span> &#125;)
-
-        <span class="comment">//  最中间的颜色保存起来</span>
-        <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span> &amp;&amp; textEl) &#123;
-          textEl.<span class="property">textContent</span> = hexStr
-          textEl.<span class="property">style</span>.<span class="property">color</span> = hexStr
-          <span class="variable language_">this</span>.<span class="property">color</span> = hexStr
-        &#125;
-
-        el.<span class="property">style</span>.<span class="property">backgroundColor</span> = hexStr
-      &#125;
-    &#125;
-  &#125;
-&#125;
-
-<span class="comment">/**</span>
-<span class="comment"> * 获取放大镜所需区域颜色</span>
-<span class="comment"> * <span class="doctag">@param</span> <span class="variable">x</span></span>
-<span class="comment"> * <span class="doctag">@param</span> <span class="variable">y</span></span>
-<span class="comment"> * <span class="doctag">@returns</span></span>
-<span class="comment"> */</span>
-<span class="title function_">getColors</span>(<span class="params">x: <span class="built_in">number</span>, y: <span class="built_in">number</span></span>) &#123;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;
-    <span class="keyword">const</span> &#123; data &#125; = <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">getImageData</span>(
-      x - <span class="number">5</span>,
-      y - <span class="number">5</span>,
-      <span class="variable constant_">COLOR_ITEM_SIZE</span>,
-      <span class="variable constant_">COLOR_ITEM_SIZE</span>
-    )
-    <span class="keyword">const</span> colors = []
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; data.<span class="property">length</span>; i += <span class="number">4</span>) &#123;
-      colors.<span class="title function_">push</span>([data[i], data[i + <span class="number">1</span>], data[i + <span class="number">2</span>], data[i + <span class="number">3</span>]])
-    &#125;
-    <span class="keyword">return</span> colors
-  &#125;
-&#125;</code></pre></li>
-</ul>
-<h2 id="鼠标点击"><a href="#鼠标点击" class="headerlink" title="鼠标点击"></a>鼠标点击</h2><ul>
-<li>鼠标点击触发回调，销毁元素<pre><code class="highlight ts">canvasMouseDown = <span class="function">() =&gt;</span> &#123;
-  <span class="variable language_">this</span>?.<span class="property">onChange</span>?.(<span class="variable language_">this</span>.<span class="property">color</span>)
-  <span class="variable language_">this</span>.<span class="title function_">destroy</span>()
-&#125;
-
-<span class="title function_">destroy</span>(<span class="params"></span>) &#123;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvas</span>) &#123;
-    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)
-    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)
-  &#125;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
-    <span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">removeChild</span>(<span class="variable language_">this</span>.<span class="property">canvasContainer</span>)
-  &#125;
-  <span class="variable language_">window</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)
-&#125;</code></pre></li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>有问题欢迎讨论👻</p>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>微信小程序</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>&#39;tag&#39;</title>
-    <url>/tag/index.html</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>About Me</title>
     <url>/about/index.html</url>
     <content><![CDATA[<p>Hi, 这里是LH’BLOG<br>🏀勇士球迷 | 🎮菜狗玩家 | 👨‍💻Front End<br>💻技术分享 | 📝实践总结 | 🏞随手记录</p>
@@ -4907,5 +4902,10 @@ targetMap = &#123;
 <li><a href="https://www.zhihu.com/people/wxae77cceaa49dcaf5">知乎</a></li>
 </ul>
 ]]></content>
+  </entry>
+  <entry>
+    <title>&#39;tag&#39;</title>
+    <url>/tag/index.html</url>
+    <content><![CDATA[]]></content>
   </entry>
 </search>

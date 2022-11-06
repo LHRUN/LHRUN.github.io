@@ -502,7 +502,7 @@ input[type="search"]::-webkit-search-results-decoration {
   width: 50%;
 }
 .post-gallery-item .post-img img {
-  border-radisu: 5px;
+  border-radius: 5px;
 }
 .post-gallery-item a {
   background-image: linear-gradient(#fffcf2, #fffcf2), linear-gradient(#002a56, #002a56);
