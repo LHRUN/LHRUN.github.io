@@ -501,6 +501,9 @@ input[type="search"]::-webkit-search-results-decoration {
 .post-gallery-item .post-img {
   width: 50%;
 }
+.post-gallery-item .post-img img {
+  border-radisu: 5px;
+}
 .post-gallery-item a {
   background-image: linear-gradient(#fffcf2, #fffcf2), linear-gradient(#002a56, #002a56);
   background-size: 100% 1px, 0% 1px;
@@ -602,6 +605,9 @@ input[type="search"]::-webkit-search-results-decoration {
 }
 .profile .profile-image {
   width: 50%;
+}
+.profile .profile-image img {
+  border-radius: 10px;
 }
 @media (max-width: 480px) {
   .profile {

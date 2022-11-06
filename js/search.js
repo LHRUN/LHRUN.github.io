@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (searchConfig.preload) {
     // preload the search data when the page loads
-    console.log("loading page");
     localSearch.fetchData();
   }
 

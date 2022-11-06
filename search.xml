@@ -198,257 +198,6 @@ npm install</code></pre></li>
       </tags>
   </entry>
   <entry>
-    <title>Vue3模版编译原理</title>
-    <url>/2022/08/31/Vue3%E6%A8%A1%E7%89%88%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/</url>
-    <content><![CDATA[<h2 id="模版编译流程"><a href="#模版编译流程" class="headerlink" title="模版编译流程"></a>模版编译流程</h2><p>Vue3模版编译就是把template字符串编译成渲染函数</p>
-<pre><code class="highlight js"><span class="comment">// template</span>
-&lt;div&gt;<span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;&#123;LH_R&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span>&lt;/div&gt;
-
-<span class="comment">// render</span>
-<span class="keyword">import</span> &#123; toDisplayString <span class="keyword">as</span> _toDisplayString, createElementVNode <span class="keyword">as</span> _createElementVNode, openBlock <span class="keyword">as</span> _openBlock, createElementBlock <span class="keyword">as</span> _createElementBlock &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span>
-
-<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params">_ctx, _cache, $props, $setup, $data, $options</span>) &#123;
-  <span class="keyword">return</span> (<span class="title function_">_openBlock</span>(), <span class="title function_">_createElementBlock</span>(<span class="string">&quot;div&quot;</span>, <span class="literal">null</span>, [
-    <span class="title function_">_createElementVNode</span>(<span class="string">&quot;p&quot;</span>, <span class="literal">null</span>, <span class="title function_">_toDisplayString</span>(_ctx.<span class="property">LH_R</span>), <span class="number">1</span> <span class="comment">/* TEXT */</span>)
-  ]))
-&#125;</code></pre>
-
-<p>我会按照编译流程分3步分析</p>
-<ol>
-<li><strong>parse</strong>：将模版字符串转换成模版AST</li>
-<li><strong>transform</strong>：将模版AST转换为用于描述渲染函数的AST</li>
-<li><strong>generate</strong>：根据AST生成渲染函数<pre><code class="highlight ts"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">baseCompile</span>(<span class="params"></span>
-<span class="params">  template: <span class="built_in">string</span> | RootNode,</span>
-<span class="params">  options: CompilerOptions = &#123;&#125;</span>
-<span class="params"></span>): <span class="title class_">CodegenResult</span> &#123;
-  <span class="comment">// ...</span>
-  <span class="keyword">const</span> ast = <span class="title function_">isString</span>(template) ? <span class="title function_">baseParse</span>(template, options) : template
-
-  <span class="keyword">const</span> [nodeTransforms, directiveTransforms] = <span class="title function_">getBaseTransformPreset</span>(
-    prefixIdentifiers
-  )
-  <span class="title function_">transform</span>(
-    ast,
-    <span class="title function_">extend</span>(&#123;&#125;, options, &#123;
-      prefixIdentifiers,
-      <span class="attr">nodeTransforms</span>: [
-        ...nodeTransforms,
-        ...(options.<span class="property">nodeTransforms</span> || []) <span class="comment">// user transforms</span>
-      ],
-      <span class="attr">directiveTransforms</span>: <span class="title function_">extend</span>(
-        &#123;&#125;,
-        directiveTransforms,
-        options.<span class="property">directiveTransforms</span> || &#123;&#125; <span class="comment">// user transforms</span>
-      )
-    &#125;)
-  )
-
-  <span class="keyword">return</span> <span class="title function_">generate</span>(
-    ast,
-    <span class="title function_">extend</span>(&#123;&#125;, options, &#123;
-      prefixIdentifiers
-    &#125;)
-  )
-&#125;</code></pre></li>
-</ol>
-<h2 id="parse"><a href="#parse" class="headerlink" title="parse"></a>parse</h2><ul>
-<li><p>parse对模版字符串进行遍历，然后循环判断开始标签和结束标签把字符串分割成一个个<strong>token</strong>，存在一个token列表，然后扫描token列表并维护一个开始标签栈，每当扫描一个开始标签节点，就将其压入栈顶，栈顶的节点始终作为下一个扫描的节点的父节点。这样，当所有Token扫描完成后，即可构建成一颗树形AST</p>
-</li>
-<li><p>以下是简化版<strong>parseChildren</strong>源码，是parse的主入口</p>
-<pre><code class="highlight ts"><span class="keyword">function</span> <span class="title function_">parseChildren</span>(<span class="params"></span>
-<span class="params">  context: ParserContext,</span>
-<span class="params">  mode: TextModes,</span>
-<span class="params">  ancestors: ElementNode[] <span class="comment">// 节点栈结构，用于维护节点嵌套关系</span></span>
-<span class="params"></span>): <span class="title class_">TemplateChildNode</span>[] &#123;
-  <span class="comment">// 获取父节点</span>
-  <span class="keyword">const</span> parent = <span class="title function_">last</span>(ancestors)
-  <span class="keyword">const</span> ns = parent ? parent.<span class="property">ns</span> : <span class="title class_">Namespaces</span>.<span class="property">HTML</span>
-  <span class="keyword">const</span> <span class="attr">nodes</span>: <span class="title class_">TemplateChildNode</span>[] = [] <span class="comment">// 存储解析出来的AST子节点</span>
-
-  <span class="comment">// 遇到闭合标签结束解析</span>
-  <span class="keyword">while</span> (!<span class="title function_">isEnd</span>(context, mode, ancestors)) &#123;
-    <span class="comment">// 切割处理的模版字符串</span>
-    <span class="keyword">const</span> s = context.<span class="property">source</span>
-    <span class="keyword">let</span> <span class="attr">node</span>: <span class="title class_">TemplateChildNode</span> | <span class="title class_">TemplateChildNode</span>[] | <span class="literal">undefined</span> = <span class="literal">undefined</span>
-
-    <span class="keyword">if</span> (mode === <span class="title class_">TextModes</span>.<span class="property">DATA</span> || mode === <span class="title class_">TextModes</span>.<span class="property">RCDATA</span>) &#123;
-      <span class="keyword">if</span> (!context.<span class="property">inVPre</span> &amp;&amp; <span class="title function_">startsWith</span>(s, context.<span class="property">options</span>.<span class="property">delimiters</span>[<span class="number">0</span>])) &#123;
-        <span class="comment">// 解析插值表达式&#123;&#123;&#125;&#125;</span>
-        node = parseInterpolation(context, mode)
-      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mode === <span class="title class_">TextModes</span>.<span class="property">DATA</span> &amp;&amp; s[<span class="number">0</span>] === <span class="string">&#x27;&lt;&#x27;</span>) &#123;
-        <span class="keyword">if</span> (s[<span class="number">1</span>] === <span class="string">&#x27;!&#x27;</span>) &#123;
-          <span class="comment">// 解析注释节点和文档声明...</span>
-        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (s[<span class="number">1</span>] === <span class="string">&#x27;/&#x27;</span>) &#123;
-          <span class="keyword">if</span> (s[<span class="number">2</span>] === <span class="string">&#x27;&gt;&#x27;</span>) &#123;
-            <span class="comment">// 针对自闭合标签，前进三个字符</span>
-            <span class="title function_">advanceBy</span>(context, <span class="number">3</span>)
-            <span class="keyword">continue</span>
-          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="regexp">/[a-z]/i</span>.<span class="title function_">test</span>(s[<span class="number">2</span>])) &#123;
-            <span class="comment">// 解析结束标签</span>
-            <span class="title function_">parseTag</span>(context, <span class="title class_">TagType</span>.<span class="property">End</span>, parent)
-            <span class="keyword">continue</span>
-          &#125; <span class="keyword">else</span> &#123;
-            <span class="comment">// 如果不符合上述情况，就作为伪注释解析</span>
-            node = <span class="title function_">parseBogusComment</span>(context)
-          &#125;
-        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="regexp">/[a-z]/i</span>.<span class="title function_">test</span>(s[<span class="number">1</span>])) &#123;
-          <span class="comment">// 解析html开始标签，获得解析到的AST节点</span>
-          node = <span class="title function_">parseElement</span>(context, ancestors)
-        &#125;
-      &#125;
-    &#125;
-    <span class="keyword">if</span> (!node) &#123;
-      <span class="comment">// 普通文本节点</span>
-      node = <span class="title function_">parseText</span>(context, mode)
-    &#125;
-
-    <span class="comment">// 如果节点是数组，就遍历添加到nodes中</span>
-    <span class="keyword">if</span> (<span class="title function_">isArray</span>(node)) &#123;
-      <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; node.<span class="property">length</span>; i++) &#123;
-        <span class="title function_">pushNode</span>(nodes, node[i])
-      &#125;
-    &#125; <span class="keyword">else</span> &#123;
-      <span class="title function_">pushNode</span>(nodes, node)
-    &#125;
-  &#125;
-  <span class="keyword">return</span> nodes
-&#125;</code></pre>
-</li>
-<li><p>就拿<code>&lt;div&gt;&lt;p&gt;LH_R&lt;/p&gt;&lt;/div&gt;</code>流程举例</p>
-</li>
-</ul>
-<ol>
-<li>div开始标签入栈，context.source &#x3D; <code>&lt;p&gt;LH_R&lt;/p&gt;&lt;/div&gt;</code>，ancestors &#x3D; <code>[div]</code></li>
-<li>p开始标签入栈，context.source &#x3D; <code>LH_R&lt;/p&gt;&lt;/div&gt;</code>，ancestors &#x3D; <code>[div, p]</code></li>
-<li>解析文本<code>LH_R</code></li>
-<li>解析p结束标签，p标签出栈</li>
-<li>解析div结束标签，div标签出栈</li>
-<li>栈空，模版解析完毕</li>
-</ol>
-<h2 id="transform"><a href="#transform" class="headerlink" title="transform"></a>transform</h2><ul>
-<li>transform采用深度优先的方式对AST进行遍历，在遍历过程中，对节点的操作与转换采用插件化架构，都封装为独立的函数，然后转换函数通过<code>context.nodeTransforms</code>来注册</li>
-<li>转换过程是优先转换子节点，因为有的父节点的转换依赖子节点</li>
-<li>以下是AST遍历<code>traverseNode</code>核心源码<pre><code class="highlight ts"><span class="comment">/* </span>
-<span class="comment">  遍历AST节点树，通过node转换器对当前节点进行node转换</span>
-<span class="comment">  子节点全部遍历完成后执行对应指令的onExit回调退出转换</span>
-<span class="comment">*/</span>
-<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">traverseNode</span>(<span class="params"></span>
-<span class="params">  node: RootNode | TemplateChildNode,</span>
-<span class="params">  context: TransformContext</span>
-<span class="params"></span>) &#123;
-  <span class="comment">// 记录当前正在遍历的节点</span>
-  context.<span class="property">currentNode</span> = node
-
-  <span class="comment">/* </span>
-<span class="comment">    nodeTransforms：transformElement、transformExpression、transformText...</span>
-<span class="comment">    transformElement：负责整个节点层面的转换</span>
-<span class="comment">    transformExpression：负责节点中表达式的转化</span>
-<span class="comment">    transformText：负责节点中文本的转换</span>
-<span class="comment">  */</span>
-  <span class="keyword">const</span> &#123; nodeTransforms &#125; = context
-  <span class="keyword">const</span> exitFns = []
-  <span class="comment">// 依次调用转换工具</span>
-  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; nodeTransforms.<span class="property">length</span>; i++) &#123;
-    <span class="comment">/* </span>
-<span class="comment">      转换器只负责生成onExit回调，onExit函数才是执行转换主逻辑的地方，为什么要推到栈中先不执行呢？</span>
-<span class="comment">      因为要等到子节点都转换完成挂载gencodeNode后，也就是深度遍历完成后</span>
-<span class="comment">      再执行当前节点栈中的onExit，这样保证了子节点的表达式全部生成完毕</span>
-<span class="comment">    */</span>
-    <span class="keyword">const</span> onExit = nodeTransforms[i](node, context)
-    <span class="keyword">if</span> (onExit) &#123;
-      <span class="keyword">if</span> (<span class="title function_">isArray</span>(onExit)) &#123;
-        <span class="comment">// v-if、v-for为结构化指令，其onExit是数组形式</span>
-        exitFns.<span class="title function_">push</span>(...onExit)
-      &#125; <span class="keyword">else</span> &#123;
-        exitFns.<span class="title function_">push</span>(onExit)
-      &#125;
-    &#125;
-    <span class="keyword">if</span> (!context.<span class="property">currentNode</span>) &#123;
-      <span class="comment">// node was removed 节点被移除</span>
-      <span class="keyword">return</span>
-    &#125; <span class="keyword">else</span> &#123;
-      <span class="comment">// node may have been replaced</span>
-      <span class="comment">// 因为在转换的过程中节点可能被替换，恢复到之前的节点</span>
-      node = context.<span class="property">currentNode</span>
-    &#125;
-  &#125;
-
-  <span class="keyword">switch</span> (node.<span class="property">type</span>) &#123;
-    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">COMMENT</span>:
-      <span class="keyword">if</span> (!context.<span class="property">ssr</span>) &#123;
-        <span class="comment">// inject import for the Comment symbol, which is needed for creating</span>
-        <span class="comment">// comment nodes with `createVNode`</span>
-        <span class="comment">// 需要导入createComment辅助函数</span>
-        context.<span class="title function_">helper</span>(<span class="variable constant_">CREATE_COMMENT</span>)
-      &#125;
-      <span class="keyword">break</span>
-    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">INTERPOLATION</span>:
-      <span class="comment">// no need to traverse, but we need to inject toString helper</span>
-      <span class="keyword">if</span> (!context.<span class="property">ssr</span>) &#123;
-        context.<span class="title function_">helper</span>(<span class="variable constant_">TO_DISPLAY_STRING</span>)
-      &#125;
-      <span class="keyword">break</span>
-
-    <span class="comment">// for container types, further traverse downwards</span>
-    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">IF</span>:
-      <span class="comment">// 对v-if生成的节点束进行遍历</span>
-      <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; node.<span class="property">branches</span>.<span class="property">length</span>; i++) &#123;
-        <span class="title function_">traverseNode</span>(node.<span class="property">branches</span>[i], context)
-      &#125;
-      <span class="keyword">break</span>
-    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">IF_BRANCH</span>:
-    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">FOR</span>:
-    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">ELEMENT</span>:
-    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">ROOT</span>:
-      <span class="comment">// 遍历子节点</span>
-      <span class="title function_">traverseChildren</span>(node, context)
-      <span class="keyword">break</span>
-  &#125;
-  <span class="comment">// 当前节点树遍历完成，依次执行栈中的指令退出回调onExit</span>
-  context.<span class="property">currentNode</span> = node
-  <span class="keyword">let</span> i = exitFns.<span class="property">length</span>
-  <span class="keyword">while</span> (i--) &#123;
-    exitFns[i]()
-  &#125;
-&#125;</code></pre></li>
-</ul>
-<h2 id="generate"><a href="#generate" class="headerlink" title="generate"></a>generate</h2><p><code>generate</code>生成代码大致分为3步</p>
-<ol>
-<li>创建代码生成上下文，因为该上下文对象是用于维护代码生成过程中程序的运行状态，如：</li>
-</ol>
-<ul>
-<li><code>code</code>：最终生成的渲染函数</li>
-<li><code>push</code>：拼接代码</li>
-<li><code>indent</code>：代码缩进</li>
-<li><code>deindent</code>：减少代码缩进</li>
-<li>…</li>
-</ul>
-<ol start="2">
-<li>生成渲染函数的前置预设部分<ul>
-<li>module模式下：<code>genModulePreamble()</code></li>
-<li>function模式下：<code>genFunctionPreamble</code></li>
-<li>还有一些函数名，参数，作用域…</li>
-</ul>
-</li>
-<li>生成渲染函数<ul>
-<li>通过调用<code>genNode</code>，然后在<code>genNode</code>内部通过switch语句来匹配不同类型的节点，并调用对应的生成器函数</li>
-</ul>
-</li>
-</ol>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://segmentfault.com/a/1190000023594560">Vue3 模板编译原理</a></li>
-<li>《Vue.js设计与实现》</li>
-</ul>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>Vue</tag>
-        <tag>Vue3</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>React源码分析之diff核心算法</title>
     <url>/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
@@ -768,77 +517,818 @@ npm install</code></pre></li>
       </tags>
   </entry>
   <entry>
-    <title>pnpm的node_modules结构设计</title>
-    <url>/2022/08/24/pnpm%E7%9A%84node-modules%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/</url>
-    <content><![CDATA[<h2 id="pnpm的node-modules结构设计"><a href="#pnpm的node-modules结构设计" class="headerlink" title="pnpm的node_modules结构设计"></a>pnpm的node_modules结构设计</h2><p>分析pnpm之前，先说一下npm现在的一些问题</p>
-<h3 id="npm的问题"><a href="#npm的问题" class="headerlink" title="npm的问题"></a>npm的问题</h3><ul>
-<li><p>平时我们使用<code>npm install</code>命令后，node_modules就会呈现以下类似内容<br><img src="https://img-blog.csdnimg.cn/7396b28d86f84a21b15b4ef6026ddd45.png#pic_center" alt="npm_node_modules"></p>
-</li>
-<li><p>之所以出现这种扁平的结构，最初时初衷是好的，为了更好的利用资源，把每个依赖全部放到顶层，这样就不会造成每个依赖嵌套过深，导致很多重复依赖文件</p>
-</li>
-<li><p>但是随着这种文件结构逐步使用后，就会暴露出来两个问题</p>
-<ul>
-<li><strong>幽灵依赖</strong></li>
-<li><strong>版本冲突</strong></li>
+    <title>Vue3+Vite3 SSR基本搭建</title>
+    <url>/2022/08/27/Vue3-Vite3-SSR%E5%9F%BA%E6%9C%AC%E6%90%AD%E5%BB%BA/</url>
+    <content><![CDATA[<ul>
+<li>首先说明如果是生产使用强烈推荐Nuxt，但是如果想深入服务端渲染的运行原理，可以看本篇，会根据渲染流程搭建一个demo版ssr，源码在最后会贴上</li>
+<li>主要技术栈：Vite3 + Vue3 + pinia + VueRouter4 + express</li>
+<li>开始搭建之前，先说一下SSR渲染流程</li>
 </ul>
+<h3 id="SSR渲染流程"><a href="#SSR渲染流程" class="headerlink" title="SSR渲染流程"></a>SSR渲染流程</h3><ul>
+<li>首先浏览器向服务器请求，然后服务器根据请求的路由，会匹配相关的路由组件，然后执行组件的自定义服务端生命周期(例：Nuxt的asyncData)或者自定义获取数据的hook，并且把执行后的数据收集起来，统一在window的属性中存储</li>
+<li>然后vue的组件会被renderToString渲染成静态HTML字符串，替换掉index.html的提前指定的占位代码。然后index.html改变后的静态字符串发给客户端</li>
+<li>客户端拿到后，首先对数据进行初始化，然后进行激活，因为当前html只是静态数据，激活主要做两件事<ul>
+<li><ol>
+<li>把页面中的DOM元素与虚拟DOM之间建立联系</li>
+</ol>
 </li>
-<li><p>幽灵依赖就是你在引用npm包时，你会发现一些没有在<code>package.json</code>中出现的包也能引用，这个就是幽灵依赖，这是因为你在install下载npm包时，npm包也有它的依赖会下载，但是下载的依赖也会存在node_modules同一层级下，这样就会导致可以直接引用</p>
+<li><ol start="2">
+<li>为页面中的DOM元素添加事件绑定</li>
+</ol>
 </li>
-<li><p>版本冲突是因为不同的依赖可能依赖的包版本也不同，但是node_modules的同一层级只能存在一个包的一个版本号，如果有不同的版本号就只能存在依赖包的node_modules中，这样就会导致出现重复资源</p>
-<pre><code class="highlight js">├── package-A @<span class="number">1.0</span>
-|── package-B @<span class="number">1.0</span>
-├── package-C @<span class="number">1.0</span>
-│   └── package-A @<span class="number">2.0</span>
-│   └── package-B @<span class="number">2.0</span>
-├── package-D @<span class="number">1.0</span>
-│   └── package-A @<span class="number">2.0</span>
-│   └── package-B @<span class="number">2.0</span></code></pre></li>
-</ul>
-<h3 id="pnpm的出现"><a href="#pnpm的出现" class="headerlink" title="pnpm的出现"></a>pnpm的出现</h3><ul>
-<li><p>在所有前端苦npm久已时，pnpm出现了，并且在pnpm官网的简介上就简单说明了它的构造：<code>store + link</code><br><img src="https://img-blog.csdnimg.cn/20ef6cd68a0440c9841ea1450297c17a.jpeg#pic_center" alt="pnpm_node_modules"></p>
-<ul>
-<li>store就是依赖的实际存储位置，Mac&#x2F;linux在<code>&#123;home dir&#125;&gt;/.pnpm-store/v3</code>，windows在<code>当前盘/.pnpm-store/v3</code>。这样就会有个好处，你在多个项目使用的是同一个依赖时，就不用重复下载，这样就极大的减少存储空间</li>
-<li>link是指符号链接(<code>SymbolicLink</code>)和硬链接(<code>HardLink</code>)<ul>
-<li>SymbolicLink是一种特殊的文件，包含一条以绝对路径或者相对路径的形式指向其他文件或者目录的引用，它的存在不依赖于目标文件，如果目标文件被删除或者移动，指向目标文件的符号链接依然存在，但是它们会指向一个不复存在的文件</li>
-<li>相比于SymbolicLink，HardLink不是引用文件，而是引用<strong>inode</strong>，inode是文件系统的一种数据结构，用于描述文件系统对象。所以你即使更改目标文件的内容或位置，HardLink仍然指向目标文件，因为inode指向该文件</li>
 </ul>
 </li>
 </ul>
+<h3 id="1-创建项目"><a href="#1-创建项目" class="headerlink" title="1. 创建项目"></a>1. 创建项目</h3><ul>
+<li>首先用vite命令创建项目<code>pnpm create vite vue-ssr --template vue-ts</code><ul>
+<li>安装相关依赖：<code>pnpm add express pinia vue-router@4</code></li>
+</ul>
 </li>
-<li><p>然后拿react举例，当<code>pnpm add react</code>后，在node_modules终端输入<code>tree -a -L 3</code>会得到以下node_modules结构</p>
-<pre><code class="highlight js">.
-├── .<span class="property">modules</span>.<span class="property">yaml</span>
-├── .<span class="property">pnpm</span>
-│   ├── js-tokens@<span class="number">4.0</span><span class="number">.0</span>
-│   │   └── node_modules
-│   ├── lock.<span class="property">yaml</span>
-│   ├── loose-envify@<span class="number">1.4</span><span class="number">.0</span>
-│   │   └── node_modules
-│   ├── node_modules
-│   │   ├── .<span class="property">bin</span>
-│   │   ├── js-tokens -&gt; ../js-tokens@<span class="number">4.0</span><span class="number">.0</span>/node_modules/js-tokens
-│   │   └── loose-envify -&gt; ../loose-envify@<span class="number">1.4</span><span class="number">.0</span>/node_modules/loose-envify
-│   └── react@<span class="number">18.2</span><span class="number">.0</span>
-│       └── node_modules
-└── react -&gt; .<span class="property">pnpm</span>/react@<span class="number">18.2</span><span class="number">.0</span>/node_modules/react</code></pre></li>
-<li><p>node_modules下除了.pnpm外只有一个react，这个react只是一个SymbolicLink，当node.js解析时，会找到react的真实位置<code>node_modules/.pnpm/react@18.2.0/node_modules/react</code></p>
+<li>创建三个文件 <code>touch server.js  src/entry-client.ts src/entry-server.js</code><ul>
+<li>server.js：服务端启动文件</li>
+<li>entry-client.ts：客户端入口，应用挂载元素</li>
+<li>entry-server.js：服务端入口，处理服务端逻辑和静态资源</li>
+</ul>
 </li>
-<li><p>.pnpm就是将所有依赖放在同一层文件夹中，每个包都可以通过<code>.pnpm/&lt;name&gt;@&lt;version&gt;/node_modules/&lt;name&gt;</code>这种路径找到，然后通过<code>hand link</code>的方式在store中引用依赖文件</p>
-</li>
-<li><p>通过这种文件结构，pnpm就解决了npm的两个问题，首先node_modules下不会有你未在package.json中声明的依赖，这样就不会有幽灵依赖的问题。然后.pnpm下会有name+version的方式链接到store中，这样就不会出现因为版本冲突造成资源重复的问题</p>
-</li>
+<li>修改<code>package.json</code>运行脚本<pre><code class="highlight js"><span class="string">&quot;scripts&quot;</span>: &#123;
+  <span class="string">&quot;dev&quot;</span>: <span class="string">&quot;node server&quot;</span>, <span class="comment">// 运行开发环境</span>
+&#125;</code></pre></li>
+<li>然后需要把应用创建都改为函数的方式进行调用创建，因为在SSR环境下，和纯客户端不一样，服务器只会初始化一次，所以为了防止状态污染，每次请求必须是全新的实例<pre><code class="highlight js"><span class="comment">// src/main.ts</span>
+<span class="keyword">import</span> &#123; createSSRApp &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+<span class="keyword">import</span> <span class="title class_">App</span> <span class="keyword">from</span> <span class="string">&#x27;./App.vue&#x27;</span>
+<span class="keyword">import</span> &#123; createRouter &#125; <span class="keyword">from</span> <span class="string">&#x27;./router&#x27;</span>
+<span class="keyword">import</span> &#123; createPinia &#125; <span class="keyword">from</span> <span class="string">&#x27;pinia&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">createApp</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> app = <span class="title function_">createSSRApp</span>(<span class="title class_">App</span>)
+  <span class="keyword">const</span> router = <span class="title function_">createRouter</span>()
+  <span class="keyword">const</span> pinia = <span class="title function_">createPinia</span>()
+  app.<span class="title function_">use</span>(router)
+  app.<span class="title function_">use</span>(pinia)
+  <span class="keyword">return</span> &#123; app, router, pinia &#125;
+&#125;</code></pre></li>
+<li>roter同理<pre><code class="highlight js"><span class="comment">// src/router/index</span>
+<span class="keyword">import</span> &#123; createRouter <span class="keyword">as</span> _createRrouter, createMemoryHistory, createWebHistory, <span class="title class_">RouteRecordRaw</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span>
+
+<span class="keyword">const</span> <span class="attr">routes</span>: <span class="title class_">RouteRecordRaw</span>[] = [
+  ...
+]
+
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">createRouter</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> <span class="title function_">_createRrouter</span>(&#123;
+    <span class="attr">history</span>: <span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">env</span>.<span class="property">SSR</span> ? <span class="title function_">createMemoryHistory</span>() : <span class="title function_">createWebHistory</span>(),
+    routes,
+  &#125;)
+&#125;</code></pre></li>
+<li>然后修改index.html，增加注释占位和客户端入口文件，在之后的服务端渲染时注入<pre><code class="highlight html"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span>
+    <span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;icon&quot;</span> <span class="attr">type</span>=<span class="string">&quot;image/svg+xml&quot;</span> <span class="attr">href</span>=<span class="string">&quot;/vite.svg&quot;</span> /&gt;</span>
+    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span>
+    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Vite + Vue + TS<span class="tag">&lt;/<span class="name">title</span>&gt;</span>
+    <span class="comment">&lt;!-- 静态资源占位 .js .css ... --&gt;</span>
+    <span class="comment">&lt;!--preload-links--&gt;</span>
+  <span class="tag">&lt;/<span class="name">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">body</span>&gt;</span>
+    <span class="comment">&lt;!-- 应用代码占位 --&gt;</span>
+    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span><span class="comment">&lt;!--ssr-outlet--&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;/src/main.ts&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
+    <span class="comment">&lt;!-- 引用客户端入口文件 --&gt;</span>
+    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;/src/entry-client.ts&quot;</span> &gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-handlebars"><span class="language-xml"></span></span>
+<span class="language-xml"><span class="language-handlebars">      // 服务端获取的数据统一挂载到window上</span></span>
+<span class="language-xml"><span class="language-handlebars">      window.__INITIAL_STATE__ = &#x27;<span class="comment">&lt;!--pinia-state--&gt;</span>&#x27;</span></span>
+<span class="language-xml"><span class="language-handlebars">    </span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
+  <span class="tag">&lt;/<span class="name">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">html</span>&gt;</span></code></pre></li>
+</ul>
+<h3 id="2-服务端启动文件"><a href="#2-服务端启动文件" class="headerlink" title="2. 服务端启动文件"></a>2. 服务端启动文件</h3><ul>
+<li>创建项目后，就开始编写服务端启动文件，也就是项目根路径下的server.js文件</li>
+<li>这个文件的功能是启动一个node服务，然后根据请求，读取html文件，处理资源后把注释进行替换，最后把html发送给客户端<pre><code class="highlight js"><span class="keyword">import</span> fs <span class="keyword">from</span> <span class="string">&#x27;fs&#x27;</span>
+<span class="keyword">import</span> path <span class="keyword">from</span> <span class="string">&#x27;path&#x27;</span>
+<span class="keyword">import</span> &#123; fileURLToPath &#125; <span class="keyword">from</span> <span class="string">&#x27;url&#x27;</span>
+<span class="keyword">import</span> express <span class="keyword">from</span> <span class="string">&#x27;express&#x27;</span>
+
+<span class="keyword">import</span> &#123; createRequire &#125; <span class="keyword">from</span> <span class="string">&#x27;module&#x27;</span>;
+<span class="keyword">const</span> __dirname = path.<span class="title function_">dirname</span>(<span class="title function_">fileURLToPath</span>(<span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">url</span>))
+<span class="keyword">const</span> <span class="built_in">require</span> = <span class="title function_">createRequire</span>(<span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">url</span>);
+<span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">p</span>) =&gt; path.<span class="title function_">resolve</span>(__dirname, p);
+
+<span class="keyword">const</span> <span class="title function_">createServer</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
+  <span class="comment">// 创建node服务</span>
+  <span class="keyword">const</span> app = <span class="title function_">express</span>()
+
+  <span class="comment">/**</span>
+<span class="comment">   * @官方解释</span>
+<span class="comment">   * 以中间件模式创建vite应用，这将禁用vite自身的HTML服务逻辑</span>
+<span class="comment">   * 并让上级服务器接管</span>
+<span class="comment">   */</span>
+  <span class="keyword">const</span> vite = <span class="keyword">await</span> <span class="built_in">require</span>(<span class="string">&#x27;vite&#x27;</span>).<span class="title function_">createServer</span>(&#123;
+    <span class="attr">server</span>: &#123;
+      <span class="attr">middlewareMode</span>: <span class="literal">true</span>,
+    &#125;,
+    <span class="attr">appType</span>: <span class="string">&#x27;custom&#x27;</span>
+  &#125;);
+  app.<span class="title function_">use</span>(vite.<span class="property">middlewares</span>);
+  
+  app.<span class="title function_">use</span>(<span class="string">&#x27;*&#x27;</span>, <span class="keyword">async</span> (req, res, next) =&gt; &#123;
+    <span class="keyword">const</span> url = req.<span class="property">originalUrl</span>
+    <span class="keyword">try</span> &#123;
+      <span class="comment">// 读取index.html</span>
+      <span class="keyword">let</span> template = fs.<span class="title function_">readFileSync</span>(
+        <span class="title function_">resolve</span>(<span class="string">&#x27;index.html&#x27;</span>),
+        <span class="string">&#x27;utf-8&#x27;</span>
+      )
+      <span class="comment">// 应用vite html转换，会注入vite HMR</span>
+      template = <span class="keyword">await</span> vite.<span class="title function_">transformIndexHtml</span>(url, template)
+
+      <span class="comment">// 加载服务端入口</span>
+      <span class="keyword">const</span> render = (<span class="keyword">await</span> vite.<span class="title function_">ssrLoadModule</span>(<span class="string">&#x27;/src/entry-server.js&#x27;</span>)).<span class="property">render</span>
+      <span class="keyword">const</span> [ appHtml, piniaState ] = <span class="keyword">await</span> <span class="title function_">render</span>(url)
+
+      <span class="comment">// 替换处理过后的模版</span>
+      <span class="keyword">const</span> html = template
+        .<span class="title function_">replace</span>(<span class="string">`&lt;!--ssr-outlet--&gt;`</span>, appHtml)
+        .<span class="title function_">replace</span>(<span class="string">`&lt;!--pinia-state--&gt;`</span>, piniaState)
+      res.<span class="title function_">status</span>(<span class="number">200</span>).<span class="title function_">set</span>(&#123; <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;text/html&#x27;</span> &#125;).<span class="title function_">end</span>(html)
+    &#125; <span class="keyword">catch</span> (error) &#123;
+      vite?.<span class="title function_">ssrFixStacktrace</span>(error)
+      <span class="title function_">next</span>(e)
+    &#125;
+  &#125;)
+
+  <span class="comment">// 监听5100端口</span>
+  app.<span class="title function_">listen</span>(<span class="number">5100</span>)
+&#125;
+
+<span class="title function_">createServer</span>();</code></pre></li>
+</ul>
+<h3 id="3-服务端入口文件"><a href="#3-服务端入口文件" class="headerlink" title="3. 服务端入口文件"></a>3. 服务端入口文件</h3><ul>
+<li>服务端入口文件主要是调用SSR的renderToString和收集需要发送的资源和数据<pre><code class="highlight js"><span class="keyword">import</span> &#123; renderToString &#125; <span class="keyword">from</span> <span class="string">&#x27;vue/server-renderer&#x27;</span>
+<span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&#x27;./main&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params">url, manifest</span>) &#123;
+  <span class="keyword">const</span> &#123; app, router, pinia &#125; = <span class="title function_">createApp</span>()
+
+  router.<span class="title function_">push</span>(url)
+  <span class="keyword">await</span> router.<span class="title function_">isReady</span>()
+
+  <span class="keyword">const</span> ctx = &#123;&#125;
+  <span class="keyword">const</span> html = <span class="keyword">await</span> <span class="title function_">renderToString</span>(app, ctx)
+  <span class="keyword">return</span> [html, <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(pinia.<span class="property">state</span>.<span class="property">value</span>)]
+&#125;</code></pre></li>
+</ul>
+<h3 id="4-客户端入口文件"><a href="#4-客户端入口文件" class="headerlink" title="4. 客户端入口文件"></a>4. 客户端入口文件</h3><ul>
+<li>客户端入口文件主要用于挂载节点和初始化数据<pre><code class="highlight js"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&#x27;./main&#x27;</span>
+
+<span class="keyword">const</span> &#123; app, router, pinia &#125; = <span class="title function_">createApp</span>()
+
+router.<span class="title function_">isReady</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;
+  <span class="keyword">if</span> (<span class="variable language_">window</span>.<span class="property">__INITIAL_STATE__</span>) &#123;
+    pinia.<span class="property">state</span>.<span class="property">value</span> = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(<span class="variable language_">window</span>.<span class="property">__INITIAL_STATE__</span>);
+  &#125;
+
+  app.<span class="title function_">mount</span>(<span class="string">&#x27;#app&#x27;</span>)
+&#125;)</code></pre></li>
+</ul>
+<h3 id="5-组件和页面"><a href="#5-组件和页面" class="headerlink" title="5. 组件和页面"></a>5. 组件和页面</h3><ul>
+<li>组件和页面获取数据主要有两种方式，一种是增加一个<code>asyncData</code>选项，然后在enter-server.js的逻辑中增加遍历当前组件的逻辑，统一触发<code>asyncData</code>，但是现在都是用<code>script setup</code>的方式写业务代码，所以有点麻烦，<pre><code class="highlight js">&lt;script&gt;
+  <span class="keyword">export</span> defualt &#123;
+    <span class="title function_">asyncData</span>(<span class="params"></span>) &#123;
+      <span class="comment">// 服务端获取数据逻辑</span>
+    &#125;
+  &#125;
+&lt;/script&gt;
+
+<span class="language-xml"><span class="tag">&lt;<span class="name">script</span> <span class="attr">setup</span> <span class="attr">lang</span>=<span class="string">&#x27;ts&#x27;</span>&gt;</span></span>
+<span class="language-xml">  ...</span>
+<span class="language-xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></code></pre></li>
+<li>另一种就是hook的方式，通过<code>import.meta.env.SSR</code>的方式进行判断</li>
+<li>对于数据具体存储方式，大概有三种，一种是存在vuex或者pinia这种全局状态库中，一种是存在context上下文中，还有一种是自定义数据</li>
+</ul>
+<h3 id="6-生产环境"><a href="#6-生产环境" class="headerlink" title="6. 生产环境"></a>6. 生产环境</h3><h4 id="6-1-pacnakge-json"><a href="#6-1-pacnakge-json" class="headerlink" title="6.1 pacnakge.json"></a>6.1 pacnakge.json</h4><ul>
+<li>增加构建脚本<pre><code class="highlight diff">&quot;scripts&quot;: &#123;
+  &quot;dev&quot;: &quot;node server&quot;,
+<span class="addition">+ &quot;build&quot;: &quot;npm run build:client &amp;&amp; npm run build:server&quot;,</span>
+<span class="addition">+  &quot;build:client&quot;: &quot;vite build --ssrManifest --outDir dist/client&quot;,</span>
+<span class="addition">+  &quot;build:server&quot;: &quot;vite build --ssr src/entry-server.js --outDir dist/server&quot;,</span>
+<span class="addition">+  &quot;serve&quot;: &quot;cross-env NODE_ENV=production node server&quot;</span>
+&#125;,</code></pre></li>
+</ul>
+<h4 id="6-2-服务端运行文件"><a href="#6-2-服务端运行文件" class="headerlink" title="6.2 服务端运行文件"></a>6.2 服务端运行文件</h4><ul>
+<li>针对生产环境，需要启动静态资源服务，引用路径需要改为dist目录下</li>
+</ul>
+<pre><code class="highlight diff">import fs from &#x27;fs&#x27;
+import path from &#x27;path&#x27;
+import &#123; fileURLToPath &#125; from &#x27;url&#x27;
+import express from &#x27;express&#x27;
+
+import &#123; createRequire &#125; from &#x27;module&#x27;;
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url);
+const resolve = (p) =&gt; path.resolve(__dirname, p);
+
+const createServer = async (isProd = process.env.NODE_ENV <span class="comment">=== &#x27;production&#x27;) =&gt; &#123;</span>
+  const app = express()
+
+<span class="deletion">-  const vite = await require(&#x27;vite&#x27;).createServer(&#123;</span>
+<span class="deletion">-    server: &#123;</span>
+<span class="deletion">-      middlewareMode: true,</span>
+<span class="deletion">-    &#125;,</span>
+<span class="deletion">-    appType: &#x27;custom&#x27;</span>
+<span class="deletion">-  &#125;);</span>
+<span class="deletion">-  app.use(vite.middlewares);</span>
+
+<span class="addition">+  let vite;</span>
+<span class="addition">+  if (isProd) &#123;</span>
+<span class="addition">+    app.use(require(&#x27;compression&#x27;)());</span>
+<span class="addition">+    app.use(</span>
+<span class="addition">+      require(&#x27;serve-static&#x27;)(resolve(&#x27;./dist/client&#x27;), &#123;</span>
+<span class="addition">+        index: false</span>
+<span class="addition">+      &#125;)</span>
+<span class="addition">+    );</span>
+<span class="addition">+  &#125; else &#123;</span>
+<span class="addition">+    vite = await require(&#x27;vite&#x27;).createServer(&#123;</span>
+<span class="addition">+      server: &#123;</span>
+<span class="addition">+        middlewareMode: true,</span>
+<span class="addition">+      &#125;,</span>
+<span class="addition">+      appType: &#x27;custom&#x27;</span>
+<span class="addition">+    &#125;);</span>
+<span class="addition">+    app.use(vite.middlewares);</span>
+<span class="addition">+  &#125;</span>
+   // 通过bulid --ssrManifest命令生成的静态资源映射需要在生产环境下引用
+<span class="addition">+  const manifest = isProd ? fs.readFileSync(resolve(&#x27;./dist/client/ssr-manifest.json&#x27;), &#x27;utf-8&#x27;) :&#123;&#125;</span>
+  
+  app.use(&#x27;*&#x27;, async (req, res, next) =&gt; &#123;
+    const url = req.originalUrl
+    try &#123;
+<span class="deletion">-      let template = fs.readFileSync(</span>
+<span class="deletion">-        resolve(&#x27;index.html&#x27;),</span>
+<span class="deletion">-        &#x27;utf-8&#x27;</span>
+<span class="deletion">-      )</span>
+<span class="deletion">-      template = await vite.transformIndexHtml(url, template)</span>
+<span class="deletion">-      const render = (await vite.ssrLoadModule(&#x27;/src/entry-server.js&#x27;)).render</span>
+<span class="deletion">-      const [ appHtml, piniaState ] = await render(url)</span>
+
+<span class="addition">+      let template, render</span>
+<span class="addition">+      if (isProd) &#123;</span>
+<span class="addition">+        template = fs.readFileSync(resolve(&#x27;./dist/client/index.html&#x27;), &#x27;utf-8&#x27;)</span>
+<span class="addition">+        render = (await import(&#x27;./dist/server/entry-server.js&#x27;)).render</span>
+<span class="addition">+      &#125; else &#123;</span>
+<span class="addition">+        template = fs.readFileSync(</span>
+<span class="addition">+          resolve(&#x27;index.html&#x27;),</span>
+<span class="addition">+          &#x27;utf-8&#x27;</span>
+<span class="addition">+        )</span>
+<span class="addition">+        template = await vite.transformIndexHtml(url, template)</span>
+<span class="addition">+        render = (await vite.ssrLoadModule(&#x27;/src/entry-server.js&#x27;)).render</span>
+<span class="addition">+      &#125;</span>
+<span class="addition">+      const [ appHtml, preloadLinks, piniaState ] = await render(url, manifest)</span>
+      const html = template
+        .replace(`&lt;!--preload-links--&gt;`, preloadLinks)
+        .replace(`&lt;!--ssr-outlet--&gt;`, appHtml)
+<span class="addition">+        .replace(`&lt;!--pinia-state--&gt;`, piniaState)</span>
+      res.status(200).set(&#123; &#x27;Content-Type&#x27;: &#x27;text/html&#x27; &#125;).end(html)
+    &#125; catch (error) &#123;
+      vite?.ssrFixStacktrace(error)
+      next()
+    &#125;
+  &#125;)
+
+  app.listen(5100)
+&#125;
+
+createServer();
+</code></pre>
+
+<h4 id="6-3-服务端入口文件"><a href="#6-3-服务端入口文件" class="headerlink" title="6.3 服务端入口文件"></a>6.3 服务端入口文件</h4><ul>
+<li>服务端入口文件主要是增加了构建时生成的静态资源映射处理的逻辑<pre><code class="highlight diff">import &#123; basename &#125; from &#x27;path&#x27;
+import &#123; renderToString &#125; from &#x27;vue/server-renderer&#x27;
+import &#123; createApp &#125; from &#x27;./main&#x27;
+
+export async function render(url, manifest) &#123;
+  const &#123; app, router, pinia &#125; = createApp()
+
+  router.push(url)
+  await router.isReady()
+
+  const ctx = &#123;&#125;
+  const html = await renderToString(app, ctx)
+<span class="addition">+  const preloadLinks = renderPreloadLinks(ctx.modules, manifest)</span>
+<span class="addition">+  return [html, preloadLinks, JSON.stringify(pinia.state.value)]</span>
+&#125;
+
+ function renderPreloadLinks(modules, manifest) &#123;
+   let links = &#x27;&#x27;
+   const seen = new Set()
+   modules.forEach((id) =&gt; &#123;
+     const files = manifest[id]
+     if (files) &#123;
+       files.forEach((file) =&gt; &#123;
+         if (!seen.has(file)) &#123;
+           seen.add(file)
+           const filename = basename(file)
+           if (manifest[filename]) &#123;
+             for (const depFile of manifest[filename]) &#123;
+               links += renderPreloadLink(depFile)
+               seen.add(depFile)
+             &#125;
+           &#125;
+           links += renderPreloadLink(file)
+         &#125;
+       &#125;)
+     &#125;
+   &#125;)
+   return links
+ &#125;
+ 
+ function renderPreloadLink(file) &#123;
+   if (file.endsWith(&#x27;.js&#x27;)) &#123;
+     return `&lt;link rel=&quot;modulepreload&quot; crossorigin href=&quot;$&#123;file&#125;&quot;&gt;`
+   &#125; else if (file.endsWith(&#x27;.css&#x27;)) &#123;
+     return `&lt;link rel=&quot;stylesheet&quot; href=&quot;$&#123;file&#125;&quot;&gt;`
+   &#125; else if (file.endsWith(&#x27;.woff&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff&quot; crossorigin&gt;`
+   &#125; else if (file.endsWith(&#x27;.woff2&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&gt;`
+   &#125; else if (file.endsWith(&#x27;.gif&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/gif&quot;&gt;`
+   &#125; else if (file.endsWith(&#x27;.jpg&#x27;) || file.endsWith(&#x27;.jpeg&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/jpeg&quot;&gt;`
+   &#125; else if (file.endsWith(&#x27;.png&#x27;)) &#123;
+     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/png&quot;&gt;`
+   &#125; else &#123;
+     return &#x27;&#x27;
+   &#125;
+ &#125;</code></pre></li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><a href="https://github.com/LHRUN/vue-ssr">repo</a></li>
 </ul>
 <h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
-<li><a href="https://www.pnpm.cn/blog/2020/05/27/flat-node-modules-is-not-the-only-way">Flat node_modules is not the only way</a></li>
-<li><a href="https://www.pnpm.cn/symlinked-node-modules-structure">Symlinked node_modules structure</a></li>
-<li><a href="https://juejin.cn/post/7043998041786810398">One For All：基于pnpm + lerna + typescript的最佳项目实践 - 理论篇</a></li>
+<li><a href="https://vuejs.org/guide/scaling-up/ssr.html">Server-Side Rendering</a></li>
 </ul>
 ]]></content>
       <categories>
         <category>gallery</category>
       </categories>
       <tags>
-        <tag>pnpm</tag>
+        <tag>Vue3</tag>
+        <tag>Vite</tag>
+        <tag>SSR</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vue3模版编译原理</title>
+    <url>/2022/08/31/Vue3%E6%A8%A1%E7%89%88%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<h2 id="模版编译流程"><a href="#模版编译流程" class="headerlink" title="模版编译流程"></a>模版编译流程</h2><p>Vue3模版编译就是把template字符串编译成渲染函数</p>
+<pre><code class="highlight js"><span class="comment">// template</span>
+&lt;div&gt;<span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;&#123;LH_R&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span>&lt;/div&gt;
+
+<span class="comment">// render</span>
+<span class="keyword">import</span> &#123; toDisplayString <span class="keyword">as</span> _toDisplayString, createElementVNode <span class="keyword">as</span> _createElementVNode, openBlock <span class="keyword">as</span> _openBlock, createElementBlock <span class="keyword">as</span> _createElementBlock &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span>
+
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params">_ctx, _cache, $props, $setup, $data, $options</span>) &#123;
+  <span class="keyword">return</span> (<span class="title function_">_openBlock</span>(), <span class="title function_">_createElementBlock</span>(<span class="string">&quot;div&quot;</span>, <span class="literal">null</span>, [
+    <span class="title function_">_createElementVNode</span>(<span class="string">&quot;p&quot;</span>, <span class="literal">null</span>, <span class="title function_">_toDisplayString</span>(_ctx.<span class="property">LH_R</span>), <span class="number">1</span> <span class="comment">/* TEXT */</span>)
+  ]))
+&#125;</code></pre>
+
+<p>我会按照编译流程分3步分析</p>
+<ol>
+<li><strong>parse</strong>：将模版字符串转换成模版AST</li>
+<li><strong>transform</strong>：将模版AST转换为用于描述渲染函数的AST</li>
+<li><strong>generate</strong>：根据AST生成渲染函数<pre><code class="highlight ts"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">baseCompile</span>(<span class="params"></span>
+<span class="params">  template: <span class="built_in">string</span> | RootNode,</span>
+<span class="params">  options: CompilerOptions = &#123;&#125;</span>
+<span class="params"></span>): <span class="title class_">CodegenResult</span> &#123;
+  <span class="comment">// ...</span>
+  <span class="keyword">const</span> ast = <span class="title function_">isString</span>(template) ? <span class="title function_">baseParse</span>(template, options) : template
+
+  <span class="keyword">const</span> [nodeTransforms, directiveTransforms] = <span class="title function_">getBaseTransformPreset</span>(
+    prefixIdentifiers
+  )
+  <span class="title function_">transform</span>(
+    ast,
+    <span class="title function_">extend</span>(&#123;&#125;, options, &#123;
+      prefixIdentifiers,
+      <span class="attr">nodeTransforms</span>: [
+        ...nodeTransforms,
+        ...(options.<span class="property">nodeTransforms</span> || []) <span class="comment">// user transforms</span>
+      ],
+      <span class="attr">directiveTransforms</span>: <span class="title function_">extend</span>(
+        &#123;&#125;,
+        directiveTransforms,
+        options.<span class="property">directiveTransforms</span> || &#123;&#125; <span class="comment">// user transforms</span>
+      )
+    &#125;)
+  )
+
+  <span class="keyword">return</span> <span class="title function_">generate</span>(
+    ast,
+    <span class="title function_">extend</span>(&#123;&#125;, options, &#123;
+      prefixIdentifiers
+    &#125;)
+  )
+&#125;</code></pre></li>
+</ol>
+<h2 id="parse"><a href="#parse" class="headerlink" title="parse"></a>parse</h2><ul>
+<li><p>parse对模版字符串进行遍历，然后循环判断开始标签和结束标签把字符串分割成一个个<strong>token</strong>，存在一个token列表，然后扫描token列表并维护一个开始标签栈，每当扫描一个开始标签节点，就将其压入栈顶，栈顶的节点始终作为下一个扫描的节点的父节点。这样，当所有Token扫描完成后，即可构建成一颗树形AST</p>
+</li>
+<li><p>以下是简化版<strong>parseChildren</strong>源码，是parse的主入口</p>
+<pre><code class="highlight ts"><span class="keyword">function</span> <span class="title function_">parseChildren</span>(<span class="params"></span>
+<span class="params">  context: ParserContext,</span>
+<span class="params">  mode: TextModes,</span>
+<span class="params">  ancestors: ElementNode[] <span class="comment">// 节点栈结构，用于维护节点嵌套关系</span></span>
+<span class="params"></span>): <span class="title class_">TemplateChildNode</span>[] &#123;
+  <span class="comment">// 获取父节点</span>
+  <span class="keyword">const</span> parent = <span class="title function_">last</span>(ancestors)
+  <span class="keyword">const</span> ns = parent ? parent.<span class="property">ns</span> : <span class="title class_">Namespaces</span>.<span class="property">HTML</span>
+  <span class="keyword">const</span> <span class="attr">nodes</span>: <span class="title class_">TemplateChildNode</span>[] = [] <span class="comment">// 存储解析出来的AST子节点</span>
+
+  <span class="comment">// 遇到闭合标签结束解析</span>
+  <span class="keyword">while</span> (!<span class="title function_">isEnd</span>(context, mode, ancestors)) &#123;
+    <span class="comment">// 切割处理的模版字符串</span>
+    <span class="keyword">const</span> s = context.<span class="property">source</span>
+    <span class="keyword">let</span> <span class="attr">node</span>: <span class="title class_">TemplateChildNode</span> | <span class="title class_">TemplateChildNode</span>[] | <span class="literal">undefined</span> = <span class="literal">undefined</span>
+
+    <span class="keyword">if</span> (mode === <span class="title class_">TextModes</span>.<span class="property">DATA</span> || mode === <span class="title class_">TextModes</span>.<span class="property">RCDATA</span>) &#123;
+      <span class="keyword">if</span> (!context.<span class="property">inVPre</span> &amp;&amp; <span class="title function_">startsWith</span>(s, context.<span class="property">options</span>.<span class="property">delimiters</span>[<span class="number">0</span>])) &#123;
+        <span class="comment">// 解析插值表达式&#123;&#123;&#125;&#125;</span>
+        node = parseInterpolation(context, mode)
+      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mode === <span class="title class_">TextModes</span>.<span class="property">DATA</span> &amp;&amp; s[<span class="number">0</span>] === <span class="string">&#x27;&lt;&#x27;</span>) &#123;
+        <span class="keyword">if</span> (s[<span class="number">1</span>] === <span class="string">&#x27;!&#x27;</span>) &#123;
+          <span class="comment">// 解析注释节点和文档声明...</span>
+        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (s[<span class="number">1</span>] === <span class="string">&#x27;/&#x27;</span>) &#123;
+          <span class="keyword">if</span> (s[<span class="number">2</span>] === <span class="string">&#x27;&gt;&#x27;</span>) &#123;
+            <span class="comment">// 针对自闭合标签，前进三个字符</span>
+            <span class="title function_">advanceBy</span>(context, <span class="number">3</span>)
+            <span class="keyword">continue</span>
+          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="regexp">/[a-z]/i</span>.<span class="title function_">test</span>(s[<span class="number">2</span>])) &#123;
+            <span class="comment">// 解析结束标签</span>
+            <span class="title function_">parseTag</span>(context, <span class="title class_">TagType</span>.<span class="property">End</span>, parent)
+            <span class="keyword">continue</span>
+          &#125; <span class="keyword">else</span> &#123;
+            <span class="comment">// 如果不符合上述情况，就作为伪注释解析</span>
+            node = <span class="title function_">parseBogusComment</span>(context)
+          &#125;
+        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="regexp">/[a-z]/i</span>.<span class="title function_">test</span>(s[<span class="number">1</span>])) &#123;
+          <span class="comment">// 解析html开始标签，获得解析到的AST节点</span>
+          node = <span class="title function_">parseElement</span>(context, ancestors)
+        &#125;
+      &#125;
+    &#125;
+    <span class="keyword">if</span> (!node) &#123;
+      <span class="comment">// 普通文本节点</span>
+      node = <span class="title function_">parseText</span>(context, mode)
+    &#125;
+
+    <span class="comment">// 如果节点是数组，就遍历添加到nodes中</span>
+    <span class="keyword">if</span> (<span class="title function_">isArray</span>(node)) &#123;
+      <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; node.<span class="property">length</span>; i++) &#123;
+        <span class="title function_">pushNode</span>(nodes, node[i])
+      &#125;
+    &#125; <span class="keyword">else</span> &#123;
+      <span class="title function_">pushNode</span>(nodes, node)
+    &#125;
+  &#125;
+  <span class="keyword">return</span> nodes
+&#125;</code></pre>
+</li>
+<li><p>就拿<code>&lt;div&gt;&lt;p&gt;LH_R&lt;/p&gt;&lt;/div&gt;</code>流程举例</p>
+</li>
+</ul>
+<ol>
+<li>div开始标签入栈，context.source &#x3D; <code>&lt;p&gt;LH_R&lt;/p&gt;&lt;/div&gt;</code>，ancestors &#x3D; <code>[div]</code></li>
+<li>p开始标签入栈，context.source &#x3D; <code>LH_R&lt;/p&gt;&lt;/div&gt;</code>，ancestors &#x3D; <code>[div, p]</code></li>
+<li>解析文本<code>LH_R</code></li>
+<li>解析p结束标签，p标签出栈</li>
+<li>解析div结束标签，div标签出栈</li>
+<li>栈空，模版解析完毕</li>
+</ol>
+<h2 id="transform"><a href="#transform" class="headerlink" title="transform"></a>transform</h2><ul>
+<li>transform采用深度优先的方式对AST进行遍历，在遍历过程中，对节点的操作与转换采用插件化架构，都封装为独立的函数，然后转换函数通过<code>context.nodeTransforms</code>来注册</li>
+<li>转换过程是优先转换子节点，因为有的父节点的转换依赖子节点</li>
+<li>以下是AST遍历<code>traverseNode</code>核心源码<pre><code class="highlight ts"><span class="comment">/* </span>
+<span class="comment">  遍历AST节点树，通过node转换器对当前节点进行node转换</span>
+<span class="comment">  子节点全部遍历完成后执行对应指令的onExit回调退出转换</span>
+<span class="comment">*/</span>
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">traverseNode</span>(<span class="params"></span>
+<span class="params">  node: RootNode | TemplateChildNode,</span>
+<span class="params">  context: TransformContext</span>
+<span class="params"></span>) &#123;
+  <span class="comment">// 记录当前正在遍历的节点</span>
+  context.<span class="property">currentNode</span> = node
+
+  <span class="comment">/* </span>
+<span class="comment">    nodeTransforms：transformElement、transformExpression、transformText...</span>
+<span class="comment">    transformElement：负责整个节点层面的转换</span>
+<span class="comment">    transformExpression：负责节点中表达式的转化</span>
+<span class="comment">    transformText：负责节点中文本的转换</span>
+<span class="comment">  */</span>
+  <span class="keyword">const</span> &#123; nodeTransforms &#125; = context
+  <span class="keyword">const</span> exitFns = []
+  <span class="comment">// 依次调用转换工具</span>
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; nodeTransforms.<span class="property">length</span>; i++) &#123;
+    <span class="comment">/* </span>
+<span class="comment">      转换器只负责生成onExit回调，onExit函数才是执行转换主逻辑的地方，为什么要推到栈中先不执行呢？</span>
+<span class="comment">      因为要等到子节点都转换完成挂载gencodeNode后，也就是深度遍历完成后</span>
+<span class="comment">      再执行当前节点栈中的onExit，这样保证了子节点的表达式全部生成完毕</span>
+<span class="comment">    */</span>
+    <span class="keyword">const</span> onExit = nodeTransforms[i](node, context)
+    <span class="keyword">if</span> (onExit) &#123;
+      <span class="keyword">if</span> (<span class="title function_">isArray</span>(onExit)) &#123;
+        <span class="comment">// v-if、v-for为结构化指令，其onExit是数组形式</span>
+        exitFns.<span class="title function_">push</span>(...onExit)
+      &#125; <span class="keyword">else</span> &#123;
+        exitFns.<span class="title function_">push</span>(onExit)
+      &#125;
+    &#125;
+    <span class="keyword">if</span> (!context.<span class="property">currentNode</span>) &#123;
+      <span class="comment">// node was removed 节点被移除</span>
+      <span class="keyword">return</span>
+    &#125; <span class="keyword">else</span> &#123;
+      <span class="comment">// node may have been replaced</span>
+      <span class="comment">// 因为在转换的过程中节点可能被替换，恢复到之前的节点</span>
+      node = context.<span class="property">currentNode</span>
+    &#125;
+  &#125;
+
+  <span class="keyword">switch</span> (node.<span class="property">type</span>) &#123;
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">COMMENT</span>:
+      <span class="keyword">if</span> (!context.<span class="property">ssr</span>) &#123;
+        <span class="comment">// inject import for the Comment symbol, which is needed for creating</span>
+        <span class="comment">// comment nodes with `createVNode`</span>
+        <span class="comment">// 需要导入createComment辅助函数</span>
+        context.<span class="title function_">helper</span>(<span class="variable constant_">CREATE_COMMENT</span>)
+      &#125;
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">INTERPOLATION</span>:
+      <span class="comment">// no need to traverse, but we need to inject toString helper</span>
+      <span class="keyword">if</span> (!context.<span class="property">ssr</span>) &#123;
+        context.<span class="title function_">helper</span>(<span class="variable constant_">TO_DISPLAY_STRING</span>)
+      &#125;
+      <span class="keyword">break</span>
+
+    <span class="comment">// for container types, further traverse downwards</span>
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">IF</span>:
+      <span class="comment">// 对v-if生成的节点束进行遍历</span>
+      <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; node.<span class="property">branches</span>.<span class="property">length</span>; i++) &#123;
+        <span class="title function_">traverseNode</span>(node.<span class="property">branches</span>[i], context)
+      &#125;
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">IF_BRANCH</span>:
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">FOR</span>:
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">ELEMENT</span>:
+    <span class="keyword">case</span> <span class="title class_">NodeTypes</span>.<span class="property">ROOT</span>:
+      <span class="comment">// 遍历子节点</span>
+      <span class="title function_">traverseChildren</span>(node, context)
+      <span class="keyword">break</span>
+  &#125;
+  <span class="comment">// 当前节点树遍历完成，依次执行栈中的指令退出回调onExit</span>
+  context.<span class="property">currentNode</span> = node
+  <span class="keyword">let</span> i = exitFns.<span class="property">length</span>
+  <span class="keyword">while</span> (i--) &#123;
+    exitFns[i]()
+  &#125;
+&#125;</code></pre></li>
+</ul>
+<h2 id="generate"><a href="#generate" class="headerlink" title="generate"></a>generate</h2><p><code>generate</code>生成代码大致分为3步</p>
+<ol>
+<li>创建代码生成上下文，因为该上下文对象是用于维护代码生成过程中程序的运行状态，如：</li>
+</ol>
+<ul>
+<li><code>code</code>：最终生成的渲染函数</li>
+<li><code>push</code>：拼接代码</li>
+<li><code>indent</code>：代码缩进</li>
+<li><code>deindent</code>：减少代码缩进</li>
+<li>…</li>
+</ul>
+<ol start="2">
+<li>生成渲染函数的前置预设部分<ul>
+<li>module模式下：<code>genModulePreamble()</code></li>
+<li>function模式下：<code>genFunctionPreamble</code></li>
+<li>还有一些函数名，参数，作用域…</li>
+</ul>
+</li>
+<li>生成渲染函数<ul>
+<li>通过调用<code>genNode</code>，然后在<code>genNode</code>内部通过switch语句来匹配不同类型的节点，并调用对应的生成器函数</li>
+</ul>
+</li>
+</ol>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://segmentfault.com/a/1190000023594560">Vue3 模板编译原理</a></li>
+<li>《Vue.js设计与实现》</li>
+</ul>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>Vue3</tag>
+        <tag>Vue</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端的Docker学习记录</title>
+    <url>/2022/10/30/%E5%89%8D%E7%AB%AF%E7%9A%84Docker%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<h2 id="Docker简介"><a href="#Docker简介" class="headerlink" title="Docker简介"></a>Docker简介</h2><ul>
+<li>Docker 是一个应用<strong>打包</strong>、<strong>分发</strong>、<strong>部署</strong>的工具，可以使应用部署更加轻量，可移植，可扩展，可以理解为一个轻量的虚拟机<ul>
+<li>打包：就是把你软件运行所需的依赖、第三方库、软件打包到一起，变成一个安装包</li>
+<li>分发：你可以把你打包好的“安装包”上传到一个镜像仓库，其他人可以非常方便的获取和安装</li>
+<li>部署：拿着“安装包”就可以一个命令运行起来应用，自动模拟出一模一样的运行环境，不管是在Windows&#x2F;Mac&#x2F;Linux</li>
+</ul>
+</li>
+<li>docker架构图<br><img src="https://s1.ax1x.com/2022/10/30/xI2lGR.png"></li>
+</ul>
+<ul>
+<li><strong>docker client</strong>: 即docker命令行工具</li>
+<li><strong>docker host</strong>: 宿主机，docker daemon的运行环境服务器</li>
+<li><strong>docker daemon</strong>: docker的守护进程，docker client通过命令行与docker daemon交互</li>
+<li><strong>image</strong>: 镜像，可以理解为安装包，可以方便的进行传播和安装</li>
+<li><strong>container</strong>: 容器，镜像的运行实例，每个软件运行环境都是独立的，隔离的</li>
+<li><strong>registry</strong>: 镜像仓库，可以从镜像仓库拉取和推送镜像</li>
+</ul>
+<h3 id="底层原理"><a href="#底层原理" class="headerlink" title="底层原理"></a>底层原理</h3><p>docker底层使用了一些linux内核的特性，<code>namespace</code>，<code>cgroups</code>，<code>unionFS</code></p>
+<h3 id="namespace"><a href="#namespace" class="headerlink" title="namespace"></a>namespace</h3><ul>
+<li>namespace，也叫命名空间，名称空间，它表示一个标识符的可见范围。一个标识符可在多个名字空间中定义，它在不同名字空间中的含义是互不相干的。这样，在一个新的名字空间中可定义任何标识符，它不会与任何已有的标识符发生冲突，因为已有的定义都处于其他命名空间中</li>
+<li>docker使用linux namespace构建隔离的环境，它由以下namespace组成<ul>
+<li>pid：隔离进程</li>
+<li>net：隔离网络</li>
+<li>ipc：隔离IPC</li>
+<li>mnt：隔离文件系统挂载</li>
+<li>uts：隔离hostname</li>
+<li>user：隔离uid&#x2F;gid</li>
+</ul>
+</li>
+</ul>
+<h3 id="cgroups"><a href="#cgroups" class="headerlink" title="cgroups"></a>cgroups</h3><ul>
+<li>cgroups，是控制组群(control groups)的简写，是用来限制、控制与分离一个进程组的资源(如CPU、内存、磁盘输入输出等)</li>
+<li>cgroups功能：<ul>
+<li>资源限制：设置内存限制，包括虚拟内存</li>
+<li>优先级：一些资源可以得到大量的CPU或磁盘IO吞吐量</li>
+<li>结算：用来度量系统实际用了多少资源</li>
+<li>控制：冻结组或检查点和重启动</li>
+</ul>
+</li>
+</ul>
+<h3 id="unionFS"><a href="#unionFS" class="headerlink" title="unionFS"></a>unionFS</h3><ul>
+<li>unionFS(Union file systems)是一种分层、轻量级并且高性能的文件性能，支持对文件系统的修改作为一次提交来一层层的叠加。docker的镜像与容器就是分层存储，可用的存储引擎呦aufs，overlay等</li>
+</ul>
+<h3 id="镜像"><a href="#镜像" class="headerlink" title="镜像"></a>镜像</h3><ul>
+<li>镜像是一份用来创造容器的配置文件，而容器可以视作最小型的一个操作系统</li>
+<li>docker的镜像和容器都使用了unionFS做分层存储，镜像作为只读层是共享的，而容器在镜像之上附加了一层可写层，最大程度地减少了空间的浪费</li>
+<li>镜像的相关命令<ul>
+<li>镜像拉取：<code>docker pull node:alpine</code></li>
+<li>查看镜像信息：<code>docker inspect node:alpine</code></li>
+<li>列出所有镜像：<code>docker images</code></li>
+<li>镜像打包：<code>docker build -t docker-app:v1.0.0</code><ul>
+<li><code>-t</code>：设置镜像名字和版本号</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><ul>
+<li>Dockerfile是docker构建镜像的配置文件，比如一个简单的Dockerfile如下<pre><code class="highlight dockerfile"><span class="keyword">FROM</span> node:<span class="number">16</span>
+<span class="keyword">MAINTAINER</span> songlh
+
+<span class="keyword">ADD</span><span class="language-bash"> . /app</span>
+<span class="keyword">WORKDIR</span><span class="language-bash"> /app</span>
+
+<span class="keyword">RUN</span><span class="language-bash"> npm install pnpm -g</span>
+<span class="keyword">RUN</span><span class="language-bash"> pnpm install</span>
+
+<span class="keyword">CMD</span><span class="language-bash"> pnpm run dev</span></code></pre></li>
+<li>常用指令</li>
+<li><code>FROM</code>：表示基于一个已有的基础镜像，<code>FROM &lt;image&gt; [AS &lt;name&gt;]</code></li>
+<li><code>MAINTAINER</code>：声明dockerfile镜像构建的作者</li>
+<li><code>ADD</code>：表示把宿主机的文件或目录加入到镜像的文件系统，<code>ADD [--chown=&lt;user&gt;:&lt;group&gt;] &lt;src&gt;... &lt;dest&gt;</code></li>
+<li><code>RUN</code>: 在镜像中执行命令，由于ufs的文件系统，它会在当前镜像的顶层新增一层，<code>RUN &lt;command&gt;</code></li>
+<li><code>CMD</code>: 指定容器如何启动，一个Dockerfile中只允许有一个CMD</li>
+<li><code>WORKDIR</code>：设置工作目录</li>
+<li><code>ENV</code>：设置环境变量</li>
+</ul>
+<h2 id="容器"><a href="#容器" class="headerlink" title="容器"></a>容器</h2><ul>
+<li><code>docker run</code>：创建容器<ul>
+<li><code>docker run -p 8080:8080 --name docker-hello docker-app:v1.0.0</code>表示基于docker-app镜像的v1.0.0版本创建一个容器并在本地的8080端口运行，容器名字叫<code>docker-hellp</code></li>
+<li><code>-p host-port:container-port</code>：宿主机与容器端口映射，方便容器对外提供服务</li>
+<li><code>--name</code>：为容器指定名称</li>
+<li><code>-d</code>：后台运行</li>
+<li><code>--rm</code>：当停止容器时自动清除容器</li>
+</ul>
+</li>
+<li><code>docker stop</code>：停止容器</li>
+<li><code>docker rm</code>：删除容器</li>
+<li><code>docker exec -it container-name</code>：进入容器环境</li>
+<li><code>docker ps</code>：列出所有容器</li>
+<li><code>docker port</code>：查看容器端口映射</li>
+<li><code>docker stats</code>：查看容器资源占用</li>
+</ul>
+<h2 id="目录挂载"><a href="#目录挂载" class="headerlink" title="目录挂载"></a>目录挂载</h2><ul>
+<li>按照目前已有知识，如果改了项目代码不会立刻生效，需要重新build和run，很麻烦，而且容器产生的数据，如果容器删除了就会没有，目录挂载就是为了解决这些问题</li>
+<li>目前的挂载方式<ul>
+<li><code>bind mount</code>：直接把宿主机目录映射到容器内，适合挂载代码目录和配置文件，可挂载到多个容器上</li>
+<li><code>volume</code>：由容器创建和管理，创建在宿主机，所以删除容器不会丢失，官方推荐，更高效，Linux文件系统，适合存储数据库数据。可挂载到多个容器上</li>
+<li><code>tmpfs mount</code>：适合存储临时文件，存储在宿主机内存中。不可多容器共享</li>
+<li><img src="https://s1.ax1x.com/2022/10/30/xI2Qi9.png"></li>
+</ul>
+</li>
+</ul>
+<h3 id="bind-mount"><a href="#bind-mount" class="headerlink" title="bind mount"></a>bind mount</h3><ul>
+<li><code>bind mount</code>是通过<code>-v</code>参数来绑定宿主机目录，比如将外部的html文档挂载到Nginx容器的根目录下<ul>
+<li><code>docker run -v ~/html:/usr/share/nginx/html -p 81:80 -d --name nginx_bind nginx:latest</code></li>
+</ul>
+</li>
+<li>这种方式的缺点就是被挂载的宿主机目录(或文件)不受保护，任何容器都可以随意修改</li>
+</ul>
+<h3 id="volume"><a href="#volume" class="headerlink" title="volume"></a>volume</h3><ul>
+<li>volume也是一个文件，但是这个文件是在docker的管控范围内，docker可以通过挂载的设定来控制容器对volume的读写权限</li>
+<li>通过<code>docker volume create volume-name</code>创建一个Volume，实际上是在docker的<code>/var/lib/docker/volumes/</code>文件夹内创建一个相同名字的文件夹来保存数据</li>
+<li>比如设置一个只能读取volume<ul>
+<li><code>docker run --mount type=volume,source=nginx-volume,destination=/usr/share/nginx/html,readonly -p 82:80 -d --name nginx_volume nginx:latest</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="tmpfs-mount"><a href="#tmpfs-mount" class="headerlink" title="tmpfs mount"></a>tmpfs mount</h3><ul>
+<li>tmpfs挂载是临时的，仅保留在主机内存中。当容器停止时，tmpfs挂载被移除，写入的文件不会被持久化</li>
+<li><code>docker run --mount type=tmpfs,destination=/usr/share/nginx/html -p 83:80 -d --name nginx-tempfs nginx:latest</code></li>
+<li>tmpfs因为不是持久化，一般不使用</li>
+</ul>
+<h2 id="容器通信"><a href="#容器通信" class="headerlink" title="容器通信"></a>容器通信</h2><ul>
+<li>容器间的通信根据媒介可以分为：volume共享通信、网络通信</li>
+<li>根据通信范围可以分为：同主机通信、跨主机通信</li>
+</ul>
+<h3 id="网络通信"><a href="#网络通信" class="headerlink" title="网络通信"></a>网络通信</h3><ul>
+<li>Docker的网络通信模型分为以下几种，在安装Docker以后，会默认创建三种网络，可以通过<code>docker network ls</code>查看<ul>
+<li><strong>bridge</strong>：为每一个容器分配、设置IP等，并将容器连接到一个<code>docker0</code>虚拟网桥，默认为该模式</li>
+<li><strong>host</strong>：容器将不会虚拟出自己的网卡，配置自己的IP等，而是使用宿主机的IP和端口</li>
+<li><strong>none</strong>：容器有独立的<code>network namespace</code>，但并没有对其进行任何网络设置，如分配<code>veth pair</code>和网桥连接，IP等</li>
+<li><strong>overlay</strong>：可以连接多个docker守护进程或者满足集群服务之间的通信，适用于不同宿主机上的docker容器之间的通信</li>
+<li><strong>macvlan</strong>: 可以为docker容器分配MAC地址，使其像真实的物理及一样运行</li>
+</ul>
+</li>
+<li>Docker内置的<code>bridge network</code>，也就是docker0接口所属的network，所有未指定network的容器，默认连接到此network中，其网段未<code>172.17.0.1/16</code>，所以两个未进行任何连接操作的容器是可以通过IP地址互相通信的，因为他们同在一个network下，但通信只能通过IP地址进行，不可以通过容器名通信<ul>
+<li><img src="https://s1.ax1x.com/2022/10/30/xI21R1.png"></li>
+</ul>
+</li>
+<li>创建自定义网络：<code>docker network create custom_network</code></li>
+<li>查看网络模式：<code>docker network ls</code></li>
+<li>通过自定义网络创建容器：<code>docker run -di --name docker-app --net custom_network docker-app:v1.0.0</code></li>
+<li>查看容器的网络信息：<code>docker inspect 容器名称|ID</code>，然后在<code>NetworkSettings</code>节点中可以看到</li>
+<li>为容器连接新的网络：<code>docker network connect 网络名称 容器名称</code></li>
+<li>断开网络：<code>docker network disconnect 网络名称 容器名称</code></li>
+</ul>
+<h2 id="docker-compose"><a href="#docker-compose" class="headerlink" title="docker-compose"></a>docker-compose</h2><ul>
+<li>docker-compose是用于定义和运行多容器Docker应用程序的工具。通过compose，您可以使用YML文件来配置应用程序需要的所有服务，然后使用一个命令就可以从YML文件配置中创建并启动所有服务</li>
+<li>使用分三步<ul>
+<li><ol>
+<li>使用Dockerfile定义应用程序的环境</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>使用docker-compose.yml定义构成应用程序的服务，这样它们可以在隔离环境中一起运行</li>
+</ol>
+</li>
+<li><ol start="3">
+<li>最后，执行docker-compose up命令启动并运行整个应用程序</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>比如运行一个web项目和redis，可以编写一个如下的<code>docker-compose.yml</code>文件<pre><code class="highlight yml"><span class="attr">version:</span> <span class="string">&quot;3&quot;</span>
+
+<span class="attr">services:</span>
+  <span class="attr">app:</span>
+    <span class="attr">build:</span> <span class="string">./</span>
+    <span class="attr">ports:</span>
+      <span class="bullet">-</span> <span class="number">80</span><span class="string">:8080</span>
+    <span class="attr">volumes:</span>
+      <span class="bullet">-</span> <span class="string">./:/app</span>
+  <span class="attr">redis:</span>
+    <span class="attr">image:</span> <span class="string">redis:5.0.13</span>
+    <span class="attr">volumes:</span>
+      <span class="bullet">-</span> <span class="string">redis:/data</span>
+<span class="attr">volumes:</span>
+  <span class="attr">redis:</span></code></pre></li>
+<li>version：指定本yml依从的compose哪个版本指定的</li>
+<li>build: 指定构建镜像上下文路径</li>
+<li>image：指定启动容器的镜像</li>
+<li>volumes：卷挂载路径设置，如果跨多个服务并重用挂载卷，可以在volumes关键字中命名挂载卷</li>
+<li>ports：暴露端口信息</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://blog.csdn.net/Mr_YanMingXin/article/details/123016807">浅谈Docker底层原理</a></li>
+<li><a href="https://docker.easydoc.net/">Docker快速入门</a></li>
+<li><a href="https://q.shanyue.tech/deploy/docker.html#%E6%9C%AF%E8%AF%AD">Docker使用指南</a></li>
+<li><a href="https://juejin.cn/post/6993979788020940830">Docker与数据：三种挂载方式</a></li>
+<li><a href="https://www.cnblogs.com/mrhelloworld/p/docker11.html">Docker 网络模式详解及容器间网络通信</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>Docker</tag>
       </tags>
   </entry>
   <entry>
@@ -1262,6 +1752,80 @@ npm install</code></pre></li>
       </tags>
   </entry>
   <entry>
+    <title>pnpm的node_modules结构设计</title>
+    <url>/2022/08/24/pnpm%E7%9A%84node-modules%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/</url>
+    <content><![CDATA[<h2 id="pnpm的node-modules结构设计"><a href="#pnpm的node-modules结构设计" class="headerlink" title="pnpm的node_modules结构设计"></a>pnpm的node_modules结构设计</h2><p>分析pnpm之前，先说一下npm现在的一些问题</p>
+<h3 id="npm的问题"><a href="#npm的问题" class="headerlink" title="npm的问题"></a>npm的问题</h3><ul>
+<li><p>平时我们使用<code>npm install</code>命令后，node_modules就会呈现以下类似内容<br><img src="https://img-blog.csdnimg.cn/7396b28d86f84a21b15b4ef6026ddd45.png#pic_center" alt="npm_node_modules"></p>
+</li>
+<li><p>之所以出现这种扁平的结构，最初时初衷是好的，为了更好的利用资源，把每个依赖全部放到顶层，这样就不会造成每个依赖嵌套过深，导致很多重复依赖文件</p>
+</li>
+<li><p>但是随着这种文件结构逐步使用后，就会暴露出来两个问题</p>
+<ul>
+<li><strong>幽灵依赖</strong></li>
+<li><strong>版本冲突</strong></li>
+</ul>
+</li>
+<li><p>幽灵依赖就是你在引用npm包时，你会发现一些没有在<code>package.json</code>中出现的包也能引用，这个就是幽灵依赖，这是因为你在install下载npm包时，npm包也有它的依赖会下载，但是下载的依赖也会存在node_modules同一层级下，这样就会导致可以直接引用</p>
+</li>
+<li><p>版本冲突是因为不同的依赖可能依赖的包版本也不同，但是node_modules的同一层级只能存在一个包的一个版本号，如果有不同的版本号就只能存在依赖包的node_modules中，这样就会导致出现重复资源</p>
+<pre><code class="highlight js">├── package-A @<span class="number">1.0</span>
+|── package-B @<span class="number">1.0</span>
+├── package-C @<span class="number">1.0</span>
+│   └── package-A @<span class="number">2.0</span>
+│   └── package-B @<span class="number">2.0</span>
+├── package-D @<span class="number">1.0</span>
+│   └── package-A @<span class="number">2.0</span>
+│   └── package-B @<span class="number">2.0</span></code></pre></li>
+</ul>
+<h3 id="pnpm的出现"><a href="#pnpm的出现" class="headerlink" title="pnpm的出现"></a>pnpm的出现</h3><ul>
+<li><p>在所有前端苦npm久已时，pnpm出现了，并且在pnpm官网的简介上就简单说明了它的构造：<code>store + link</code><br><img src="https://img-blog.csdnimg.cn/20ef6cd68a0440c9841ea1450297c17a.jpeg#pic_center" alt="pnpm_node_modules"></p>
+<ul>
+<li>store就是依赖的实际存储位置，Mac&#x2F;linux在<code>&#123;home dir&#125;&gt;/.pnpm-store/v3</code>，windows在<code>当前盘/.pnpm-store/v3</code>。这样就会有个好处，你在多个项目使用的是同一个依赖时，就不用重复下载，这样就极大的减少存储空间</li>
+<li>link是指符号链接(<code>SymbolicLink</code>)和硬链接(<code>HardLink</code>)<ul>
+<li>SymbolicLink是一种特殊的文件，包含一条以绝对路径或者相对路径的形式指向其他文件或者目录的引用，它的存在不依赖于目标文件，如果目标文件被删除或者移动，指向目标文件的符号链接依然存在，但是它们会指向一个不复存在的文件</li>
+<li>相比于SymbolicLink，HardLink不是引用文件，而是引用<strong>inode</strong>，inode是文件系统的一种数据结构，用于描述文件系统对象。所以你即使更改目标文件的内容或位置，HardLink仍然指向目标文件，因为inode指向该文件</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>然后拿react举例，当<code>pnpm add react</code>后，在node_modules终端输入<code>tree -a -L 3</code>会得到以下node_modules结构</p>
+<pre><code class="highlight js">.
+├── .<span class="property">modules</span>.<span class="property">yaml</span>
+├── .<span class="property">pnpm</span>
+│   ├── js-tokens@<span class="number">4.0</span><span class="number">.0</span>
+│   │   └── node_modules
+│   ├── lock.<span class="property">yaml</span>
+│   ├── loose-envify@<span class="number">1.4</span><span class="number">.0</span>
+│   │   └── node_modules
+│   ├── node_modules
+│   │   ├── .<span class="property">bin</span>
+│   │   ├── js-tokens -&gt; ../js-tokens@<span class="number">4.0</span><span class="number">.0</span>/node_modules/js-tokens
+│   │   └── loose-envify -&gt; ../loose-envify@<span class="number">1.4</span><span class="number">.0</span>/node_modules/loose-envify
+│   └── react@<span class="number">18.2</span><span class="number">.0</span>
+│       └── node_modules
+└── react -&gt; .<span class="property">pnpm</span>/react@<span class="number">18.2</span><span class="number">.0</span>/node_modules/react</code></pre></li>
+<li><p>node_modules下除了.pnpm外只有一个react，这个react只是一个SymbolicLink，当node.js解析时，会找到react的真实位置<code>node_modules/.pnpm/react@18.2.0/node_modules/react</code></p>
+</li>
+<li><p>.pnpm就是将所有依赖放在同一层文件夹中，每个包都可以通过<code>.pnpm/&lt;name&gt;@&lt;version&gt;/node_modules/&lt;name&gt;</code>这种路径找到，然后通过<code>hand link</code>的方式在store中引用依赖文件</p>
+</li>
+<li><p>通过这种文件结构，pnpm就解决了npm的两个问题，首先node_modules下不会有你未在package.json中声明的依赖，这样就不会有幽灵依赖的问题。然后.pnpm下会有name+version的方式链接到store中，这样就不会出现因为版本冲突造成资源重复的问题</p>
+</li>
+</ul>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
+<li><a href="https://www.pnpm.cn/blog/2020/05/27/flat-node-modules-is-not-the-only-way">Flat node_modules is not the only way</a></li>
+<li><a href="https://www.pnpm.cn/symlinked-node-modules-structure">Symlinked node_modules structure</a></li>
+<li><a href="https://juejin.cn/post/7043998041786810398">One For All：基于pnpm + lerna + typescript的最佳项目实践 - 理论篇</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>pnpm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>基于markdown-it打造的markdown编辑器</title>
     <url>/2022/10/12/%E5%9F%BA%E4%BA%8Emarkdown-it%E6%89%93%E9%80%A0%E7%9A%84markdown%E7%BC%96%E8%BE%91%E5%99%A8/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>markdown-it是一个用来解析markdown的库，它可以将markdown编译为html，然后解析时markdown-it会根据规则生成tokens，如果需要自定义，就通过rules函数对token进行处理<br>我现在基于markdown-it已完成第一版编辑器，现有以下功能：</p>
@@ -1564,567 +2128,159 @@ npm install</code></pre></li>
       </tags>
   </entry>
   <entry>
-    <title>Vue3+Vite3 SSR基本搭建</title>
-    <url>/2022/08/27/Vue3-Vite3-SSR%E5%9F%BA%E6%9C%AC%E6%90%AD%E5%BB%BA/</url>
-    <content><![CDATA[<ul>
-<li>首先说明如果是生产使用强烈推荐Nuxt，但是如果想深入服务端渲染的运行原理，可以看本篇，会根据渲染流程搭建一个demo版ssr，源码在最后会贴上</li>
-<li>主要技术栈：Vite3 + Vue3 + pinia + VueRouter4 + express</li>
-<li>开始搭建之前，先说一下SSR渲染流程</li>
-</ul>
-<h3 id="SSR渲染流程"><a href="#SSR渲染流程" class="headerlink" title="SSR渲染流程"></a>SSR渲染流程</h3><ul>
-<li>首先浏览器向服务器请求，然后服务器根据请求的路由，会匹配相关的路由组件，然后执行组件的自定义服务端生命周期(例：Nuxt的asyncData)或者自定义获取数据的hook，并且把执行后的数据收集起来，统一在window的属性中存储</li>
-<li>然后vue的组件会被renderToString渲染成静态HTML字符串，替换掉index.html的提前指定的占位代码。然后index.html改变后的静态字符串发给客户端</li>
-<li>客户端拿到后，首先对数据进行初始化，然后进行激活，因为当前html只是静态数据，激活主要做两件事<ul>
-<li><ol>
-<li>把页面中的DOM元素与虚拟DOM之间建立联系</li>
-</ol>
-</li>
-<li><ol start="2">
-<li>为页面中的DOM元素添加事件绑定</li>
-</ol>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="1-创建项目"><a href="#1-创建项目" class="headerlink" title="1. 创建项目"></a>1. 创建项目</h3><ul>
-<li>首先用vite命令创建项目<code>pnpm create vite vue-ssr --template vue-ts</code><ul>
-<li>安装相关依赖：<code>pnpm add express pinia vue-router@4</code></li>
-</ul>
-</li>
-<li>创建三个文件 <code>touch server.js  src/entry-client.ts src/entry-server.js</code><ul>
-<li>server.js：服务端启动文件</li>
-<li>entry-client.ts：客户端入口，应用挂载元素</li>
-<li>entry-server.js：服务端入口，处理服务端逻辑和静态资源</li>
-</ul>
-</li>
-<li>修改<code>package.json</code>运行脚本<pre><code class="highlight js"><span class="string">&quot;scripts&quot;</span>: &#123;
-  <span class="string">&quot;dev&quot;</span>: <span class="string">&quot;node server&quot;</span>, <span class="comment">// 运行开发环境</span>
-&#125;</code></pre></li>
-<li>然后需要把应用创建都改为函数的方式进行调用创建，因为在SSR环境下，和纯客户端不一样，服务器只会初始化一次，所以为了防止状态污染，每次请求必须是全新的实例<pre><code class="highlight js"><span class="comment">// src/main.ts</span>
-<span class="keyword">import</span> &#123; createSSRApp &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
-<span class="keyword">import</span> <span class="title class_">App</span> <span class="keyword">from</span> <span class="string">&#x27;./App.vue&#x27;</span>
-<span class="keyword">import</span> &#123; createRouter &#125; <span class="keyword">from</span> <span class="string">&#x27;./router&#x27;</span>
-<span class="keyword">import</span> &#123; createPinia &#125; <span class="keyword">from</span> <span class="string">&#x27;pinia&#x27;</span>
+    <title>小程序滚动日历组件</title>
+    <url>/2021/04/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6/</url>
+    <content><![CDATA[<h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
+<ol>
+<li><p>在ready中初始化组件数据</p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * <span class="doctag">@description</span>: 初始化</span>
+<span class="comment"> */</span>
+<span class="title function_">ready</span>(<span class="params"></span>) &#123;
+  <span class="comment">// 这两个数据是从页面中传过来的，起始时间和结束时间</span>
+  <span class="comment">// 数组类型 [year, month, day]</span>
+  <span class="keyword">const</span> &#123; endDate, startDate &#125; = <span class="variable language_">this</span>.<span class="property">data</span>
+  <span class="keyword">let</span> monthList = [] <span class="comment">// 这个用于wxml中遍历，以每月为item</span>
 
-<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">createApp</span>(<span class="params"></span>) &#123;
-  <span class="keyword">const</span> app = <span class="title function_">createSSRApp</span>(<span class="title class_">App</span>)
-  <span class="keyword">const</span> router = <span class="title function_">createRouter</span>()
-  <span class="keyword">const</span> pinia = <span class="title function_">createPinia</span>()
-  app.<span class="title function_">use</span>(router)
-  app.<span class="title function_">use</span>(pinia)
-  <span class="keyword">return</span> &#123; app, router, pinia &#125;
-&#125;</code></pre></li>
-<li>roter同理<pre><code class="highlight js"><span class="comment">// src/router/index</span>
-<span class="keyword">import</span> &#123; createRouter <span class="keyword">as</span> _createRrouter, createMemoryHistory, createWebHistory, <span class="title class_">RouteRecordRaw</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span>
-
-<span class="keyword">const</span> <span class="attr">routes</span>: <span class="title class_">RouteRecordRaw</span>[] = [
-  ...
-]
-
-<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">createRouter</span>(<span class="params"></span>) &#123;
-  <span class="keyword">return</span> <span class="title function_">_createRrouter</span>(&#123;
-    <span class="attr">history</span>: <span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">env</span>.<span class="property">SSR</span> ? <span class="title function_">createMemoryHistory</span>() : <span class="title function_">createWebHistory</span>(),
-    routes,
-  &#125;)
-&#125;</code></pre></li>
-<li>然后修改index.html，增加注释占位和客户端入口文件，在之后的服务端渲染时注入<pre><code class="highlight html"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span>
-  <span class="tag">&lt;<span class="name">head</span>&gt;</span>
-    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span>
-    <span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;icon&quot;</span> <span class="attr">type</span>=<span class="string">&quot;image/svg+xml&quot;</span> <span class="attr">href</span>=<span class="string">&quot;/vite.svg&quot;</span> /&gt;</span>
-    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span>
-    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Vite + Vue + TS<span class="tag">&lt;/<span class="name">title</span>&gt;</span>
-    <span class="comment">&lt;!-- 静态资源占位 .js .css ... --&gt;</span>
-    <span class="comment">&lt;!--preload-links--&gt;</span>
-  <span class="tag">&lt;/<span class="name">head</span>&gt;</span>
-  <span class="tag">&lt;<span class="name">body</span>&gt;</span>
-    <span class="comment">&lt;!-- 应用代码占位 --&gt;</span>
-    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span><span class="comment">&lt;!--ssr-outlet--&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span>
-    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;/src/main.ts&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
-    <span class="comment">&lt;!-- 引用客户端入口文件 --&gt;</span>
-    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;/src/entry-client.ts&quot;</span> &gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
-    <span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-handlebars"><span class="language-xml"></span></span>
-<span class="language-xml"><span class="language-handlebars">      // 服务端获取的数据统一挂载到window上</span></span>
-<span class="language-xml"><span class="language-handlebars">      window.__INITIAL_STATE__ = &#x27;<span class="comment">&lt;!--pinia-state--&gt;</span>&#x27;</span></span>
-<span class="language-xml"><span class="language-handlebars">    </span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>
-  <span class="tag">&lt;/<span class="name">body</span>&gt;</span>
-<span class="tag">&lt;/<span class="name">html</span>&gt;</span></code></pre></li>
-</ul>
-<h3 id="2-服务端启动文件"><a href="#2-服务端启动文件" class="headerlink" title="2. 服务端启动文件"></a>2. 服务端启动文件</h3><ul>
-<li>创建项目后，就开始编写服务端启动文件，也就是项目根路径下的server.js文件</li>
-<li>这个文件的功能是启动一个node服务，然后根据请求，读取html文件，处理资源后把注释进行替换，最后把html发送给客户端<pre><code class="highlight js"><span class="keyword">import</span> fs <span class="keyword">from</span> <span class="string">&#x27;fs&#x27;</span>
-<span class="keyword">import</span> path <span class="keyword">from</span> <span class="string">&#x27;path&#x27;</span>
-<span class="keyword">import</span> &#123; fileURLToPath &#125; <span class="keyword">from</span> <span class="string">&#x27;url&#x27;</span>
-<span class="keyword">import</span> express <span class="keyword">from</span> <span class="string">&#x27;express&#x27;</span>
-
-<span class="keyword">import</span> &#123; createRequire &#125; <span class="keyword">from</span> <span class="string">&#x27;module&#x27;</span>;
-<span class="keyword">const</span> __dirname = path.<span class="title function_">dirname</span>(<span class="title function_">fileURLToPath</span>(<span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">url</span>))
-<span class="keyword">const</span> <span class="built_in">require</span> = <span class="title function_">createRequire</span>(<span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">url</span>);
-<span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">p</span>) =&gt; path.<span class="title function_">resolve</span>(__dirname, p);
-
-<span class="keyword">const</span> <span class="title function_">createServer</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
-  <span class="comment">// 创建node服务</span>
-  <span class="keyword">const</span> app = <span class="title function_">express</span>()
-
-  <span class="comment">/**</span>
-<span class="comment">   * @官方解释</span>
-<span class="comment">   * 以中间件模式创建vite应用，这将禁用vite自身的HTML服务逻辑</span>
-<span class="comment">   * 并让上级服务器接管</span>
-<span class="comment">   */</span>
-  <span class="keyword">const</span> vite = <span class="keyword">await</span> <span class="built_in">require</span>(<span class="string">&#x27;vite&#x27;</span>).<span class="title function_">createServer</span>(&#123;
-    <span class="attr">server</span>: &#123;
-      <span class="attr">middlewareMode</span>: <span class="literal">true</span>,
-    &#125;,
-    <span class="attr">appType</span>: <span class="string">&#x27;custom&#x27;</span>
-  &#125;);
-  app.<span class="title function_">use</span>(vite.<span class="property">middlewares</span>);
-  
-  app.<span class="title function_">use</span>(<span class="string">&#x27;*&#x27;</span>, <span class="keyword">async</span> (req, res, next) =&gt; &#123;
-    <span class="keyword">const</span> url = req.<span class="property">originalUrl</span>
-    <span class="keyword">try</span> &#123;
-      <span class="comment">// 读取index.html</span>
-      <span class="keyword">let</span> template = fs.<span class="title function_">readFileSync</span>(
-        <span class="title function_">resolve</span>(<span class="string">&#x27;index.html&#x27;</span>),
-        <span class="string">&#x27;utf-8&#x27;</span>
-      )
-      <span class="comment">// 应用vite html转换，会注入vite HMR</span>
-      template = <span class="keyword">await</span> vite.<span class="title function_">transformIndexHtml</span>(url, template)
-
-      <span class="comment">// 加载服务端入口</span>
-      <span class="keyword">const</span> render = (<span class="keyword">await</span> vite.<span class="title function_">ssrLoadModule</span>(<span class="string">&#x27;/src/entry-server.js&#x27;</span>)).<span class="property">render</span>
-      <span class="keyword">const</span> [ appHtml, piniaState ] = <span class="keyword">await</span> <span class="title function_">render</span>(url)
-
-      <span class="comment">// 替换处理过后的模版</span>
-      <span class="keyword">const</span> html = template
-        .<span class="title function_">replace</span>(<span class="string">`&lt;!--ssr-outlet--&gt;`</span>, appHtml)
-        .<span class="title function_">replace</span>(<span class="string">`&lt;!--pinia-state--&gt;`</span>, piniaState)
-      res.<span class="title function_">status</span>(<span class="number">200</span>).<span class="title function_">set</span>(&#123; <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;text/html&#x27;</span> &#125;).<span class="title function_">end</span>(html)
-    &#125; <span class="keyword">catch</span> (error) &#123;
-      vite?.<span class="title function_">ssrFixStacktrace</span>(error)
-      <span class="title function_">next</span>(e)
+  <span class="comment">// 未跨年</span>
+  <span class="keyword">if</span> ( endDate[<span class="number">0</span>] === startDate[<span class="number">0</span>]) &#123;
+    <span class="keyword">let</span> rangeMonth = endDate[<span class="number">1</span>] - startDate[<span class="number">1</span>]
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= rangeMonth; i++) &#123;
+      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
+      <span class="comment">// monthInitData()初始化每月数据</span>
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
     &#125;
-  &#125;)
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="comment">// 跨年前月份</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, lng = <span class="number">12</span> - startDate[<span class="number">1</span>]; i &lt; lng; i++) &#123;
+      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
 
-  <span class="comment">// 监听5100端口</span>
-  app.<span class="title function_">listen</span>(<span class="number">5100</span>)
-&#125;
-
-<span class="title function_">createServer</span>();</code></pre></li>
-</ul>
-<h3 id="3-服务端入口文件"><a href="#3-服务端入口文件" class="headerlink" title="3. 服务端入口文件"></a>3. 服务端入口文件</h3><ul>
-<li>服务端入口文件主要是调用SSR的renderToString和收集需要发送的资源和数据<pre><code class="highlight js"><span class="keyword">import</span> &#123; renderToString &#125; <span class="keyword">from</span> <span class="string">&#x27;vue/server-renderer&#x27;</span>
-<span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&#x27;./main&#x27;</span>
-
-<span class="keyword">export</span> <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params">url, manifest</span>) &#123;
-  <span class="keyword">const</span> &#123; app, router, pinia &#125; = <span class="title function_">createApp</span>()
-
-  router.<span class="title function_">push</span>(url)
-  <span class="keyword">await</span> router.<span class="title function_">isReady</span>()
-
-  <span class="keyword">const</span> ctx = &#123;&#125;
-  <span class="keyword">const</span> html = <span class="keyword">await</span> <span class="title function_">renderToString</span>(app, ctx)
-  <span class="keyword">return</span> [html, <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(pinia.<span class="property">state</span>.<span class="property">value</span>)]
-&#125;</code></pre></li>
-</ul>
-<h3 id="4-客户端入口文件"><a href="#4-客户端入口文件" class="headerlink" title="4. 客户端入口文件"></a>4. 客户端入口文件</h3><ul>
-<li>客户端入口文件主要用于挂载节点和初始化数据<pre><code class="highlight js"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&#x27;./main&#x27;</span>
-
-<span class="keyword">const</span> &#123; app, router, pinia &#125; = <span class="title function_">createApp</span>()
-
-router.<span class="title function_">isReady</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;
-  <span class="keyword">if</span> (<span class="variable language_">window</span>.<span class="property">__INITIAL_STATE__</span>) &#123;
-    pinia.<span class="property">state</span>.<span class="property">value</span> = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(<span class="variable language_">window</span>.<span class="property">__INITIAL_STATE__</span>);
-  &#125;
-
-  app.<span class="title function_">mount</span>(<span class="string">&#x27;#app&#x27;</span>)
-&#125;)</code></pre></li>
-</ul>
-<h3 id="5-组件和页面"><a href="#5-组件和页面" class="headerlink" title="5. 组件和页面"></a>5. 组件和页面</h3><ul>
-<li>组件和页面获取数据主要有两种方式，一种是增加一个<code>asyncData</code>选项，然后在enter-server.js的逻辑中增加遍历当前组件的逻辑，统一触发<code>asyncData</code>，但是现在都是用<code>script setup</code>的方式写业务代码，所以有点麻烦，<pre><code class="highlight js">&lt;script&gt;
-  <span class="keyword">export</span> defualt &#123;
-    <span class="title function_">asyncData</span>(<span class="params"></span>) &#123;
-      <span class="comment">// 服务端获取数据逻辑</span>
+    <span class="comment">// 跨年后月份</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= endDate[<span class="number">1</span>]; i++) &#123;
+      <span class="keyword">let</span> date = [endDate[<span class="number">0</span>], i + <span class="number">1</span>]
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(endDate[<span class="number">0</span>], i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
     &#125;
   &#125;
-&lt;/script&gt;
-
-<span class="language-xml"><span class="tag">&lt;<span class="name">script</span> <span class="attr">setup</span> <span class="attr">lang</span>=<span class="string">&#x27;ts&#x27;</span>&gt;</span></span>
-<span class="language-xml">  ...</span>
-<span class="language-xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></code></pre></li>
-<li>另一种就是hook的方式，通过<code>import.meta.env.SSR</code>的方式进行判断</li>
-<li>对于数据具体存储方式，大概有三种，一种是存在vuex或者pinia这种全局状态库中，一种是存在context上下文中，还有一种是自定义数据</li>
-</ul>
-<h3 id="6-生产环境"><a href="#6-生产环境" class="headerlink" title="6. 生产环境"></a>6. 生产环境</h3><h4 id="6-1-pacnakge-json"><a href="#6-1-pacnakge-json" class="headerlink" title="6.1 pacnakge.json"></a>6.1 pacnakge.json</h4><ul>
-<li>增加构建脚本<pre><code class="highlight diff">&quot;scripts&quot;: &#123;
-  &quot;dev&quot;: &quot;node server&quot;,
-<span class="addition">+ &quot;build&quot;: &quot;npm run build:client &amp;&amp; npm run build:server&quot;,</span>
-<span class="addition">+  &quot;build:client&quot;: &quot;vite build --ssrManifest --outDir dist/client&quot;,</span>
-<span class="addition">+  &quot;build:server&quot;: &quot;vite build --ssr src/entry-server.js --outDir dist/server&quot;,</span>
-<span class="addition">+  &quot;serve&quot;: &quot;cross-env NODE_ENV=production node server&quot;</span>
-&#125;,</code></pre></li>
-</ul>
-<h4 id="6-2-服务端运行文件"><a href="#6-2-服务端运行文件" class="headerlink" title="6.2 服务端运行文件"></a>6.2 服务端运行文件</h4><ul>
-<li>针对生产环境，需要启动静态资源服务，引用路径需要改为dist目录下</li>
-</ul>
-<pre><code class="highlight diff">import fs from &#x27;fs&#x27;
-import path from &#x27;path&#x27;
-import &#123; fileURLToPath &#125; from &#x27;url&#x27;
-import express from &#x27;express&#x27;
-
-import &#123; createRequire &#125; from &#x27;module&#x27;;
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const require = createRequire(import.meta.url);
-const resolve = (p) =&gt; path.resolve(__dirname, p);
-
-const createServer = async (isProd = process.env.NODE_ENV <span class="comment">=== &#x27;production&#x27;) =&gt; &#123;</span>
-  const app = express()
-
-<span class="deletion">-  const vite = await require(&#x27;vite&#x27;).createServer(&#123;</span>
-<span class="deletion">-    server: &#123;</span>
-<span class="deletion">-      middlewareMode: true,</span>
-<span class="deletion">-    &#125;,</span>
-<span class="deletion">-    appType: &#x27;custom&#x27;</span>
-<span class="deletion">-  &#125;);</span>
-<span class="deletion">-  app.use(vite.middlewares);</span>
-
-<span class="addition">+  let vite;</span>
-<span class="addition">+  if (isProd) &#123;</span>
-<span class="addition">+    app.use(require(&#x27;compression&#x27;)());</span>
-<span class="addition">+    app.use(</span>
-<span class="addition">+      require(&#x27;serve-static&#x27;)(resolve(&#x27;./dist/client&#x27;), &#123;</span>
-<span class="addition">+        index: false</span>
-<span class="addition">+      &#125;)</span>
-<span class="addition">+    );</span>
-<span class="addition">+  &#125; else &#123;</span>
-<span class="addition">+    vite = await require(&#x27;vite&#x27;).createServer(&#123;</span>
-<span class="addition">+      server: &#123;</span>
-<span class="addition">+        middlewareMode: true,</span>
-<span class="addition">+      &#125;,</span>
-<span class="addition">+      appType: &#x27;custom&#x27;</span>
-<span class="addition">+    &#125;);</span>
-<span class="addition">+    app.use(vite.middlewares);</span>
-<span class="addition">+  &#125;</span>
-   // 通过bulid --ssrManifest命令生成的静态资源映射需要在生产环境下引用
-<span class="addition">+  const manifest = isProd ? fs.readFileSync(resolve(&#x27;./dist/client/ssr-manifest.json&#x27;), &#x27;utf-8&#x27;) :&#123;&#125;</span>
-  
-  app.use(&#x27;*&#x27;, async (req, res, next) =&gt; &#123;
-    const url = req.originalUrl
-    try &#123;
-<span class="deletion">-      let template = fs.readFileSync(</span>
-<span class="deletion">-        resolve(&#x27;index.html&#x27;),</span>
-<span class="deletion">-        &#x27;utf-8&#x27;</span>
-<span class="deletion">-      )</span>
-<span class="deletion">-      template = await vite.transformIndexHtml(url, template)</span>
-<span class="deletion">-      const render = (await vite.ssrLoadModule(&#x27;/src/entry-server.js&#x27;)).render</span>
-<span class="deletion">-      const [ appHtml, piniaState ] = await render(url)</span>
-
-<span class="addition">+      let template, render</span>
-<span class="addition">+      if (isProd) &#123;</span>
-<span class="addition">+        template = fs.readFileSync(resolve(&#x27;./dist/client/index.html&#x27;), &#x27;utf-8&#x27;)</span>
-<span class="addition">+        render = (await import(&#x27;./dist/server/entry-server.js&#x27;)).render</span>
-<span class="addition">+      &#125; else &#123;</span>
-<span class="addition">+        template = fs.readFileSync(</span>
-<span class="addition">+          resolve(&#x27;index.html&#x27;),</span>
-<span class="addition">+          &#x27;utf-8&#x27;</span>
-<span class="addition">+        )</span>
-<span class="addition">+        template = await vite.transformIndexHtml(url, template)</span>
-<span class="addition">+        render = (await vite.ssrLoadModule(&#x27;/src/entry-server.js&#x27;)).render</span>
-<span class="addition">+      &#125;</span>
-<span class="addition">+      const [ appHtml, preloadLinks, piniaState ] = await render(url, manifest)</span>
-      const html = template
-        .replace(`&lt;!--preload-links--&gt;`, preloadLinks)
-        .replace(`&lt;!--ssr-outlet--&gt;`, appHtml)
-<span class="addition">+        .replace(`&lt;!--pinia-state--&gt;`, piniaState)</span>
-      res.status(200).set(&#123; &#x27;Content-Type&#x27;: &#x27;text/html&#x27; &#125;).end(html)
-    &#125; catch (error) &#123;
-      vite?.ssrFixStacktrace(error)
-      next()
-    &#125;
+  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
+    monthList,
   &#125;)
-
-  app.listen(5100)
-&#125;
-
-createServer();
-</code></pre>
-
-<h4 id="6-3-服务端入口文件"><a href="#6-3-服务端入口文件" class="headerlink" title="6.3 服务端入口文件"></a>6.3 服务端入口文件</h4><ul>
-<li>服务端入口文件主要是增加了构建时生成的静态资源映射处理的逻辑<pre><code class="highlight diff">import &#123; basename &#125; from &#x27;path&#x27;
-import &#123; renderToString &#125; from &#x27;vue/server-renderer&#x27;
-import &#123; createApp &#125; from &#x27;./main&#x27;
-
-export async function render(url, manifest) &#123;
-  const &#123; app, router, pinia &#125; = createApp()
-
-  router.push(url)
-  await router.isReady()
-
-  const ctx = &#123;&#125;
-  const html = await renderToString(app, ctx)
-<span class="addition">+  const preloadLinks = renderPreloadLinks(ctx.modules, manifest)</span>
-<span class="addition">+  return [html, preloadLinks, JSON.stringify(pinia.state.value)]</span>
-&#125;
-
- function renderPreloadLinks(modules, manifest) &#123;
-   let links = &#x27;&#x27;
-   const seen = new Set()
-   modules.forEach((id) =&gt; &#123;
-     const files = manifest[id]
-     if (files) &#123;
-       files.forEach((file) =&gt; &#123;
-         if (!seen.has(file)) &#123;
-           seen.add(file)
-           const filename = basename(file)
-           if (manifest[filename]) &#123;
-             for (const depFile of manifest[filename]) &#123;
-               links += renderPreloadLink(depFile)
-               seen.add(depFile)
-             &#125;
-           &#125;
-           links += renderPreloadLink(file)
-         &#125;
-       &#125;)
-     &#125;
-   &#125;)
-   return links
- &#125;
- 
- function renderPreloadLink(file) &#123;
-   if (file.endsWith(&#x27;.js&#x27;)) &#123;
-     return `&lt;link rel=&quot;modulepreload&quot; crossorigin href=&quot;$&#123;file&#125;&quot;&gt;`
-   &#125; else if (file.endsWith(&#x27;.css&#x27;)) &#123;
-     return `&lt;link rel=&quot;stylesheet&quot; href=&quot;$&#123;file&#125;&quot;&gt;`
-   &#125; else if (file.endsWith(&#x27;.woff&#x27;)) &#123;
-     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff&quot; crossorigin&gt;`
-   &#125; else if (file.endsWith(&#x27;.woff2&#x27;)) &#123;
-     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&gt;`
-   &#125; else if (file.endsWith(&#x27;.gif&#x27;)) &#123;
-     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/gif&quot;&gt;`
-   &#125; else if (file.endsWith(&#x27;.jpg&#x27;) || file.endsWith(&#x27;.jpeg&#x27;)) &#123;
-     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/jpeg&quot;&gt;`
-   &#125; else if (file.endsWith(&#x27;.png&#x27;)) &#123;
-     return ` &lt;link rel=&quot;preload&quot; href=&quot;$&#123;file&#125;&quot; as=&quot;image&quot; type=&quot;image/png&quot;&gt;`
-   &#125; else &#123;
-     return &#x27;&#x27;
-   &#125;
- &#125;</code></pre></li>
-</ul>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
-<li><a href="https://github.com/LHRUN/vue-ssr">repo</a></li>
-</ul>
-<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
-<li><a href="https://vuejs.org/guide/scaling-up/ssr.html">Server-Side Rendering</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>Vue3</tag>
-        <tag>Vite</tag>
-        <tag>SSR</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>前端的Docker学习记录</title>
-    <url>/2022/10/30/%E5%89%8D%E7%AB%AF%E7%9A%84Docker%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</url>
-    <content><![CDATA[<h2 id="Docker简介"><a href="#Docker简介" class="headerlink" title="Docker简介"></a>Docker简介</h2><ul>
-<li>Docker 是一个应用<strong>打包</strong>、<strong>分发</strong>、<strong>部署</strong>的工具，可以使应用部署更加轻量，可移植，可扩展，可以理解为一个轻量的虚拟机<ul>
-<li>打包：就是把你软件运行所需的依赖、第三方库、软件打包到一起，变成一个安装包</li>
-<li>分发：你可以把你打包好的“安装包”上传到一个镜像仓库，其他人可以非常方便的获取和安装</li>
-<li>部署：拿着“安装包”就可以一个命令运行起来应用，自动模拟出一模一样的运行环境，不管是在Windows&#x2F;Mac&#x2F;Linux</li>
-</ul>
+&#125;</code></pre>
 </li>
-<li>docker架构图<br><img src="https://s1.ax1x.com/2022/10/30/xI2lGR.png"></li>
-</ul>
+<li><p>初始化每月数据: </p>
+<blockquote>
+<p>逻辑是获取每个月第一天的星期数和每个月的最大天数，然后在之前和之后的空数据填充item占位<br>然后遍历，根据不同的需求，在遍历中处理，最后在html中flex布局即可</p>
+</blockquote>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * <span class="doctag">@description</span>: 初始化每月数据</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月</span>
+<span class="comment"> */</span>
+<span class="title function_">monthInitData</span>(<span class="params">year, month</span>) &#123;
+  <span class="keyword">let</span> &#123; calendarValue, startDate, endDate &#125;= <span class="variable language_">this</span>.<span class="property">data</span>, <span class="comment">// 当前点击时间，起始时间，结束时间</span>
+    firstWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, <span class="number">1</span>).<span class="title function_">getDay</span>(), <span class="comment">// 本月的第一天的星期数</span>
+    days = [], <span class="comment">// 日期数组</span>
+    max = <span class="variable language_">this</span>.<span class="title function_">getMonthMax</span>(year, month + <span class="number">1</span>), <span class="comment">// 每月最大天数</span>
+    lastWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, (month + <span class="number">1</span>), <span class="number">0</span>).<span class="title function_">getDay</span>() <span class="comment">// 本月的最后一天的星期数</span>
+
+  <span class="comment">// 填充每月一号之前的空数据</span>
+  <span class="keyword">if</span> (firstWeek &gt; <span class="number">0</span>) &#123;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; firstWeek; i++) &#123;
+      days.<span class="title function_">push</span>(&#123;
+        <span class="attr">day</span>: <span class="number">0</span>
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="keyword">let</span> currentTime = <span class="number">0</span>, 
+      startTime = <span class="number">0</span>,
+      endTime = <span class="number">0</span>
+
+  <span class="keyword">if</span> (calendarValue[<span class="number">0</span>]) &#123;
+    currentTime = <span class="keyword">new</span> <span class="title class_">Date</span>(calendarValue[<span class="number">0</span>], calendarValue[<span class="number">1</span>], calendarValue[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+  <span class="keyword">if</span> (startDate[<span class="number">0</span>]) &#123;
+    startTime = <span class="keyword">new</span> <span class="title class_">Date</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>], startDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+  <span class="keyword">if</span> (endDate[<span class="number">0</span>]) &#123;
+    endTime = <span class="keyword">new</span> <span class="title class_">Date</span>(endDate[<span class="number">0</span>], endDate[<span class="number">1</span>], endDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;
+    <span class="comment">// 以下状态是需要在html中判断处理，根据自己需求改变</span>
+    <span class="keyword">let</span> current = <span class="literal">false</span>, <span class="comment">// 当前点击状态</span>
+      disabled = <span class="literal">false</span>, <span class="comment">// 禁止状态</span>
+      now = <span class="literal">false</span>, <span class="comment">// 今天显示文案</span>
+      time = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, i).<span class="title function_">getTime</span>(),
+      nowTime = [<span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getFullYear</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getMonth</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getDate</span>()]
+    <span class="keyword">if</span> (currentTime &amp;&amp; currentTime == time) current = <span class="literal">true</span>
+    <span class="keyword">if</span> (startTime &amp;&amp; startTime &gt; time) disabled = <span class="literal">true</span>
+    <span class="keyword">if</span> (endTime &amp;&amp; endTime &lt; time) disabled = <span class="literal">true</span>
+    <span class="keyword">if</span> (year === nowTime[<span class="number">0</span>] &amp;&amp; month === nowTime[<span class="number">1</span>] &amp;&amp; i === nowTime[<span class="number">2</span>]) now = <span class="literal">true</span>
+
+    days.<span class="title function_">push</span>(&#123;
+      <span class="attr">day</span>: i,
+      current,
+      disabled,
+      now,
+    &#125;)
+  &#125;
+
+  <span class="comment">// 填充每月最后一天之后的空数据</span>
+  <span class="keyword">if</span> (lastWeek != <span class="number">6</span>) &#123;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = (<span class="number">6</span> - lastWeek); i &lt; l; i++) &#123;
+      days.<span class="title function_">push</span>(&#123;
+        <span class="attr">day</span>: <span class="number">0</span>
+      &#125;)
+    &#125;
+  &#125;
+  <span class="keyword">return</span> days
+&#125;,
+
+<span class="comment">/**</span>
+<span class="comment"> * 获取一个月最大天数</span>
+<span class="comment"> * <span class="doctag">@method</span> <span class="variable">getMonthMax</span></span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年份</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月份</span>
+<span class="comment"> */</span>
+<span class="title function_">getMonthMax</span>(<span class="params">year, month</span>) &#123;
+  <span class="keyword">let</span> max = <span class="number">31</span>
+  <span class="keyword">if</span> (month == <span class="number">4</span> || month == <span class="number">6</span> || month == <span class="number">9</span> || month == <span class="number">11</span>) &#123;
+    max = <span class="number">30</span>
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (month == <span class="number">2</span>) &#123;
+    <span class="keyword">if</span> (((year % <span class="number">4</span>) == <span class="number">0</span> &amp;&amp; (year % <span class="number">100</span>) &gt; <span class="number">0</span>) || (year % <span class="number">400</span>) == <span class="number">0</span>) &#123;
+      max = <span class="number">29</span>
+    &#125; <span class="keyword">else</span> &#123;
+      max = <span class="number">28</span>
+    &#125; 
+  &#125;
+
+  <span class="keyword">return</span> max
+&#125;,
+</code></pre></li>
+</ol>
 <ul>
-<li><strong>docker client</strong>: 即docker命令行工具</li>
-<li><strong>docker host</strong>: 宿主机，docker daemon的运行环境服务器</li>
-<li><strong>docker daemon</strong>: docker的守护进程，docker client通过命令行与docker daemon交互</li>
-<li><strong>image</strong>: 镜像，可以理解为安装包，可以方便的进行传播和安装</li>
-<li><strong>container</strong>: 容器，镜像的运行实例，每个软件运行环境都是独立的，隔离的</li>
-<li><strong>registry</strong>: 镜像仓库，可以从镜像仓库拉取和推送镜像</li>
-</ul>
-<h3 id="底层原理"><a href="#底层原理" class="headerlink" title="底层原理"></a>底层原理</h3><p>docker底层使用了一些linux内核的特性，<code>namespace</code>，<code>cgroups</code>，<code>unionFS</code></p>
-<h3 id="namespace"><a href="#namespace" class="headerlink" title="namespace"></a>namespace</h3><ul>
-<li>namespace，也叫命名空间，名称空间，它表示一个标识符的可见范围。一个标识符可在多个名字空间中定义，它在不同名字空间中的含义是互不相干的。这样，在一个新的名字空间中可定义任何标识符，它不会与任何已有的标识符发生冲突，因为已有的定义都处于其他命名空间中</li>
-<li>docker使用linux namespace构建隔离的环境，它由以下namespace组成<ul>
-<li>pid：隔离进程</li>
-<li>net：隔离网络</li>
-<li>ipc：隔离IPC</li>
-<li>mnt：隔离文件系统挂载</li>
-<li>uts：隔离hostname</li>
-<li>user：隔离uid&#x2F;gid</li>
-</ul>
-</li>
-</ul>
-<h3 id="cgroups"><a href="#cgroups" class="headerlink" title="cgroups"></a>cgroups</h3><ul>
-<li>cgroups，是控制组群(control groups)的简写，是用来限制、控制与分离一个进程组的资源(如CPU、内存、磁盘输入输出等)</li>
-<li>cgroups功能：<ul>
-<li>资源限制：设置内存限制，包括虚拟内存</li>
-<li>优先级：一些资源可以得到大量的CPU或磁盘IO吞吐量</li>
-<li>结算：用来度量系统实际用了多少资源</li>
-<li>控制：冻结组或检查点和重启动</li>
-</ul>
-</li>
-</ul>
-<h3 id="unionFS"><a href="#unionFS" class="headerlink" title="unionFS"></a>unionFS</h3><ul>
-<li>unionFS(Union file systems)是一种分层、轻量级并且高性能的文件性能，支持对文件系统的修改作为一次提交来一层层的叠加。docker的镜像与容器就是分层存储，可用的存储引擎呦aufs，overlay等</li>
-</ul>
-<h3 id="镜像"><a href="#镜像" class="headerlink" title="镜像"></a>镜像</h3><ul>
-<li>镜像是一份用来创造容器的配置文件，而容器可以视作最小型的一个操作系统</li>
-<li>docker的镜像和容器都使用了unionFS做分层存储，镜像作为只读层是共享的，而容器在镜像之上附加了一层可写层，最大程度地减少了空间的浪费</li>
-<li>镜像的相关命令<ul>
-<li>镜像拉取：<code>docker pull node:alpine</code></li>
-<li>查看镜像信息：<code>docker inspect node:alpine</code></li>
-<li>列出所有镜像：<code>docker images</code></li>
-<li>镜像打包：<code>docker build -t docker-app:v1.0.0</code><ul>
-<li><code>-t</code>：设置镜像名字和版本号</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><ul>
-<li>Dockerfile是docker构建镜像的配置文件，比如一个简单的Dockerfile如下<pre><code class="highlight dockerfile"><span class="keyword">FROM</span> node:<span class="number">16</span>
-<span class="keyword">MAINTAINER</span> songlh
-
-<span class="keyword">ADD</span><span class="language-bash"> . /app</span>
-<span class="keyword">WORKDIR</span><span class="language-bash"> /app</span>
-
-<span class="keyword">RUN</span><span class="language-bash"> npm install pnpm -g</span>
-<span class="keyword">RUN</span><span class="language-bash"> pnpm install</span>
-
-<span class="keyword">CMD</span><span class="language-bash"> pnpm run dev</span></code></pre></li>
-<li>常用指令</li>
-<li><code>FROM</code>：表示基于一个已有的基础镜像，<code>FROM &lt;image&gt; [AS &lt;name&gt;]</code></li>
-<li><code>MAINTAINER</code>：声明dockerfile镜像构建的作者</li>
-<li><code>ADD</code>：表示把宿主机的文件或目录加入到镜像的文件系统，<code>ADD [--chown=&lt;user&gt;:&lt;group&gt;] &lt;src&gt;... &lt;dest&gt;</code></li>
-<li><code>RUN</code>: 在镜像中执行命令，由于ufs的文件系统，它会在当前镜像的顶层新增一层，<code>RUN &lt;command&gt;</code></li>
-<li><code>CMD</code>: 指定容器如何启动，一个Dockerfile中只允许有一个CMD</li>
-<li><code>WORKDIR</code>：设置工作目录</li>
-<li><code>ENV</code>：设置环境变量</li>
-</ul>
-<h2 id="容器"><a href="#容器" class="headerlink" title="容器"></a>容器</h2><ul>
-<li><code>docker run</code>：创建容器<ul>
-<li><code>docker run -p 8080:8080 --name docker-hello docker-app:v1.0.0</code>表示基于docker-app镜像的v1.0.0版本创建一个容器并在本地的8080端口运行，容器名字叫<code>docker-hellp</code></li>
-<li><code>-p host-port:container-port</code>：宿主机与容器端口映射，方便容器对外提供服务</li>
-<li><code>--name</code>：为容器指定名称</li>
-<li><code>-d</code>：后台运行</li>
-<li><code>--rm</code>：当停止容器时自动清除容器</li>
-</ul>
-</li>
-<li><code>docker stop</code>：停止容器</li>
-<li><code>docker rm</code>：删除容器</li>
-<li><code>docker exec -it container-name</code>：进入容器环境</li>
-<li><code>docker ps</code>：列出所有容器</li>
-<li><code>docker port</code>：查看容器端口映射</li>
-<li><code>docker stats</code>：查看容器资源占用</li>
-</ul>
-<h2 id="目录挂载"><a href="#目录挂载" class="headerlink" title="目录挂载"></a>目录挂载</h2><ul>
-<li>按照目前已有知识，如果改了项目代码不会立刻生效，需要重新build和run，很麻烦，而且容器产生的数据，如果容器删除了就会没有，目录挂载就是为了解决这些问题</li>
-<li>目前的挂载方式<ul>
-<li><code>bind mount</code>：直接把宿主机目录映射到容器内，适合挂载代码目录和配置文件，可挂载到多个容器上</li>
-<li><code>volume</code>：由容器创建和管理，创建在宿主机，所以删除容器不会丢失，官方推荐，更高效，Linux文件系统，适合存储数据库数据。可挂载到多个容器上</li>
-<li><code>tmpfs mount</code>：适合存储临时文件，存储在宿主机内存中。不可多容器共享</li>
-<li><img src="https://s1.ax1x.com/2022/10/30/xI2Qi9.png"></li>
-</ul>
-</li>
-</ul>
-<h3 id="bind-mount"><a href="#bind-mount" class="headerlink" title="bind mount"></a>bind mount</h3><ul>
-<li><code>bind mount</code>是通过<code>-v</code>参数来绑定宿主机目录，比如将外部的html文档挂载到Nginx容器的根目录下<ul>
-<li><code>docker run -v ~/html:/usr/share/nginx/html -p 81:80 -d --name nginx_bind nginx:latest</code></li>
-</ul>
-</li>
-<li>这种方式的缺点就是被挂载的宿主机目录(或文件)不受保护，任何容器都可以随意修改</li>
-</ul>
-<h3 id="volume"><a href="#volume" class="headerlink" title="volume"></a>volume</h3><ul>
-<li>volume也是一个文件，但是这个文件是在docker的管控范围内，docker可以通过挂载的设定来控制容器对volume的读写权限</li>
-<li>通过<code>docker volume create volume-name</code>创建一个Volume，实际上是在docker的<code>/var/lib/docker/volumes/</code>文件夹内创建一个相同名字的文件夹来保存数据</li>
-<li>比如设置一个只能读取volume<ul>
-<li><code>docker run --mount type=volume,source=nginx-volume,destination=/usr/share/nginx/html,readonly -p 82:80 -d --name nginx_volume nginx:latest</code></li>
-</ul>
-</li>
-</ul>
-<h3 id="tmpfs-mount"><a href="#tmpfs-mount" class="headerlink" title="tmpfs mount"></a>tmpfs mount</h3><ul>
-<li>tmpfs挂载是临时的，仅保留在主机内存中。当容器停止时，tmpfs挂载被移除，写入的文件不会被持久化</li>
-<li><code>docker run --mount type=tmpfs,destination=/usr/share/nginx/html -p 83:80 -d --name nginx-tempfs nginx:latest</code></li>
-<li>tmpfs因为不是持久化，一般不使用</li>
-</ul>
-<h2 id="容器通信"><a href="#容器通信" class="headerlink" title="容器通信"></a>容器通信</h2><ul>
-<li>容器间的通信根据媒介可以分为：volume共享通信、网络通信</li>
-<li>根据通信范围可以分为：同主机通信、跨主机通信</li>
-</ul>
-<h3 id="网络通信"><a href="#网络通信" class="headerlink" title="网络通信"></a>网络通信</h3><ul>
-<li>Docker的网络通信模型分为以下几种，在安装Docker以后，会默认创建三种网络，可以通过<code>docker network ls</code>查看<ul>
-<li><strong>bridge</strong>：为每一个容器分配、设置IP等，并将容器连接到一个<code>docker0</code>虚拟网桥，默认为该模式</li>
-<li><strong>host</strong>：容器将不会虚拟出自己的网卡，配置自己的IP等，而是使用宿主机的IP和端口</li>
-<li><strong>none</strong>：容器有独立的<code>network namespace</code>，但并没有对其进行任何网络设置，如分配<code>veth pair</code>和网桥连接，IP等</li>
-<li><strong>overlay</strong>：可以连接多个docker守护进程或者满足集群服务之间的通信，适用于不同宿主机上的docker容器之间的通信</li>
-<li><strong>macvlan</strong>: 可以为docker容器分配MAC地址，使其像真实的物理及一样运行</li>
-</ul>
-</li>
-<li>Docker内置的<code>bridge network</code>，也就是docker0接口所属的network，所有未指定network的容器，默认连接到此network中，其网段未<code>172.17.0.1/16</code>，所以两个未进行任何连接操作的容器是可以通过IP地址互相通信的，因为他们同在一个network下，但通信只能通过IP地址进行，不可以通过容器名通信<ul>
-<li><img src="https://s1.ax1x.com/2022/10/30/xI21R1.png"></li>
-</ul>
-</li>
-<li>创建自定义网络：<code>docker network create custom_network</code></li>
-<li>查看网络模式：<code>docker network ls</code></li>
-<li>通过自定义网络创建容器：<code>docker run -di --name docker-app --net custom_network docker-app:v1.0.0</code></li>
-<li>查看容器的网络信息：<code>docker inspect 容器名称|ID</code>，然后在<code>NetworkSettings</code>节点中可以看到</li>
-<li>为容器连接新的网络：<code>docker network connect 网络名称 容器名称</code></li>
-<li>断开网络：<code>docker network disconnect 网络名称 容器名称</code></li>
-</ul>
-<h2 id="docker-compose"><a href="#docker-compose" class="headerlink" title="docker-compose"></a>docker-compose</h2><ul>
-<li>docker-compose是用于定义和运行多容器Docker应用程序的工具。通过compose，您可以使用YML文件来配置应用程序需要的所有服务，然后使用一个命令就可以从YML文件配置中创建并启动所有服务</li>
-<li>使用分三步<ul>
-<li><ol>
-<li>使用Dockerfile定义应用程序的环境</li>
-</ol>
-</li>
-<li><ol start="2">
-<li>使用docker-compose.yml定义构成应用程序的服务，这样它们可以在隔离环境中一起运行</li>
-</ol>
-</li>
-<li><ol start="3">
-<li>最后，执行docker-compose up命令启动并运行整个应用程序</li>
-</ol>
-</li>
-</ul>
-</li>
-<li>比如运行一个web项目和redis，可以编写一个如下的<code>docker-compose.yml</code>文件<pre><code class="highlight yml"><span class="attr">version:</span> <span class="string">&quot;3&quot;</span>
-
-<span class="attr">services:</span>
-  <span class="attr">app:</span>
-    <span class="attr">build:</span> <span class="string">./</span>
-    <span class="attr">ports:</span>
-      <span class="bullet">-</span> <span class="number">80</span><span class="string">:8080</span>
-    <span class="attr">volumes:</span>
-      <span class="bullet">-</span> <span class="string">./:/app</span>
-  <span class="attr">redis:</span>
-    <span class="attr">image:</span> <span class="string">redis:5.0.13</span>
-    <span class="attr">volumes:</span>
-      <span class="bullet">-</span> <span class="string">redis:/data</span>
-<span class="attr">volumes:</span>
-  <span class="attr">redis:</span></code></pre></li>
-<li>version：指定本yml依从的compose哪个版本指定的</li>
-<li>build: 指定构建镜像上下文路径</li>
-<li>image：指定启动容器的镜像</li>
-<li>volumes：卷挂载路径设置，如果跨多个服务并重用挂载卷，可以在volumes关键字中命名挂载卷</li>
-<li>ports：暴露端口信息</li>
-</ul>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://blog.csdn.net/Mr_YanMingXin/article/details/123016807">浅谈Docker底层原理</a></li>
-<li><a href="https://docker.easydoc.net/">Docker快速入门</a></li>
-<li><a href="https://q.shanyue.tech/deploy/docker.html#%E6%9C%AF%E8%AF%AD">Docker使用指南</a></li>
-<li><a href="https://juejin.cn/post/6993979788020940830">Docker与数据：三种挂载方式</a></li>
-<li><a href="https://www.cnblogs.com/mrhelloworld/p/docker11.html">Docker 网络模式详解及容器间网络通信</a></li>
+<li>以上就是核心逻辑，像一些弹窗事件和一些点击事件就不附上来了</li>
 </ul>
 ]]></content>
       <categories>
         <category>gallery</category>
       </categories>
       <tags>
-        <tag>Docker</tag>
+        <tag>微信小程序</tag>
       </tags>
   </entry>
   <entry>
@@ -2312,162 +2468,6 @@ export async function render(url, manifest) &#123;
 <ol start="5">
 <li>还有一些不是太通用的业务组件就不叙述了…</li>
 </ol>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>微信小程序</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>小程序滚动日历组件</title>
-    <url>/2021/04/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6/</url>
-    <content><![CDATA[<h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
-<ol>
-<li><p>在ready中初始化组件数据</p>
-<pre><code class="highlight js"><span class="comment">/**</span>
-<span class="comment"> * <span class="doctag">@description</span>: 初始化</span>
-<span class="comment"> */</span>
-<span class="title function_">ready</span>(<span class="params"></span>) &#123;
-  <span class="comment">// 这两个数据是从页面中传过来的，起始时间和结束时间</span>
-  <span class="comment">// 数组类型 [year, month, day]</span>
-  <span class="keyword">const</span> &#123; endDate, startDate &#125; = <span class="variable language_">this</span>.<span class="property">data</span>
-  <span class="keyword">let</span> monthList = [] <span class="comment">// 这个用于wxml中遍历，以每月为item</span>
-
-  <span class="comment">// 未跨年</span>
-  <span class="keyword">if</span> ( endDate[<span class="number">0</span>] === startDate[<span class="number">0</span>]) &#123;
-    <span class="keyword">let</span> rangeMonth = endDate[<span class="number">1</span>] - startDate[<span class="number">1</span>]
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= rangeMonth; i++) &#123;
-      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
-      <span class="comment">// monthInitData()初始化每月数据</span>
-      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
-      monthList.<span class="title function_">push</span>(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-  &#125; <span class="keyword">else</span> &#123;
-    <span class="comment">// 跨年前月份</span>
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, lng = <span class="number">12</span> - startDate[<span class="number">1</span>]; i &lt; lng; i++) &#123;
-      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
-      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
-      monthList.<span class="title function_">push</span>(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-
-    <span class="comment">// 跨年后月份</span>
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= endDate[<span class="number">1</span>]; i++) &#123;
-      <span class="keyword">let</span> date = [endDate[<span class="number">0</span>], i + <span class="number">1</span>]
-      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(endDate[<span class="number">0</span>], i)
-      monthList.<span class="title function_">push</span>(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-  &#125;
-  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
-    monthList,
-  &#125;)
-&#125;</code></pre>
-</li>
-<li><p>初始化每月数据: </p>
-<blockquote>
-<p>逻辑是获取每个月第一天的星期数和每个月的最大天数，然后在之前和之后的空数据填充item占位<br>然后遍历，根据不同的需求，在遍历中处理，最后在html中flex布局即可</p>
-</blockquote>
-<pre><code class="highlight js"><span class="comment">/**</span>
-<span class="comment"> * <span class="doctag">@description</span>: 初始化每月数据</span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年</span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月</span>
-<span class="comment"> */</span>
-<span class="title function_">monthInitData</span>(<span class="params">year, month</span>) &#123;
-  <span class="keyword">let</span> &#123; calendarValue, startDate, endDate &#125;= <span class="variable language_">this</span>.<span class="property">data</span>, <span class="comment">// 当前点击时间，起始时间，结束时间</span>
-    firstWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, <span class="number">1</span>).<span class="title function_">getDay</span>(), <span class="comment">// 本月的第一天的星期数</span>
-    days = [], <span class="comment">// 日期数组</span>
-    max = <span class="variable language_">this</span>.<span class="title function_">getMonthMax</span>(year, month + <span class="number">1</span>), <span class="comment">// 每月最大天数</span>
-    lastWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, (month + <span class="number">1</span>), <span class="number">0</span>).<span class="title function_">getDay</span>() <span class="comment">// 本月的最后一天的星期数</span>
-
-  <span class="comment">// 填充每月一号之前的空数据</span>
-  <span class="keyword">if</span> (firstWeek &gt; <span class="number">0</span>) &#123;
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; firstWeek; i++) &#123;
-      days.<span class="title function_">push</span>(&#123;
-        <span class="attr">day</span>: <span class="number">0</span>
-      &#125;)
-    &#125;
-  &#125;
-
-  <span class="keyword">let</span> currentTime = <span class="number">0</span>, 
-      startTime = <span class="number">0</span>,
-      endTime = <span class="number">0</span>
-
-  <span class="keyword">if</span> (calendarValue[<span class="number">0</span>]) &#123;
-    currentTime = <span class="keyword">new</span> <span class="title class_">Date</span>(calendarValue[<span class="number">0</span>], calendarValue[<span class="number">1</span>], calendarValue[<span class="number">2</span>]).<span class="title function_">getTime</span>()
-  &#125;
-  <span class="keyword">if</span> (startDate[<span class="number">0</span>]) &#123;
-    startTime = <span class="keyword">new</span> <span class="title class_">Date</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>], startDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
-  &#125;
-  <span class="keyword">if</span> (endDate[<span class="number">0</span>]) &#123;
-    endTime = <span class="keyword">new</span> <span class="title class_">Date</span>(endDate[<span class="number">0</span>], endDate[<span class="number">1</span>], endDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
-  &#125;
-
-  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;
-    <span class="comment">// 以下状态是需要在html中判断处理，根据自己需求改变</span>
-    <span class="keyword">let</span> current = <span class="literal">false</span>, <span class="comment">// 当前点击状态</span>
-      disabled = <span class="literal">false</span>, <span class="comment">// 禁止状态</span>
-      now = <span class="literal">false</span>, <span class="comment">// 今天显示文案</span>
-      time = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, i).<span class="title function_">getTime</span>(),
-      nowTime = [<span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getFullYear</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getMonth</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getDate</span>()]
-    <span class="keyword">if</span> (currentTime &amp;&amp; currentTime == time) current = <span class="literal">true</span>
-    <span class="keyword">if</span> (startTime &amp;&amp; startTime &gt; time) disabled = <span class="literal">true</span>
-    <span class="keyword">if</span> (endTime &amp;&amp; endTime &lt; time) disabled = <span class="literal">true</span>
-    <span class="keyword">if</span> (year === nowTime[<span class="number">0</span>] &amp;&amp; month === nowTime[<span class="number">1</span>] &amp;&amp; i === nowTime[<span class="number">2</span>]) now = <span class="literal">true</span>
-
-    days.<span class="title function_">push</span>(&#123;
-      <span class="attr">day</span>: i,
-      current,
-      disabled,
-      now,
-    &#125;)
-  &#125;
-
-  <span class="comment">// 填充每月最后一天之后的空数据</span>
-  <span class="keyword">if</span> (lastWeek != <span class="number">6</span>) &#123;
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = (<span class="number">6</span> - lastWeek); i &lt; l; i++) &#123;
-      days.<span class="title function_">push</span>(&#123;
-        <span class="attr">day</span>: <span class="number">0</span>
-      &#125;)
-    &#125;
-  &#125;
-  <span class="keyword">return</span> days
-&#125;,
-
-<span class="comment">/**</span>
-<span class="comment"> * 获取一个月最大天数</span>
-<span class="comment"> * <span class="doctag">@method</span> <span class="variable">getMonthMax</span></span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年份</span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月份</span>
-<span class="comment"> */</span>
-<span class="title function_">getMonthMax</span>(<span class="params">year, month</span>) &#123;
-  <span class="keyword">let</span> max = <span class="number">31</span>
-  <span class="keyword">if</span> (month == <span class="number">4</span> || month == <span class="number">6</span> || month == <span class="number">9</span> || month == <span class="number">11</span>) &#123;
-    max = <span class="number">30</span>
-  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (month == <span class="number">2</span>) &#123;
-    <span class="keyword">if</span> (((year % <span class="number">4</span>) == <span class="number">0</span> &amp;&amp; (year % <span class="number">100</span>) &gt; <span class="number">0</span>) || (year % <span class="number">400</span>) == <span class="number">0</span>) &#123;
-      max = <span class="number">29</span>
-    &#125; <span class="keyword">else</span> &#123;
-      max = <span class="number">28</span>
-    &#125; 
-  &#125;
-
-  <span class="keyword">return</span> max
-&#125;,
-</code></pre></li>
-</ol>
-<ul>
-<li>以上就是核心逻辑，像一些弹窗事件和一些点击事件就不附上来了</li>
-</ul>
 ]]></content>
       <categories>
         <category>gallery</category>
@@ -3929,8 +3929,8 @@ j = increasingNewIndexSequence.<span class="property">length</span> - <span clas
         <category>gallery</category>
       </categories>
       <tags>
-        <tag>Vue</tag>
         <tag>Vue3</tag>
+        <tag>Vue</tag>
       </tags>
   </entry>
   <entry>
@@ -4092,8 +4092,8 @@ j = increasingNewIndexSequence.<span class="property">length</span> - <span clas
         <category>gallery</category>
       </categories>
       <tags>
-        <tag>Vue</tag>
         <tag>Vue3</tag>
+        <tag>Vue</tag>
       </tags>
   </entry>
   <entry>
@@ -4652,8 +4652,8 @@ targetMap = &#123;
         <category>gallery</category>
       </categories>
       <tags>
-        <tag>Vue</tag>
         <tag>Vue3</tag>
+        <tag>Vue</tag>
       </tags>
   </entry>
   <entry>

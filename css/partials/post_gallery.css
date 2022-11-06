@@ -25,6 +25,9 @@
 .post-gallery-item .post-img {
   width: 50%;
 }
+.post-gallery-item .post-img img {
+  border-radisu: 5px;
+}
 @media (max-width: 480px) {
   .post-gallery-item {
     flex-wrap: wrap;
