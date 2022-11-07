@@ -198,325 +198,6 @@ npm install</code></pre></li>
       </tags>
   </entry>
   <entry>
-    <title>React源码分析之diff核心算法</title>
-    <url>/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
-<li>React的diff算法是在render的beginWork阶段中进行处理</li>
-<li><code>beginWork</code>是在向下深度遍历fiber树时会对途径的每个节点进行状态处理和进行diff对比</li>
-<li>首先diff的入口是在<code>reconcileChildFibers</code>中，然后会根据type来判断使用哪种diff函数进行处理<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">reconcileChildFibers</span>(<span class="params"></span>
-<span class="params">  returnFiber: Fiber,</span>
-<span class="params">  currentFirstChild: Fiber | <span class="literal">null</span>,</span>
-<span class="params">  newChild: any,</span>
-<span class="params">  lanes: Lanes,</span>
-<span class="params"></span>): <span class="title class_">Fiber</span> | <span class="literal">null</span> &#123;
-  <span class="keyword">if</span> (<span class="keyword">typeof</span> newChild === <span class="string">&#x27;object&#x27;</span> &amp;&amp; newChild !== <span class="literal">null</span>) &#123;
-    <span class="keyword">switch</span> (newChild.<span class="property">$$typeof</span>) &#123;
-      <span class="keyword">case</span> <span class="attr">REACT_ELEMENT_TYPE</span>:
-        <span class="keyword">return</span> <span class="title function_">placeSingleChild</span>(
-          <span class="title function_">reconcileSingleElement</span>(
-            returnFiber,
-            currentFirstChild,
-            newChild,
-            lanes,
-          ),
-        );··
-      <span class="keyword">case</span> <span class="attr">REACT_PORTAL_TYPE</span>:
-        <span class="comment">// ...</span>
-      <span class="keyword">case</span> <span class="attr">REACT_LAZY_TYPE</span>:
-        <span class="comment">//...</span>
-    &#125;
-
-    <span class="keyword">if</span> (<span class="title function_">isArray</span>(newChild)) &#123;
-      <span class="keyword">return</span> <span class="title function_">reconcileChildrenArray</span>(
-        returnFiber,
-        currentFirstChild,
-        newChild,
-        lanes,
-      );
-    &#125;
-
-    <span class="keyword">if</span> (<span class="title function_">getIteratorFn</span>(newChild)) &#123;
-      <span class="comment">//...</span>
-    &#125;
-  &#125;
-  <span class="comment">// ...</span>
-&#125;</code></pre></li>
-<li>我在本篇会针对两种较常用的diff函数进行分析<ul>
-<li><code>reconcileSingleElement</code></li>
-<li><code>reconcileChildrenArray</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="reconcileSingleElement"><a href="#reconcileSingleElement" class="headerlink" title="reconcileSingleElement"></a>reconcileSingleElement</h2><ul>
-<li>reconcileSingleElement是针对新newChild是单节点，而oldChild单节点或者是多节点就无法确定了，所以在此diff算法中就会对旧节点进行遍历，然后删除不匹配的oldFiber<pre><code class="highlight ts"><span class="keyword">function</span> <span class="title function_">reconcileSingleElement</span>(<span class="params"></span>
-<span class="params">  returnFiber: Fiber,</span>
-<span class="params">  currentFirstChild: Fiber | <span class="literal">null</span>,</span>
-<span class="params">  element: ReactElement</span>
-<span class="params">  lanes: Lanes,</span>
-<span class="params"></span>): <span class="title class_">Fiber</span> &#123;
-  <span class="keyword">const</span> key = element.<span class="property">key</span>;
-  <span class="keyword">let</span> child = currentFirstChild;
-  <span class="comment">/**</span>
-<span class="comment">    * 遍历旧节点，找到与newChild相同key的节点，不匹配的删除</span>
-<span class="comment">    * 针对匹配的oldFiber, 用newChild中新节点的props来生成新的fiber节点</span>
-<span class="comment">    */</span>
-  <span class="keyword">while</span> (child !== <span class="literal">null</span>) &#123;
-    <span class="keyword">if</span> (child.<span class="property">key</span> === key) &#123;
-      <span class="keyword">const</span> elementType = element.<span class="property">type</span>;
-      <span class="comment">/**</span>
-<span class="comment">        * 通过useFiber创建一个新的Fiber</span>
-<span class="comment">        * 如果element是一个Fragment，则以element.props.children建立Fiber</span>
-<span class="comment">        * 将returnFiber赋给新的fiber的return字段，然后返回这个新的fiber</span>
-<span class="comment">        */</span>·
-      <span class="keyword">if</span> (elementType === <span class="variable constant_">REACT_FRAGMENT_TYPE</span>) &#123;
-        <span class="keyword">if</span> (child.<span class="property">tag</span> === <span class="title class_">Fragment</span>) &#123;
-          <span class="title function_">deleteRemainingChildren</span>(returnFiber, child.<span class="property">sibling</span>);
-          <span class="keyword">const</span> existing = <span class="title function_">useFiber</span>(child, element.<span class="property">props</span>.<span class="property">children</span>);
-          existing.<span class="property">return</span> = returnFiber;
-          <span class="keyword">if</span> (__DEV__) &#123;
-            existing.<span class="property">_debugSource</span> = element.<span class="property">_source</span>;
-            existing.<span class="property">_debugOwner</span> = element.<span class="property">_owner</span>;
-          &#125;
-          <span class="keyword">return</span> existing;
-        &#125;
-      &#125; <span class="keyword">else</span> &#123;
-        <span class="keyword">if</span> (
-          child.<span class="property">elementType</span> === elementType ||
-          (__DEV__
-            ? <span class="title function_">isCompatibleFamilyForHotReloading</span>(child, element)
-            : <span class="literal">false</span>) ||
-          (<span class="keyword">typeof</span> elementType === <span class="string">&#x27;object&#x27;</span> &amp;&amp;
-            elementType !== <span class="literal">null</span> &amp;&amp;
-            elementType.<span class="property">$$typeof</span> === <span class="variable constant_">REACT_LAZY_TYPE</span> &amp;&amp;
-            <span class="title function_">resolveLazy</span>(elementType) === child.<span class="property">type</span>)
-        ) &#123;
-          <span class="title function_">deleteRemainingChildren</span>(returnFiber, child.<span class="property">sibling</span>);
-          <span class="keyword">const</span> existing = <span class="title function_">useFiber</span>(child, element.<span class="property">props</span>);
-          existing.<span class="property">ref</span> = <span class="title function_">coerceRef</span>(returnFiber, child, element);
-          existing.<span class="property">return</span> = returnFiber;
-          <span class="keyword">if</span> (__DEV__) &#123;
-            existing.<span class="property">_debugSource</span> = element.<span class="property">_source</span>;
-            existing.<span class="property">_debugOwner</span> = element.<span class="property">_owner</span>;
-          &#125;
-          <span class="keyword">return</span> existing;
-        &#125;
-      &#125;
-      <span class="comment">// Didn&#x27;t match.</span>
-      <span class="title function_">deleteRemainingChildren</span>(returnFiber, child);
-      <span class="keyword">break</span>;
-    &#125; <span class="keyword">else</span> &#123;
-      <span class="comment">// key不相同就删除</span>
-      <span class="title function_">deleteChild</span>(returnFiber, child);
-    &#125;
-    child = child.<span class="property">sibling</span>;
-  &#125;
-
-  <span class="comment">// 如果没有命中一个key，则通过createFiberFormElement或CreateFiberFormFragment创建一个新的fiber，然后返回</span>
-  <span class="keyword">if</span> (element.<span class="property">type</span> === <span class="variable constant_">REACT_FRAGMENT_TYPE</span>) &#123;
-    <span class="keyword">const</span> created = <span class="title function_">createFiberFromFragment</span>(
-      element.<span class="property">props</span>.<span class="property">children</span>,
-      returnFiber.<span class="property">mode</span>,
-      lanes,
-      element.<span class="property">key</span>,
-    );
-    created.<span class="property">return</span> = returnFiber;
-    <span class="keyword">return</span> created;
-  &#125; <span class="keyword">else</span> &#123;
-    <span class="keyword">const</span> created = <span class="title function_">createFiberFromElement</span>(element, returnFiber.<span class="property">mode</span>, lanes);
-    created.<span class="property">ref</span> = <span class="title function_">coerceRef</span>(returnFiber, currentFirstChild, element);
-    created.<span class="property">return</span> = returnFiber;
-    <span class="keyword">return</span> created;
-  &#125;
-&#125;</code></pre></li>
-</ul>
-<h2 id="reconcileChildrenArray"><a href="#reconcileChildrenArray" class="headerlink" title="reconcileChildrenArray"></a>reconcileChildrenArray</h2><ul>
-<li><p>针对<code>newChild</code>是多节点的情况就需要调用<code>reconcileChildrenArray</code>进行diff操作</p>
-</li>
-<li><p>多节点会有四种可能性的变化：删除、新增、位移、更新</p>
-</li>
-<li><p><code>reconcileChildrenArray</code>针对这四种变化，首先会处理的是更新，当出现无法匹配的情况时，就会根据遍历的情况来判断是否处理删除或者新增，然后最后会根据情况处理位移</p>
-</li>
-<li><p>因为fiber是单向链表，所以<code>reconcileChildrenArray</code>的遍历不是双端遍历</p>
-</li>
-<li><p>首先第一轮遍历，是处理节点更新</p>
-<pre><code class="highlight ts"><span class="keyword">for</span> (; oldFiber !== <span class="literal">null</span> &amp;&amp; newIdx &lt; newChildren.<span class="property">length</span>; newIdx++) &#123;
-  <span class="comment">// newChildren遍历完了，oldFiber没有遍历完，中断遍历</span>
-  <span class="keyword">if</span> (oldFiber.<span class="property">index</span> &gt; newIdx) &#123;
-    nextOldFiber = oldFiber;
-    oldFiber = <span class="literal">null</span>;
-  &#125; <span class="keyword">else</span> &#123;
-    <span class="comment">// 记录oldFiber的下一个节点</span>
-    nextOldFiber = oldFiber.<span class="property">sibling</span>;
-  &#125;
-  <span class="comment">// 更新节点，如果节点没有匹配上，就会返回null</span>
-  <span class="keyword">const</span> newFiber = <span class="title function_">updateSlot</span>(
-    returnFiber,
-    oldFiber,
-    newChildren[newIdx],
-    lanes,
-  );
-  <span class="comment">// newFiber为null说明节点没有匹配上，中断遍历</span>
-  <span class="keyword">if</span> (newFiber === <span class="literal">null</span>) &#123;
-    <span class="comment">// oldFiber为null说明oldFiber也遍历完了</span>
-    <span class="keyword">if</span> (oldFiber === <span class="literal">null</span>) &#123;
-      oldFiber = nextOldFiber;
-    &#125;
-    <span class="keyword">break</span>;
-  &#125;
-
-  <span class="comment">/**</span>
-<span class="comment">   * shouldTrackSideEffects为true表示是更新过程</span>
-<span class="comment">   * mountChildFibers = ChildReconciler(false);</span>
-<span class="comment">   * reconcileChildFibers = ChildReconciler(true);</span>
-<span class="comment">   * ChildReconciler接收的就是shouldTrackSideEffects</span>
-<span class="comment">   */</span>
-  <span class="keyword">if</span> (shouldTrackSideEffects) &#123;
-    <span class="keyword">if</span> (oldFiber &amp;&amp; newFiber.<span class="property">alternate</span> === <span class="literal">null</span>) &#123;
-      <span class="comment">// 新节点没有现有节点，需要删除</span>
-      <span class="title function_">deleteChild</span>(returnFiber, oldFiber);
-    &#125;
-  &#125;
-  <span class="comment">// 记录固定节点的位置</span>
-  lastPlacedIndex = <span class="title function_">placeChild</span>(newFiber, lastPlacedIndex, newIdx);
-
-  <span class="comment">// 将新节点拼接成以sibling为指针的单向链表</span>
-  <span class="keyword">if</span> (previousNewFiber === <span class="literal">null</span>) &#123;
-    resultingFirstChild = newFiber;
-  &#125; <span class="keyword">else</span> &#123;
-    previousNewFiber.<span class="property">sibling</span> = newFiber;
-  &#125;
-  previousNewFiber = newFiber;
-  oldFiber = nextOldFiber;
-&#125;</code></pre>
-</li>
-<li><p>遍历完匹配的节点后，就判断新节点是否遍历完，如果遍历完，那么剩余的oldFiber都是要删除的</p>
-<pre><code class="highlight ts"><span class="keyword">if</span> (newIdx === newChildren.<span class="property">length</span>) &#123;
-  <span class="title function_">deleteRemainingChildren</span>(returnFiber, oldFiber);
-  <span class="keyword">if</span> (<span class="title function_">getIsHydrating</span>()) &#123;
-    <span class="keyword">const</span> numberOfForks = newIdx;
-    <span class="title function_">pushTreeFork</span>(returnFiber, numberOfForks);
-  &#125;
-  <span class="keyword">return</span> resultingFirstChild;
-&#125;</code></pre>
-</li>
-<li><p>如果新旧点没有遍历完，就判断旧fiber链是否遍历完，如果遍历完那么剩余的新节点全部作为新fiber插入</p>
-<pre><code class="highlight ts"><span class="keyword">if</span> (oldFiber === <span class="literal">null</span>) &#123;
-  <span class="keyword">for</span> (; newIdx &lt; newChildren.<span class="property">length</span>; newIdx++) &#123;
-    <span class="comment">// 创建新fiber节点</span>
-    <span class="keyword">const</span> newFiber = <span class="title function_">createChild</span>(returnFiber, newChildren[newIdx], lanes);
-    <span class="keyword">if</span> (newFiber === <span class="literal">null</span>) &#123;
-      <span class="keyword">continue</span>;
-    &#125;
-
-    <span class="comment">// 记录固定节点</span>
-    lastPlacedIndex = <span class="title function_">placeChild</span>(newFiber, lastPlacedIndex, newIdx);
-
-    <span class="comment">// 将新fiber拼接成以sibling为指针的单向链表</span>
-    <span class="keyword">if</span> (previousNewFiber === <span class="literal">null</span>) &#123;
-      resultingFirstChild = newFiber;
-    &#125; <span class="keyword">else</span> &#123;
-      previousNewFiber.<span class="property">sibling</span> = newFiber;
-    &#125;
-    previousNewFiber = newFiber;
-  &#125;
-  <span class="keyword">if</span> (<span class="title function_">getIsHydrating</span>()) &#123;
-    <span class="keyword">const</span> numberOfForks = newIdx;
-    <span class="title function_">pushTreeFork</span>(returnFiber, numberOfForks);
-  &#125;
-  <span class="keyword">return</span> resultingFirstChild;
-&#125;</code></pre>
-</li>
-<li><p>执行到这一步，说明新旧节点都没有遍历完，就说明存在有位移的未知序列</p>
-<pre><code class="highlight ts"><span class="comment">// 首先创建一个以oldFiber key为键，值为oldFiber的map</span>
-<span class="keyword">const</span> existingChildren = <span class="title function_">mapRemainingChildren</span>(returnFiber, oldFiber);
-
-<span class="keyword">for</span> (; newIdx &lt; newChildren.<span class="property">length</span>; newIdx++) &#123;
-  <span class="comment">// 然后根据map中的oldFiber创建新fiber</span>
-  <span class="keyword">const</span> newFiber = <span class="title function_">updateFromMap</span>(
-    existingChildren,
-    returnFiber,
-    newIdx,
-    newChildren[newIdx],
-    lanes,
-  );
-  <span class="keyword">if</span> (newFiber !== <span class="literal">null</span>) &#123;
-    <span class="keyword">if</span> (shouldTrackSideEffects) &#123;
-      <span class="keyword">if</span> (newFiber.<span class="property">alternate</span> !== <span class="literal">null</span>) &#123;
-        <span class="comment">// 如果newFiber.alternate不为null，说明是根据oldFiber创建的，那么就需要在map中删除oldFiber</span>
-        existingChildren.<span class="title function_">delete</span>(
-          newFiber.<span class="property">key</span> === <span class="literal">null</span> ? newIdx : newFiber.<span class="property">key</span>,
-        );
-      &#125;
-    &#125;
-
-    <span class="comment">// 根据lastPlacedIndex判断是否移动节点</span>
-    lastPlacedIndex = <span class="title function_">placeChild</span>(newFiber, lastPlacedIndex, newIdx);
-
-    <span class="comment">// 将新fiber拼接成以sibling为指针的单向链表</span>
-    <span class="keyword">if</span> (previousNewFiber === <span class="literal">null</span>) &#123;
-      resultingFirstChild = newFiber;
-    &#125; <span class="keyword">else</span> &#123;
-      previousNewFiber.<span class="property">sibling</span> = newFiber;
-    &#125;
-    previousNewFiber = newFiber;
-  &#125;
-&#125;
-
-<span class="keyword">if</span> (shouldTrackSideEffects) &#123;
-  <span class="comment">// 删除剩余的oldFiber</span>
-  existingChildren.<span class="title function_">forEach</span>(<span class="function"><span class="params">child</span> =&gt;</span> <span class="title function_">deleteChild</span>(returnFiber, child));
-&#125;</code></pre></li>
-<li><p>移动节点的核心是在<code>placeChild</code>这个函数中，如果当前正在遍历的节点的oldIndex是在<code>lastPlacedIndex</code>的右边，就说明它的位置没变化，因为旧节点中就处于右边，新节点中也处于右边。</p>
-<ul>
-<li>例如：old：A -&gt; B -&gt; C -&gt; D，new：D -&gt; A -&gt; B -&gt; C</li>
-<li>遍历到D时，<code>lastPlacedIndex = D的oldIndex = 3</code></li>
-<li>然后遍历到A时，A的<code>oldIndex</code>为0，小于3，说明A在旧序列中肯定不是D的右边，所以A肯定产生了位移<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">placeChild</span>(<span class="params"></span>
-<span class="params">  newFiber: Fiber,</span>
-<span class="params">  lastPlacedIndex: number,</span>
-<span class="params">  newIndex: number,</span>
-<span class="params"></span>): number &#123;
-  newFiber.<span class="property">index</span> = newIndex;
-  <span class="keyword">if</span> (!shouldTrackSideEffects) &#123;
-    newFiber.<span class="property">flags</span> |= <span class="title class_">Forked</span>;
-    <span class="keyword">return</span> lastPlacedIndex;
-  &#125;
-  <span class="keyword">const</span> current = newFiber.<span class="property">alternate</span>;
-  <span class="keyword">if</span> (current !== <span class="literal">null</span>) &#123;
-    <span class="keyword">const</span> oldIndex = current.<span class="property">index</span>;
-    <span class="keyword">if</span> (oldIndex &lt; lastPlacedIndex) &#123;
-      <span class="comment">// 小于lastPlacedIndex 产生了位移</span>
-      newFiber.<span class="property">flags</span> |= <span class="title class_">Placement</span> | <span class="title class_">PlacementDEV</span>;
-      <span class="keyword">return</span> lastPlacedIndex;
-    &#125; <span class="keyword">else</span> &#123;
-      <span class="comment">// 没有位移，返回当前的oldIndex</span>
-      <span class="keyword">return</span> oldIndex;
-    &#125;
-  &#125; <span class="keyword">else</span> &#123;
-    newFiber.<span class="property">flags</span> |= <span class="title class_">Placement</span> | <span class="title class_">PlacementDEV</span>;
-    <span class="keyword">return</span> lastPlacedIndex;
-  &#125;
-&#125;</code></pre></li>
-</ul>
-</li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>针对单节点的diff，会遍历oldFiber链，如果有匹配的fiber，就以匹配的生成新fiber，如果没有就新建一个fiber，然后删除不匹配的fiber</li>
-<li>针对多节点diff<ul>
-<li>首先是从头向尾遍历，针对复用的fiber进行更新，如果无法复用就中断遍历</li>
-<li>然后判断新旧节点的遍历情况，来判断是否新增或者删除</li>
-<li>如果都没有遍历完，就创建一个map<code>Map&lt;old key, old Fiber&gt;</code>，然后遍历新节点，基于map来创建新fiber，然后根据<code>lastPlacedIndex</code>来判断是否产生了位移，遍历完最后删除剩余的oldFiber</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>React</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Vue3+Vite3 SSR基本搭建</title>
     <url>/2022/08/27/Vue3-Vite3-SSR%E5%9F%BA%E6%9C%AC%E6%90%AD%E5%BB%BA/</url>
     <content><![CDATA[<ul>
@@ -878,6 +559,80 @@ export async function render(url, manifest) &#123;
       </tags>
   </entry>
   <entry>
+    <title>pnpm的node_modules结构设计</title>
+    <url>/2022/08/24/pnpm%E7%9A%84node-modules%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/</url>
+    <content><![CDATA[<h2 id="pnpm的node-modules结构设计"><a href="#pnpm的node-modules结构设计" class="headerlink" title="pnpm的node_modules结构设计"></a>pnpm的node_modules结构设计</h2><p>分析pnpm之前，先说一下npm现在的一些问题</p>
+<h3 id="npm的问题"><a href="#npm的问题" class="headerlink" title="npm的问题"></a>npm的问题</h3><ul>
+<li><p>平时我们使用<code>npm install</code>命令后，node_modules就会呈现以下类似内容<br><img src="https://img-blog.csdnimg.cn/7396b28d86f84a21b15b4ef6026ddd45.png#pic_center" alt="npm_node_modules"></p>
+</li>
+<li><p>之所以出现这种扁平的结构，最初时初衷是好的，为了更好的利用资源，把每个依赖全部放到顶层，这样就不会造成每个依赖嵌套过深，导致很多重复依赖文件</p>
+</li>
+<li><p>但是随着这种文件结构逐步使用后，就会暴露出来两个问题</p>
+<ul>
+<li><strong>幽灵依赖</strong></li>
+<li><strong>版本冲突</strong></li>
+</ul>
+</li>
+<li><p>幽灵依赖就是你在引用npm包时，你会发现一些没有在<code>package.json</code>中出现的包也能引用，这个就是幽灵依赖，这是因为你在install下载npm包时，npm包也有它的依赖会下载，但是下载的依赖也会存在node_modules同一层级下，这样就会导致可以直接引用</p>
+</li>
+<li><p>版本冲突是因为不同的依赖可能依赖的包版本也不同，但是node_modules的同一层级只能存在一个包的一个版本号，如果有不同的版本号就只能存在依赖包的node_modules中，这样就会导致出现重复资源</p>
+<pre><code class="highlight js">├── package-A @<span class="number">1.0</span>
+|── package-B @<span class="number">1.0</span>
+├── package-C @<span class="number">1.0</span>
+│   └── package-A @<span class="number">2.0</span>
+│   └── package-B @<span class="number">2.0</span>
+├── package-D @<span class="number">1.0</span>
+│   └── package-A @<span class="number">2.0</span>
+│   └── package-B @<span class="number">2.0</span></code></pre></li>
+</ul>
+<h3 id="pnpm的出现"><a href="#pnpm的出现" class="headerlink" title="pnpm的出现"></a>pnpm的出现</h3><ul>
+<li><p>在所有前端苦npm久已时，pnpm出现了，并且在pnpm官网的简介上就简单说明了它的构造：<code>store + link</code><br><img src="https://img-blog.csdnimg.cn/20ef6cd68a0440c9841ea1450297c17a.jpeg#pic_center" alt="pnpm_node_modules"></p>
+<ul>
+<li>store就是依赖的实际存储位置，Mac&#x2F;linux在<code>&#123;home dir&#125;&gt;/.pnpm-store/v3</code>，windows在<code>当前盘/.pnpm-store/v3</code>。这样就会有个好处，你在多个项目使用的是同一个依赖时，就不用重复下载，这样就极大的减少存储空间</li>
+<li>link是指符号链接(<code>SymbolicLink</code>)和硬链接(<code>HardLink</code>)<ul>
+<li>SymbolicLink是一种特殊的文件，包含一条以绝对路径或者相对路径的形式指向其他文件或者目录的引用，它的存在不依赖于目标文件，如果目标文件被删除或者移动，指向目标文件的符号链接依然存在，但是它们会指向一个不复存在的文件</li>
+<li>相比于SymbolicLink，HardLink不是引用文件，而是引用<strong>inode</strong>，inode是文件系统的一种数据结构，用于描述文件系统对象。所以你即使更改目标文件的内容或位置，HardLink仍然指向目标文件，因为inode指向该文件</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>然后拿react举例，当<code>pnpm add react</code>后，在node_modules终端输入<code>tree -a -L 3</code>会得到以下node_modules结构</p>
+<pre><code class="highlight js">.
+├── .<span class="property">modules</span>.<span class="property">yaml</span>
+├── .<span class="property">pnpm</span>
+│   ├── js-tokens@<span class="number">4.0</span><span class="number">.0</span>
+│   │   └── node_modules
+│   ├── lock.<span class="property">yaml</span>
+│   ├── loose-envify@<span class="number">1.4</span><span class="number">.0</span>
+│   │   └── node_modules
+│   ├── node_modules
+│   │   ├── .<span class="property">bin</span>
+│   │   ├── js-tokens -&gt; ../js-tokens@<span class="number">4.0</span><span class="number">.0</span>/node_modules/js-tokens
+│   │   └── loose-envify -&gt; ../loose-envify@<span class="number">1.4</span><span class="number">.0</span>/node_modules/loose-envify
+│   └── react@<span class="number">18.2</span><span class="number">.0</span>
+│       └── node_modules
+└── react -&gt; .<span class="property">pnpm</span>/react@<span class="number">18.2</span><span class="number">.0</span>/node_modules/react</code></pre></li>
+<li><p>node_modules下除了.pnpm外只有一个react，这个react只是一个SymbolicLink，当node.js解析时，会找到react的真实位置<code>node_modules/.pnpm/react@18.2.0/node_modules/react</code></p>
+</li>
+<li><p>.pnpm就是将所有依赖放在同一层文件夹中，每个包都可以通过<code>.pnpm/&lt;name&gt;@&lt;version&gt;/node_modules/&lt;name&gt;</code>这种路径找到，然后通过<code>hand link</code>的方式在store中引用依赖文件</p>
+</li>
+<li><p>通过这种文件结构，pnpm就解决了npm的两个问题，首先node_modules下不会有你未在package.json中声明的依赖，这样就不会有幽灵依赖的问题。然后.pnpm下会有name+version的方式链接到store中，这样就不会出现因为版本冲突造成资源重复的问题</p>
+</li>
+</ul>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
+<li><a href="https://www.pnpm.cn/blog/2020/05/27/flat-node-modules-is-not-the-only-way">Flat node_modules is not the only way</a></li>
+<li><a href="https://www.pnpm.cn/symlinked-node-modules-structure">Symlinked node_modules structure</a></li>
+<li><a href="https://juejin.cn/post/7043998041786810398">One For All：基于pnpm + lerna + typescript的最佳项目实践 - 理论篇</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>pnpm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Vue3模版编译原理</title>
     <url>/2022/08/31/Vue3%E6%A8%A1%E7%89%88%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<h2 id="模版编译流程"><a href="#模版编译流程" class="headerlink" title="模版编译流程"></a>模版编译流程</h2><p>Vue3模版编译就是把template字符串编译成渲染函数</p>
@@ -1129,280 +884,322 @@ export async function render(url, manifest) &#123;
       </tags>
   </entry>
   <entry>
-    <title>pnpm的node_modules结构设计</title>
-    <url>/2022/08/24/pnpm%E7%9A%84node-modules%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1/</url>
-    <content><![CDATA[<h2 id="pnpm的node-modules结构设计"><a href="#pnpm的node-modules结构设计" class="headerlink" title="pnpm的node_modules结构设计"></a>pnpm的node_modules结构设计</h2><p>分析pnpm之前，先说一下npm现在的一些问题</p>
-<h3 id="npm的问题"><a href="#npm的问题" class="headerlink" title="npm的问题"></a>npm的问题</h3><ul>
-<li><p>平时我们使用<code>npm install</code>命令后，node_modules就会呈现以下类似内容<br><img src="https://img-blog.csdnimg.cn/7396b28d86f84a21b15b4ef6026ddd45.png#pic_center" alt="npm_node_modules"></p>
+    <title>React源码分析之diff核心算法</title>
+    <url>/2022/09/04/React%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8Bdiff%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
+<li>React的diff算法是在render的beginWork阶段中进行处理</li>
+<li><code>beginWork</code>是在向下深度遍历fiber树时会对途径的每个节点进行状态处理和进行diff对比</li>
+<li>首先diff的入口是在<code>reconcileChildFibers</code>中，然后会根据type来判断使用哪种diff函数进行处理<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">reconcileChildFibers</span>(<span class="params"></span>
+<span class="params">  returnFiber: Fiber,</span>
+<span class="params">  currentFirstChild: Fiber | <span class="literal">null</span>,</span>
+<span class="params">  newChild: any,</span>
+<span class="params">  lanes: Lanes,</span>
+<span class="params"></span>): <span class="title class_">Fiber</span> | <span class="literal">null</span> &#123;
+  <span class="keyword">if</span> (<span class="keyword">typeof</span> newChild === <span class="string">&#x27;object&#x27;</span> &amp;&amp; newChild !== <span class="literal">null</span>) &#123;
+    <span class="keyword">switch</span> (newChild.<span class="property">$$typeof</span>) &#123;
+      <span class="keyword">case</span> <span class="attr">REACT_ELEMENT_TYPE</span>:
+        <span class="keyword">return</span> <span class="title function_">placeSingleChild</span>(
+          <span class="title function_">reconcileSingleElement</span>(
+            returnFiber,
+            currentFirstChild,
+            newChild,
+            lanes,
+          ),
+        );··
+      <span class="keyword">case</span> <span class="attr">REACT_PORTAL_TYPE</span>:
+        <span class="comment">// ...</span>
+      <span class="keyword">case</span> <span class="attr">REACT_LAZY_TYPE</span>:
+        <span class="comment">//...</span>
+    &#125;
+
+    <span class="keyword">if</span> (<span class="title function_">isArray</span>(newChild)) &#123;
+      <span class="keyword">return</span> <span class="title function_">reconcileChildrenArray</span>(
+        returnFiber,
+        currentFirstChild,
+        newChild,
+        lanes,
+      );
+    &#125;
+
+    <span class="keyword">if</span> (<span class="title function_">getIteratorFn</span>(newChild)) &#123;
+      <span class="comment">//...</span>
+    &#125;
+  &#125;
+  <span class="comment">// ...</span>
+&#125;</code></pre></li>
+<li>我在本篇会针对两种较常用的diff函数进行分析<ul>
+<li><code>reconcileSingleElement</code></li>
+<li><code>reconcileChildrenArray</code></li>
+</ul>
 </li>
-<li><p>之所以出现这种扁平的结构，最初时初衷是好的，为了更好的利用资源，把每个依赖全部放到顶层，这样就不会造成每个依赖嵌套过深，导致很多重复依赖文件</p>
+</ul>
+<h2 id="reconcileSingleElement"><a href="#reconcileSingleElement" class="headerlink" title="reconcileSingleElement"></a>reconcileSingleElement</h2><ul>
+<li>reconcileSingleElement是针对新newChild是单节点，而oldChild单节点或者是多节点就无法确定了，所以在此diff算法中就会对旧节点进行遍历，然后删除不匹配的oldFiber<pre><code class="highlight ts"><span class="keyword">function</span> <span class="title function_">reconcileSingleElement</span>(<span class="params"></span>
+<span class="params">  returnFiber: Fiber,</span>
+<span class="params">  currentFirstChild: Fiber | <span class="literal">null</span>,</span>
+<span class="params">  element: ReactElement</span>
+<span class="params">  lanes: Lanes,</span>
+<span class="params"></span>): <span class="title class_">Fiber</span> &#123;
+  <span class="keyword">const</span> key = element.<span class="property">key</span>;
+  <span class="keyword">let</span> child = currentFirstChild;
+  <span class="comment">/**</span>
+<span class="comment">    * 遍历旧节点，找到与newChild相同key的节点，不匹配的删除</span>
+<span class="comment">    * 针对匹配的oldFiber, 用newChild中新节点的props来生成新的fiber节点</span>
+<span class="comment">    */</span>
+  <span class="keyword">while</span> (child !== <span class="literal">null</span>) &#123;
+    <span class="keyword">if</span> (child.<span class="property">key</span> === key) &#123;
+      <span class="keyword">const</span> elementType = element.<span class="property">type</span>;
+      <span class="comment">/**</span>
+<span class="comment">        * 通过useFiber创建一个新的Fiber</span>
+<span class="comment">        * 如果element是一个Fragment，则以element.props.children建立Fiber</span>
+<span class="comment">        * 将returnFiber赋给新的fiber的return字段，然后返回这个新的fiber</span>
+<span class="comment">        */</span>·
+      <span class="keyword">if</span> (elementType === <span class="variable constant_">REACT_FRAGMENT_TYPE</span>) &#123;
+        <span class="keyword">if</span> (child.<span class="property">tag</span> === <span class="title class_">Fragment</span>) &#123;
+          <span class="title function_">deleteRemainingChildren</span>(returnFiber, child.<span class="property">sibling</span>);
+          <span class="keyword">const</span> existing = <span class="title function_">useFiber</span>(child, element.<span class="property">props</span>.<span class="property">children</span>);
+          existing.<span class="property">return</span> = returnFiber;
+          <span class="keyword">if</span> (__DEV__) &#123;
+            existing.<span class="property">_debugSource</span> = element.<span class="property">_source</span>;
+            existing.<span class="property">_debugOwner</span> = element.<span class="property">_owner</span>;
+          &#125;
+          <span class="keyword">return</span> existing;
+        &#125;
+      &#125; <span class="keyword">else</span> &#123;
+        <span class="keyword">if</span> (
+          child.<span class="property">elementType</span> === elementType ||
+          (__DEV__
+            ? <span class="title function_">isCompatibleFamilyForHotReloading</span>(child, element)
+            : <span class="literal">false</span>) ||
+          (<span class="keyword">typeof</span> elementType === <span class="string">&#x27;object&#x27;</span> &amp;&amp;
+            elementType !== <span class="literal">null</span> &amp;&amp;
+            elementType.<span class="property">$$typeof</span> === <span class="variable constant_">REACT_LAZY_TYPE</span> &amp;&amp;
+            <span class="title function_">resolveLazy</span>(elementType) === child.<span class="property">type</span>)
+        ) &#123;
+          <span class="title function_">deleteRemainingChildren</span>(returnFiber, child.<span class="property">sibling</span>);
+          <span class="keyword">const</span> existing = <span class="title function_">useFiber</span>(child, element.<span class="property">props</span>);
+          existing.<span class="property">ref</span> = <span class="title function_">coerceRef</span>(returnFiber, child, element);
+          existing.<span class="property">return</span> = returnFiber;
+          <span class="keyword">if</span> (__DEV__) &#123;
+            existing.<span class="property">_debugSource</span> = element.<span class="property">_source</span>;
+            existing.<span class="property">_debugOwner</span> = element.<span class="property">_owner</span>;
+          &#125;
+          <span class="keyword">return</span> existing;
+        &#125;
+      &#125;
+      <span class="comment">// Didn&#x27;t match.</span>
+      <span class="title function_">deleteRemainingChildren</span>(returnFiber, child);
+      <span class="keyword">break</span>;
+    &#125; <span class="keyword">else</span> &#123;
+      <span class="comment">// key不相同就删除</span>
+      <span class="title function_">deleteChild</span>(returnFiber, child);
+    &#125;
+    child = child.<span class="property">sibling</span>;
+  &#125;
+
+  <span class="comment">// 如果没有命中一个key，则通过createFiberFormElement或CreateFiberFormFragment创建一个新的fiber，然后返回</span>
+  <span class="keyword">if</span> (element.<span class="property">type</span> === <span class="variable constant_">REACT_FRAGMENT_TYPE</span>) &#123;
+    <span class="keyword">const</span> created = <span class="title function_">createFiberFromFragment</span>(
+      element.<span class="property">props</span>.<span class="property">children</span>,
+      returnFiber.<span class="property">mode</span>,
+      lanes,
+      element.<span class="property">key</span>,
+    );
+    created.<span class="property">return</span> = returnFiber;
+    <span class="keyword">return</span> created;
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="keyword">const</span> created = <span class="title function_">createFiberFromElement</span>(element, returnFiber.<span class="property">mode</span>, lanes);
+    created.<span class="property">ref</span> = <span class="title function_">coerceRef</span>(returnFiber, currentFirstChild, element);
+    created.<span class="property">return</span> = returnFiber;
+    <span class="keyword">return</span> created;
+  &#125;
+&#125;</code></pre></li>
+</ul>
+<h2 id="reconcileChildrenArray"><a href="#reconcileChildrenArray" class="headerlink" title="reconcileChildrenArray"></a>reconcileChildrenArray</h2><ul>
+<li><p>针对<code>newChild</code>是多节点的情况就需要调用<code>reconcileChildrenArray</code>进行diff操作</p>
 </li>
-<li><p>但是随着这种文件结构逐步使用后，就会暴露出来两个问题</p>
+<li><p>多节点会有四种可能性的变化：删除、新增、位移、更新</p>
+</li>
+<li><p><code>reconcileChildrenArray</code>针对这四种变化，首先会处理的是更新，当出现无法匹配的情况时，就会根据遍历的情况来判断是否处理删除或者新增，然后最后会根据情况处理位移</p>
+</li>
+<li><p>因为fiber是单向链表，所以<code>reconcileChildrenArray</code>的遍历不是双端遍历</p>
+</li>
+<li><p>首先第一轮遍历，是处理节点更新</p>
+<pre><code class="highlight ts"><span class="keyword">for</span> (; oldFiber !== <span class="literal">null</span> &amp;&amp; newIdx &lt; newChildren.<span class="property">length</span>; newIdx++) &#123;
+  <span class="comment">// newChildren遍历完了，oldFiber没有遍历完，中断遍历</span>
+  <span class="keyword">if</span> (oldFiber.<span class="property">index</span> &gt; newIdx) &#123;
+    nextOldFiber = oldFiber;
+    oldFiber = <span class="literal">null</span>;
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="comment">// 记录oldFiber的下一个节点</span>
+    nextOldFiber = oldFiber.<span class="property">sibling</span>;
+  &#125;
+  <span class="comment">// 更新节点，如果节点没有匹配上，就会返回null</span>
+  <span class="keyword">const</span> newFiber = <span class="title function_">updateSlot</span>(
+    returnFiber,
+    oldFiber,
+    newChildren[newIdx],
+    lanes,
+  );
+  <span class="comment">// newFiber为null说明节点没有匹配上，中断遍历</span>
+  <span class="keyword">if</span> (newFiber === <span class="literal">null</span>) &#123;
+    <span class="comment">// oldFiber为null说明oldFiber也遍历完了</span>
+    <span class="keyword">if</span> (oldFiber === <span class="literal">null</span>) &#123;
+      oldFiber = nextOldFiber;
+    &#125;
+    <span class="keyword">break</span>;
+  &#125;
+
+  <span class="comment">/**</span>
+<span class="comment">   * shouldTrackSideEffects为true表示是更新过程</span>
+<span class="comment">   * mountChildFibers = ChildReconciler(false);</span>
+<span class="comment">   * reconcileChildFibers = ChildReconciler(true);</span>
+<span class="comment">   * ChildReconciler接收的就是shouldTrackSideEffects</span>
+<span class="comment">   */</span>
+  <span class="keyword">if</span> (shouldTrackSideEffects) &#123;
+    <span class="keyword">if</span> (oldFiber &amp;&amp; newFiber.<span class="property">alternate</span> === <span class="literal">null</span>) &#123;
+      <span class="comment">// 新节点没有现有节点，需要删除</span>
+      <span class="title function_">deleteChild</span>(returnFiber, oldFiber);
+    &#125;
+  &#125;
+  <span class="comment">// 记录固定节点的位置</span>
+  lastPlacedIndex = <span class="title function_">placeChild</span>(newFiber, lastPlacedIndex, newIdx);
+
+  <span class="comment">// 将新节点拼接成以sibling为指针的单向链表</span>
+  <span class="keyword">if</span> (previousNewFiber === <span class="literal">null</span>) &#123;
+    resultingFirstChild = newFiber;
+  &#125; <span class="keyword">else</span> &#123;
+    previousNewFiber.<span class="property">sibling</span> = newFiber;
+  &#125;
+  previousNewFiber = newFiber;
+  oldFiber = nextOldFiber;
+&#125;</code></pre>
+</li>
+<li><p>遍历完匹配的节点后，就判断新节点是否遍历完，如果遍历完，那么剩余的oldFiber都是要删除的</p>
+<pre><code class="highlight ts"><span class="keyword">if</span> (newIdx === newChildren.<span class="property">length</span>) &#123;
+  <span class="title function_">deleteRemainingChildren</span>(returnFiber, oldFiber);
+  <span class="keyword">if</span> (<span class="title function_">getIsHydrating</span>()) &#123;
+    <span class="keyword">const</span> numberOfForks = newIdx;
+    <span class="title function_">pushTreeFork</span>(returnFiber, numberOfForks);
+  &#125;
+  <span class="keyword">return</span> resultingFirstChild;
+&#125;</code></pre>
+</li>
+<li><p>如果新旧点没有遍历完，就判断旧fiber链是否遍历完，如果遍历完那么剩余的新节点全部作为新fiber插入</p>
+<pre><code class="highlight ts"><span class="keyword">if</span> (oldFiber === <span class="literal">null</span>) &#123;
+  <span class="keyword">for</span> (; newIdx &lt; newChildren.<span class="property">length</span>; newIdx++) &#123;
+    <span class="comment">// 创建新fiber节点</span>
+    <span class="keyword">const</span> newFiber = <span class="title function_">createChild</span>(returnFiber, newChildren[newIdx], lanes);
+    <span class="keyword">if</span> (newFiber === <span class="literal">null</span>) &#123;
+      <span class="keyword">continue</span>;
+    &#125;
+
+    <span class="comment">// 记录固定节点</span>
+    lastPlacedIndex = <span class="title function_">placeChild</span>(newFiber, lastPlacedIndex, newIdx);
+
+    <span class="comment">// 将新fiber拼接成以sibling为指针的单向链表</span>
+    <span class="keyword">if</span> (previousNewFiber === <span class="literal">null</span>) &#123;
+      resultingFirstChild = newFiber;
+    &#125; <span class="keyword">else</span> &#123;
+      previousNewFiber.<span class="property">sibling</span> = newFiber;
+    &#125;
+    previousNewFiber = newFiber;
+  &#125;
+  <span class="keyword">if</span> (<span class="title function_">getIsHydrating</span>()) &#123;
+    <span class="keyword">const</span> numberOfForks = newIdx;
+    <span class="title function_">pushTreeFork</span>(returnFiber, numberOfForks);
+  &#125;
+  <span class="keyword">return</span> resultingFirstChild;
+&#125;</code></pre>
+</li>
+<li><p>执行到这一步，说明新旧节点都没有遍历完，就说明存在有位移的未知序列</p>
+<pre><code class="highlight ts"><span class="comment">// 首先创建一个以oldFiber key为键，值为oldFiber的map</span>
+<span class="keyword">const</span> existingChildren = <span class="title function_">mapRemainingChildren</span>(returnFiber, oldFiber);
+
+<span class="keyword">for</span> (; newIdx &lt; newChildren.<span class="property">length</span>; newIdx++) &#123;
+  <span class="comment">// 然后根据map中的oldFiber创建新fiber</span>
+  <span class="keyword">const</span> newFiber = <span class="title function_">updateFromMap</span>(
+    existingChildren,
+    returnFiber,
+    newIdx,
+    newChildren[newIdx],
+    lanes,
+  );
+  <span class="keyword">if</span> (newFiber !== <span class="literal">null</span>) &#123;
+    <span class="keyword">if</span> (shouldTrackSideEffects) &#123;
+      <span class="keyword">if</span> (newFiber.<span class="property">alternate</span> !== <span class="literal">null</span>) &#123;
+        <span class="comment">// 如果newFiber.alternate不为null，说明是根据oldFiber创建的，那么就需要在map中删除oldFiber</span>
+        existingChildren.<span class="title function_">delete</span>(
+          newFiber.<span class="property">key</span> === <span class="literal">null</span> ? newIdx : newFiber.<span class="property">key</span>,
+        );
+      &#125;
+    &#125;
+
+    <span class="comment">// 根据lastPlacedIndex判断是否移动节点</span>
+    lastPlacedIndex = <span class="title function_">placeChild</span>(newFiber, lastPlacedIndex, newIdx);
+
+    <span class="comment">// 将新fiber拼接成以sibling为指针的单向链表</span>
+    <span class="keyword">if</span> (previousNewFiber === <span class="literal">null</span>) &#123;
+      resultingFirstChild = newFiber;
+    &#125; <span class="keyword">else</span> &#123;
+      previousNewFiber.<span class="property">sibling</span> = newFiber;
+    &#125;
+    previousNewFiber = newFiber;
+  &#125;
+&#125;
+
+<span class="keyword">if</span> (shouldTrackSideEffects) &#123;
+  <span class="comment">// 删除剩余的oldFiber</span>
+  existingChildren.<span class="title function_">forEach</span>(<span class="function"><span class="params">child</span> =&gt;</span> <span class="title function_">deleteChild</span>(returnFiber, child));
+&#125;</code></pre></li>
+<li><p>移动节点的核心是在<code>placeChild</code>这个函数中，如果当前正在遍历的节点的oldIndex是在<code>lastPlacedIndex</code>的右边，就说明它的位置没变化，因为旧节点中就处于右边，新节点中也处于右边。</p>
 <ul>
-<li><strong>幽灵依赖</strong></li>
-<li><strong>版本冲突</strong></li>
+<li>例如：old：A -&gt; B -&gt; C -&gt; D，new：D -&gt; A -&gt; B -&gt; C</li>
+<li>遍历到D时，<code>lastPlacedIndex = D的oldIndex = 3</code></li>
+<li>然后遍历到A时，A的<code>oldIndex</code>为0，小于3，说明A在旧序列中肯定不是D的右边，所以A肯定产生了位移<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">placeChild</span>(<span class="params"></span>
+<span class="params">  newFiber: Fiber,</span>
+<span class="params">  lastPlacedIndex: number,</span>
+<span class="params">  newIndex: number,</span>
+<span class="params"></span>): number &#123;
+  newFiber.<span class="property">index</span> = newIndex;
+  <span class="keyword">if</span> (!shouldTrackSideEffects) &#123;
+    newFiber.<span class="property">flags</span> |= <span class="title class_">Forked</span>;
+    <span class="keyword">return</span> lastPlacedIndex;
+  &#125;
+  <span class="keyword">const</span> current = newFiber.<span class="property">alternate</span>;
+  <span class="keyword">if</span> (current !== <span class="literal">null</span>) &#123;
+    <span class="keyword">const</span> oldIndex = current.<span class="property">index</span>;
+    <span class="keyword">if</span> (oldIndex &lt; lastPlacedIndex) &#123;
+      <span class="comment">// 小于lastPlacedIndex 产生了位移</span>
+      newFiber.<span class="property">flags</span> |= <span class="title class_">Placement</span> | <span class="title class_">PlacementDEV</span>;
+      <span class="keyword">return</span> lastPlacedIndex;
+    &#125; <span class="keyword">else</span> &#123;
+      <span class="comment">// 没有位移，返回当前的oldIndex</span>
+      <span class="keyword">return</span> oldIndex;
+    &#125;
+  &#125; <span class="keyword">else</span> &#123;
+    newFiber.<span class="property">flags</span> |= <span class="title class_">Placement</span> | <span class="title class_">PlacementDEV</span>;
+    <span class="keyword">return</span> lastPlacedIndex;
+  &#125;
+&#125;</code></pre></li>
 </ul>
 </li>
-<li><p>幽灵依赖就是你在引用npm包时，你会发现一些没有在<code>package.json</code>中出现的包也能引用，这个就是幽灵依赖，这是因为你在install下载npm包时，npm包也有它的依赖会下载，但是下载的依赖也会存在node_modules同一层级下，这样就会导致可以直接引用</p>
-</li>
-<li><p>版本冲突是因为不同的依赖可能依赖的包版本也不同，但是node_modules的同一层级只能存在一个包的一个版本号，如果有不同的版本号就只能存在依赖包的node_modules中，这样就会导致出现重复资源</p>
-<pre><code class="highlight js">├── package-A @<span class="number">1.0</span>
-|── package-B @<span class="number">1.0</span>
-├── package-C @<span class="number">1.0</span>
-│   └── package-A @<span class="number">2.0</span>
-│   └── package-B @<span class="number">2.0</span>
-├── package-D @<span class="number">1.0</span>
-│   └── package-A @<span class="number">2.0</span>
-│   └── package-B @<span class="number">2.0</span></code></pre></li>
 </ul>
-<h3 id="pnpm的出现"><a href="#pnpm的出现" class="headerlink" title="pnpm的出现"></a>pnpm的出现</h3><ul>
-<li><p>在所有前端苦npm久已时，pnpm出现了，并且在pnpm官网的简介上就简单说明了它的构造：<code>store + link</code><br><img src="https://img-blog.csdnimg.cn/20ef6cd68a0440c9841ea1450297c17a.jpeg#pic_center" alt="pnpm_node_modules"></p>
-<ul>
-<li>store就是依赖的实际存储位置，Mac&#x2F;linux在<code>&#123;home dir&#125;&gt;/.pnpm-store/v3</code>，windows在<code>当前盘/.pnpm-store/v3</code>。这样就会有个好处，你在多个项目使用的是同一个依赖时，就不用重复下载，这样就极大的减少存储空间</li>
-<li>link是指符号链接(<code>SymbolicLink</code>)和硬链接(<code>HardLink</code>)<ul>
-<li>SymbolicLink是一种特殊的文件，包含一条以绝对路径或者相对路径的形式指向其他文件或者目录的引用，它的存在不依赖于目标文件，如果目标文件被删除或者移动，指向目标文件的符号链接依然存在，但是它们会指向一个不复存在的文件</li>
-<li>相比于SymbolicLink，HardLink不是引用文件，而是引用<strong>inode</strong>，inode是文件系统的一种数据结构，用于描述文件系统对象。所以你即使更改目标文件的内容或位置，HardLink仍然指向目标文件，因为inode指向该文件</li>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>针对单节点的diff，会遍历oldFiber链，如果有匹配的fiber，就以匹配的生成新fiber，如果没有就新建一个fiber，然后删除不匹配的fiber</li>
+<li>针对多节点diff<ul>
+<li>首先是从头向尾遍历，针对复用的fiber进行更新，如果无法复用就中断遍历</li>
+<li>然后判断新旧节点的遍历情况，来判断是否新增或者删除</li>
+<li>如果都没有遍历完，就创建一个map<code>Map&lt;old key, old Fiber&gt;</code>，然后遍历新节点，基于map来创建新fiber，然后根据<code>lastPlacedIndex</code>来判断是否产生了位移，遍历完最后删除剩余的oldFiber</li>
 </ul>
 </li>
-</ul>
-</li>
-<li><p>然后拿react举例，当<code>pnpm add react</code>后，在node_modules终端输入<code>tree -a -L 3</code>会得到以下node_modules结构</p>
-<pre><code class="highlight js">.
-├── .<span class="property">modules</span>.<span class="property">yaml</span>
-├── .<span class="property">pnpm</span>
-│   ├── js-tokens@<span class="number">4.0</span><span class="number">.0</span>
-│   │   └── node_modules
-│   ├── lock.<span class="property">yaml</span>
-│   ├── loose-envify@<span class="number">1.4</span><span class="number">.0</span>
-│   │   └── node_modules
-│   ├── node_modules
-│   │   ├── .<span class="property">bin</span>
-│   │   ├── js-tokens -&gt; ../js-tokens@<span class="number">4.0</span><span class="number">.0</span>/node_modules/js-tokens
-│   │   └── loose-envify -&gt; ../loose-envify@<span class="number">1.4</span><span class="number">.0</span>/node_modules/loose-envify
-│   └── react@<span class="number">18.2</span><span class="number">.0</span>
-│       └── node_modules
-└── react -&gt; .<span class="property">pnpm</span>/react@<span class="number">18.2</span><span class="number">.0</span>/node_modules/react</code></pre></li>
-<li><p>node_modules下除了.pnpm外只有一个react，这个react只是一个SymbolicLink，当node.js解析时，会找到react的真实位置<code>node_modules/.pnpm/react@18.2.0/node_modules/react</code></p>
-</li>
-<li><p>.pnpm就是将所有依赖放在同一层文件夹中，每个包都可以通过<code>.pnpm/&lt;name&gt;@&lt;version&gt;/node_modules/&lt;name&gt;</code>这种路径找到，然后通过<code>hand link</code>的方式在store中引用依赖文件</p>
-</li>
-<li><p>通过这种文件结构，pnpm就解决了npm的两个问题，首先node_modules下不会有你未在package.json中声明的依赖，这样就不会有幽灵依赖的问题。然后.pnpm下会有name+version的方式链接到store中，这样就不会出现因为版本冲突造成资源重复的问题</p>
-</li>
-</ul>
-<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
-<li><a href="https://www.pnpm.cn/blog/2020/05/27/flat-node-modules-is-not-the-only-way">Flat node_modules is not the only way</a></li>
-<li><a href="https://www.pnpm.cn/symlinked-node-modules-structure">Symlinked node_modules structure</a></li>
-<li><a href="https://juejin.cn/post/7043998041786810398">One For All：基于pnpm + lerna + typescript的最佳项目实践 - 理论篇</a></li>
 </ul>
 ]]></content>
       <categories>
         <category>gallery</category>
       </categories>
       <tags>
-        <tag>pnpm</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>前端的Docker学习记录</title>
-    <url>/2022/10/30/%E5%89%8D%E7%AB%AF%E7%9A%84Docker%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</url>
-    <content><![CDATA[<h2 id="Docker简介"><a href="#Docker简介" class="headerlink" title="Docker简介"></a>Docker简介</h2><ul>
-<li>Docker 是一个应用<strong>打包</strong>、<strong>分发</strong>、<strong>部署</strong>的工具，可以使应用部署更加轻量，可移植，可扩展，可以理解为一个轻量的虚拟机<ul>
-<li>打包：就是把你软件运行所需的依赖、第三方库、软件打包到一起，变成一个安装包</li>
-<li>分发：你可以把你打包好的“安装包”上传到一个镜像仓库，其他人可以非常方便的获取和安装</li>
-<li>部署：拿着“安装包”就可以一个命令运行起来应用，自动模拟出一模一样的运行环境，不管是在Windows&#x2F;Mac&#x2F;Linux</li>
-</ul>
-</li>
-<li>docker架构图<br><img src="https://s1.ax1x.com/2022/10/30/xI2lGR.png"></li>
-</ul>
-<ul>
-<li><strong>docker client</strong>: 即docker命令行工具</li>
-<li><strong>docker host</strong>: 宿主机，docker daemon的运行环境服务器</li>
-<li><strong>docker daemon</strong>: docker的守护进程，docker client通过命令行与docker daemon交互</li>
-<li><strong>image</strong>: 镜像，可以理解为安装包，可以方便的进行传播和安装</li>
-<li><strong>container</strong>: 容器，镜像的运行实例，每个软件运行环境都是独立的，隔离的</li>
-<li><strong>registry</strong>: 镜像仓库，可以从镜像仓库拉取和推送镜像</li>
-</ul>
-<h3 id="底层原理"><a href="#底层原理" class="headerlink" title="底层原理"></a>底层原理</h3><p>docker底层使用了一些linux内核的特性，<code>namespace</code>，<code>cgroups</code>，<code>unionFS</code></p>
-<h3 id="namespace"><a href="#namespace" class="headerlink" title="namespace"></a>namespace</h3><ul>
-<li>namespace，也叫命名空间，名称空间，它表示一个标识符的可见范围。一个标识符可在多个名字空间中定义，它在不同名字空间中的含义是互不相干的。这样，在一个新的名字空间中可定义任何标识符，它不会与任何已有的标识符发生冲突，因为已有的定义都处于其他命名空间中</li>
-<li>docker使用linux namespace构建隔离的环境，它由以下namespace组成<ul>
-<li>pid：隔离进程</li>
-<li>net：隔离网络</li>
-<li>ipc：隔离IPC</li>
-<li>mnt：隔离文件系统挂载</li>
-<li>uts：隔离hostname</li>
-<li>user：隔离uid&#x2F;gid</li>
-</ul>
-</li>
-</ul>
-<h3 id="cgroups"><a href="#cgroups" class="headerlink" title="cgroups"></a>cgroups</h3><ul>
-<li>cgroups，是控制组群(control groups)的简写，是用来限制、控制与分离一个进程组的资源(如CPU、内存、磁盘输入输出等)</li>
-<li>cgroups功能：<ul>
-<li>资源限制：设置内存限制，包括虚拟内存</li>
-<li>优先级：一些资源可以得到大量的CPU或磁盘IO吞吐量</li>
-<li>结算：用来度量系统实际用了多少资源</li>
-<li>控制：冻结组或检查点和重启动</li>
-</ul>
-</li>
-</ul>
-<h3 id="unionFS"><a href="#unionFS" class="headerlink" title="unionFS"></a>unionFS</h3><ul>
-<li>unionFS(Union file systems)是一种分层、轻量级并且高性能的文件性能，支持对文件系统的修改作为一次提交来一层层的叠加。docker的镜像与容器就是分层存储，可用的存储引擎呦aufs，overlay等</li>
-</ul>
-<h3 id="镜像"><a href="#镜像" class="headerlink" title="镜像"></a>镜像</h3><ul>
-<li>镜像是一份用来创造容器的配置文件，而容器可以视作最小型的一个操作系统</li>
-<li>docker的镜像和容器都使用了unionFS做分层存储，镜像作为只读层是共享的，而容器在镜像之上附加了一层可写层，最大程度地减少了空间的浪费</li>
-<li>镜像的相关命令<ul>
-<li>镜像拉取：<code>docker pull node:alpine</code></li>
-<li>查看镜像信息：<code>docker inspect node:alpine</code></li>
-<li>列出所有镜像：<code>docker images</code></li>
-<li>镜像打包：<code>docker build -t docker-app:v1.0.0</code><ul>
-<li><code>-t</code>：设置镜像名字和版本号</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><ul>
-<li>Dockerfile是docker构建镜像的配置文件，比如一个简单的Dockerfile如下<pre><code class="highlight dockerfile"><span class="keyword">FROM</span> node:<span class="number">16</span>
-<span class="keyword">MAINTAINER</span> songlh
-
-<span class="keyword">ADD</span><span class="language-bash"> . /app</span>
-<span class="keyword">WORKDIR</span><span class="language-bash"> /app</span>
-
-<span class="keyword">RUN</span><span class="language-bash"> npm install pnpm -g</span>
-<span class="keyword">RUN</span><span class="language-bash"> pnpm install</span>
-
-<span class="keyword">CMD</span><span class="language-bash"> pnpm run dev</span></code></pre></li>
-<li>常用指令</li>
-<li><code>FROM</code>：表示基于一个已有的基础镜像，<code>FROM &lt;image&gt; [AS &lt;name&gt;]</code></li>
-<li><code>MAINTAINER</code>：声明dockerfile镜像构建的作者</li>
-<li><code>ADD</code>：表示把宿主机的文件或目录加入到镜像的文件系统，<code>ADD [--chown=&lt;user&gt;:&lt;group&gt;] &lt;src&gt;... &lt;dest&gt;</code></li>
-<li><code>RUN</code>: 在镜像中执行命令，由于ufs的文件系统，它会在当前镜像的顶层新增一层，<code>RUN &lt;command&gt;</code></li>
-<li><code>CMD</code>: 指定容器如何启动，一个Dockerfile中只允许有一个CMD</li>
-<li><code>WORKDIR</code>：设置工作目录</li>
-<li><code>ENV</code>：设置环境变量</li>
-</ul>
-<h2 id="容器"><a href="#容器" class="headerlink" title="容器"></a>容器</h2><ul>
-<li><code>docker run</code>：创建容器<ul>
-<li><code>docker run -p 8080:8080 --name docker-hello docker-app:v1.0.0</code>表示基于docker-app镜像的v1.0.0版本创建一个容器并在本地的8080端口运行，容器名字叫<code>docker-hellp</code></li>
-<li><code>-p host-port:container-port</code>：宿主机与容器端口映射，方便容器对外提供服务</li>
-<li><code>--name</code>：为容器指定名称</li>
-<li><code>-d</code>：后台运行</li>
-<li><code>--rm</code>：当停止容器时自动清除容器</li>
-</ul>
-</li>
-<li><code>docker stop</code>：停止容器</li>
-<li><code>docker rm</code>：删除容器</li>
-<li><code>docker exec -it container-name</code>：进入容器环境</li>
-<li><code>docker ps</code>：列出所有容器</li>
-<li><code>docker port</code>：查看容器端口映射</li>
-<li><code>docker stats</code>：查看容器资源占用</li>
-</ul>
-<h2 id="目录挂载"><a href="#目录挂载" class="headerlink" title="目录挂载"></a>目录挂载</h2><ul>
-<li>按照目前已有知识，如果改了项目代码不会立刻生效，需要重新build和run，很麻烦，而且容器产生的数据，如果容器删除了就会没有，目录挂载就是为了解决这些问题</li>
-<li>目前的挂载方式<ul>
-<li><code>bind mount</code>：直接把宿主机目录映射到容器内，适合挂载代码目录和配置文件，可挂载到多个容器上</li>
-<li><code>volume</code>：由容器创建和管理，创建在宿主机，所以删除容器不会丢失，官方推荐，更高效，Linux文件系统，适合存储数据库数据。可挂载到多个容器上</li>
-<li><code>tmpfs mount</code>：适合存储临时文件，存储在宿主机内存中。不可多容器共享</li>
-<li><img src="https://s1.ax1x.com/2022/10/30/xI2Qi9.png"></li>
-</ul>
-</li>
-</ul>
-<h3 id="bind-mount"><a href="#bind-mount" class="headerlink" title="bind mount"></a>bind mount</h3><ul>
-<li><code>bind mount</code>是通过<code>-v</code>参数来绑定宿主机目录，比如将外部的html文档挂载到Nginx容器的根目录下<ul>
-<li><code>docker run -v ~/html:/usr/share/nginx/html -p 81:80 -d --name nginx_bind nginx:latest</code></li>
-</ul>
-</li>
-<li>这种方式的缺点就是被挂载的宿主机目录(或文件)不受保护，任何容器都可以随意修改</li>
-</ul>
-<h3 id="volume"><a href="#volume" class="headerlink" title="volume"></a>volume</h3><ul>
-<li>volume也是一个文件，但是这个文件是在docker的管控范围内，docker可以通过挂载的设定来控制容器对volume的读写权限</li>
-<li>通过<code>docker volume create volume-name</code>创建一个Volume，实际上是在docker的<code>/var/lib/docker/volumes/</code>文件夹内创建一个相同名字的文件夹来保存数据</li>
-<li>比如设置一个只能读取volume<ul>
-<li><code>docker run --mount type=volume,source=nginx-volume,destination=/usr/share/nginx/html,readonly -p 82:80 -d --name nginx_volume nginx:latest</code></li>
-</ul>
-</li>
-</ul>
-<h3 id="tmpfs-mount"><a href="#tmpfs-mount" class="headerlink" title="tmpfs mount"></a>tmpfs mount</h3><ul>
-<li>tmpfs挂载是临时的，仅保留在主机内存中。当容器停止时，tmpfs挂载被移除，写入的文件不会被持久化</li>
-<li><code>docker run --mount type=tmpfs,destination=/usr/share/nginx/html -p 83:80 -d --name nginx-tempfs nginx:latest</code></li>
-<li>tmpfs因为不是持久化，一般不使用</li>
-</ul>
-<h2 id="容器通信"><a href="#容器通信" class="headerlink" title="容器通信"></a>容器通信</h2><ul>
-<li>容器间的通信根据媒介可以分为：volume共享通信、网络通信</li>
-<li>根据通信范围可以分为：同主机通信、跨主机通信</li>
-</ul>
-<h3 id="网络通信"><a href="#网络通信" class="headerlink" title="网络通信"></a>网络通信</h3><ul>
-<li>Docker的网络通信模型分为以下几种，在安装Docker以后，会默认创建三种网络，可以通过<code>docker network ls</code>查看<ul>
-<li><strong>bridge</strong>：为每一个容器分配、设置IP等，并将容器连接到一个<code>docker0</code>虚拟网桥，默认为该模式</li>
-<li><strong>host</strong>：容器将不会虚拟出自己的网卡，配置自己的IP等，而是使用宿主机的IP和端口</li>
-<li><strong>none</strong>：容器有独立的<code>network namespace</code>，但并没有对其进行任何网络设置，如分配<code>veth pair</code>和网桥连接，IP等</li>
-<li><strong>overlay</strong>：可以连接多个docker守护进程或者满足集群服务之间的通信，适用于不同宿主机上的docker容器之间的通信</li>
-<li><strong>macvlan</strong>: 可以为docker容器分配MAC地址，使其像真实的物理及一样运行</li>
-</ul>
-</li>
-<li>Docker内置的<code>bridge network</code>，也就是docker0接口所属的network，所有未指定network的容器，默认连接到此network中，其网段未<code>172.17.0.1/16</code>，所以两个未进行任何连接操作的容器是可以通过IP地址互相通信的，因为他们同在一个network下，但通信只能通过IP地址进行，不可以通过容器名通信<ul>
-<li><img src="https://s1.ax1x.com/2022/10/30/xI21R1.png"></li>
-</ul>
-</li>
-<li>创建自定义网络：<code>docker network create custom_network</code></li>
-<li>查看网络模式：<code>docker network ls</code></li>
-<li>通过自定义网络创建容器：<code>docker run -di --name docker-app --net custom_network docker-app:v1.0.0</code></li>
-<li>查看容器的网络信息：<code>docker inspect 容器名称|ID</code>，然后在<code>NetworkSettings</code>节点中可以看到</li>
-<li>为容器连接新的网络：<code>docker network connect 网络名称 容器名称</code></li>
-<li>断开网络：<code>docker network disconnect 网络名称 容器名称</code></li>
-</ul>
-<h2 id="docker-compose"><a href="#docker-compose" class="headerlink" title="docker-compose"></a>docker-compose</h2><ul>
-<li>docker-compose是用于定义和运行多容器Docker应用程序的工具。通过compose，您可以使用YML文件来配置应用程序需要的所有服务，然后使用一个命令就可以从YML文件配置中创建并启动所有服务</li>
-<li>使用分三步<ul>
-<li><ol>
-<li>使用Dockerfile定义应用程序的环境</li>
-</ol>
-</li>
-<li><ol start="2">
-<li>使用docker-compose.yml定义构成应用程序的服务，这样它们可以在隔离环境中一起运行</li>
-</ol>
-</li>
-<li><ol start="3">
-<li>最后，执行docker-compose up命令启动并运行整个应用程序</li>
-</ol>
-</li>
-</ul>
-</li>
-<li>比如运行一个web项目和redis，可以编写一个如下的<code>docker-compose.yml</code>文件<pre><code class="highlight yml"><span class="attr">version:</span> <span class="string">&quot;3&quot;</span>
-
-<span class="attr">services:</span>
-  <span class="attr">app:</span>
-    <span class="attr">build:</span> <span class="string">./</span>
-    <span class="attr">ports:</span>
-      <span class="bullet">-</span> <span class="number">80</span><span class="string">:8080</span>
-    <span class="attr">volumes:</span>
-      <span class="bullet">-</span> <span class="string">./:/app</span>
-  <span class="attr">redis:</span>
-    <span class="attr">image:</span> <span class="string">redis:5.0.13</span>
-    <span class="attr">volumes:</span>
-      <span class="bullet">-</span> <span class="string">redis:/data</span>
-<span class="attr">volumes:</span>
-  <span class="attr">redis:</span></code></pre></li>
-<li>version：指定本yml依从的compose哪个版本指定的</li>
-<li>build: 指定构建镜像上下文路径</li>
-<li>image：指定启动容器的镜像</li>
-<li>volumes：卷挂载路径设置，如果跨多个服务并重用挂载卷，可以在volumes关键字中命名挂载卷</li>
-<li>ports：暴露端口信息</li>
-</ul>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://blog.csdn.net/Mr_YanMingXin/article/details/123016807">浅谈Docker底层原理</a></li>
-<li><a href="https://docker.easydoc.net/">Docker快速入门</a></li>
-<li><a href="https://q.shanyue.tech/deploy/docker.html#%E6%9C%AF%E8%AF%AD">Docker使用指南</a></li>
-<li><a href="https://juejin.cn/post/6993979788020940830">Docker与数据：三种挂载方式</a></li>
-<li><a href="https://www.cnblogs.com/mrhelloworld/p/docker11.html">Docker 网络模式详解及容器间网络通信</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>Docker</tag>
+        <tag>React</tag>
       </tags>
   </entry>
   <entry>
@@ -1826,352 +1623,206 @@ export async function render(url, manifest) &#123;
       </tags>
   </entry>
   <entry>
-    <title>微信小程序前端登录模块设计</title>
-    <url>/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案</p>
-<h2 id="基本登录流程"><a href="#基本登录流程" class="headerlink" title="基本登录流程"></a>基本登录流程</h2><ol>
-<li>获取微信登录凭证，通过<code>wx.login</code>获取，这个api会返回一个带有时效性的code</li>
-<li>发送code给服务端，这一步就是通过你和后端定义的接口发送</li>
-<li>服务端根据前端发送的code获取用户身份信息，当然这一步就不是前端的逻辑了</li>
-<li>服务端处理完后，会把用户信息和sessinId发送给前端，然后前端把需要的信息进行存储，接下来的请求就可以带着sessinId来表示身份</li>
-<li>下面是微信官方的流程图<br><img src="https://img-blog.csdnimg.cn/3b0b114c140247ebbc666b027dfbda66.png#pic_center" alt="在这里插入图片描述"></li>
-</ol>
-<h2 id="逻辑封装"><a href="#逻辑封装" class="headerlink" title="逻辑封装"></a>逻辑封装</h2><p>针对以上登录流程，我会封装以下几个方法供业务层调用</p>
-<table>
-<thead>
-<tr>
-<th>方法名</th>
-<th>功能</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>getLoginCode</code></td>
-<td>获取微信登录凭证</td>
-</tr>
-<tr>
-<td><code>staticLogin</code></td>
-<td>静默登录</td>
-</tr>
-<tr>
-<td><code>singleLogin</code></td>
-<td>登录请求封装</td>
-</tr>
-<tr>
-<td><code>checkLogin</code></td>
-<td>判断是否登录</td>
-</tr>
-<tr>
-<td><code>getPhoneNum</code></td>
-<td>获取微信授权手机号</td>
-</tr>
-</tbody></table>
-<ul>
-<li><p>我习惯在promise请求中使用await-to方法，这是一个针对异步比较优雅的方案</p>
-<ul>
-<li><a href="https://blog.grossman.io/how-to-write-async-await-without-try-catch-blocks-in-javascript/">How to write async await without try-catch blocks in Javascript</a></li>
+    <title>前端的Docker学习记录</title>
+    <url>/2022/10/30/%E5%89%8D%E7%AB%AF%E7%9A%84Docker%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<h2 id="Docker简介"><a href="#Docker简介" class="headerlink" title="Docker简介"></a>Docker简介</h2><ul>
+<li>Docker 是一个应用<strong>打包</strong>、<strong>分发</strong>、<strong>部署</strong>的工具，可以使应用部署更加轻量，可移植，可扩展，可以理解为一个轻量的虚拟机<ul>
+<li>打包：就是把你软件运行所需的依赖、第三方库、软件打包到一起，变成一个安装包</li>
+<li>分发：你可以把你打包好的“安装包”上传到一个镜像仓库，其他人可以非常方便的获取和安装</li>
+<li>部署：拿着“安装包”就可以一个命令运行起来应用，自动模拟出一模一样的运行环境，不管是在Windows&#x2F;Mac&#x2F;Linux</li>
 </ul>
 </li>
-<li><p>getLoginCode，一个简单的promise封装获取code</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getLoginCode</span> = (<span class="params"></span>) =&gt; &#123;
-  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;
-      wx.<span class="title function_">login</span>(&#123;
-        success (res) &#123;
-          <span class="keyword">if</span> (res.<span class="property">code</span>) &#123;
-            <span class="title function_">resolve</span>(res.<span class="property">code</span>)
-          &#125; <span class="keyword">else</span> &#123;
-            <span class="title function_">reject</span>(res)
-          &#125;
-        &#125;,
-        <span class="title function_">fail</span>(<span class="params">err</span>) &#123;
-          <span class="title function_">reject</span>(err)
-        &#125;
-      &#125;)
-  &#125;)
-&#125;</code></pre>
-</li>
-<li><p>静默登录封装，获取用户信息，并进行存储</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">staticLogin</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
-  <span class="comment">// 如果已经登录，直接返回登录信息</span>
-  <span class="keyword">if</span> (<span class="title function_">checkLogin</span>()) &#123;
-    <span class="keyword">return</span> <span class="title function_">getLoginInfo</span>()
-  &#125;
-  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">singleLogin</span>());
-  <span class="keyword">if</span> (loginErr) &#123;
-    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
-  &#125;
-  <span class="comment">// 存储用户信息，这个就根据自己的情况了，我这随便定个方法</span>
-  <span class="title function_">setLoginInfo</span>(&#123;
-    ...loginRes,
-  &#125;)
-  <span class="keyword">return</span> loginRes;
-&#125;</code></pre>
-</li>
-<li><p>登录请求封装，这里我是用单例模式并返回了一个promise，这样做是为了，你多次调用singleLogin时，比如快速切换页面，快速点击多个需登录区域，在数据没有返回的时候，都会等待，而不是触发多次请求</p>
-<pre><code class="highlight js"><span class="keyword">let</span> loginInstance = <span class="literal">null</span>
-<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">singleLogin</span> = (<span class="params"></span>) =&gt; &#123;
-  <span class="keyword">if</span> (loginInstance) &#123;
-    <span class="keyword">return</span> loginInstance
-  &#125;
-  <span class="comment">// loginReq：封装请求，包括请求后端和getLoginCode</span>
-  loginInstance = <span class="title function_">loginReq</span>()
-  loginInstance.<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;
-    loginInstance = <span class="literal">null</span>;
-    <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(err);
-  &#125;)
-  <span class="keyword">return</span> loginInstance
-&#125;</code></pre>
-</li>
-<li><p>checkLogin，检查是否登录，这个就看你存储在那个地方了，视情况而定</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">checkLogin</span> = (<span class="params"></span>) =&gt; &#123;
-  <span class="keyword">return</span> <span class="title class_">Boolean</span>(loginInfo?.<span class="property">sid</span>)
-&#125;</code></pre>
-</li>
-<li><p>getPhoneNum</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getPhoneNum</span> = <span class="keyword">async</span> (<span class="params">iv, encryptedData</span>) =&gt; &#123;
-  <span class="keyword">const</span> [codeErr, codeRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getLoginCode</span>())
-  <span class="keyword">if</span> (codeErr) &#123;
-    <span class="variable language_">console</span>.<span class="title function_">log</span>(codeErr);
-    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(codeErr);
-  &#125;
-  <span class="comment">// decrypt：请求后端</span>
-  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">decrypt</span>(&#123;
-    iv,
-    encryptedData,
-    <span class="attr">code</span>: codeRes.<span class="property">code</span>
-  &#125;))
-  <span class="keyword">if</span> (phoneErr) &#123;
-    <span class="variable language_">console</span>.<span class="title function_">log</span>(phoneErr);
-    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(phoneErr);
-  &#125;
-  <span class="keyword">const</span> phoneNumber = phoneRes.<span class="property">result</span>.<span class="property">phoneNumber</span>
-  <span class="title function_">setLoginInfo</span>(&#123;
-    phoneNumber,
-  &#125;)
-  <span class="keyword">return</span> phoneNumber
-&#125;</code></pre></li>
+<li>docker架构图<br><img src="https://s1.ax1x.com/2022/10/30/xI2lGR.png"></li>
 </ul>
-<h2 id="业务层"><a href="#业务层" class="headerlink" title="业务层"></a>业务层</h2><p>业务层我会在以下几个地方调用</p>
-<ol>
-<li><p>请求前根据options判断是否需登录，并进行处理</p>
-<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">REQUEST</span> = <span class="keyword">async</span> (<span class="params">requestObj</span>) =&gt; &#123;
-  <span class="comment">// isLogin 当前接口请求是否需要登录</span>
-  <span class="keyword">if</span> (requestObj.<span class="property">isLogin</span> &amp;&amp; !<span class="title function_">checkLogin</span>()) &#123;
-    <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
-    <span class="keyword">if</span> (loginErr) &#123;
-      <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>)
-      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
-    &#125;
-  &#125;
-  ...
-&#125;</code></pre>
-</li>
-<li><p>登录按钮，这个主要用于登录失败兜底的情况，让用户主动点击，用于登录弹窗等组件，只需调用<code>staticLogin</code>即可</p>
-</li>
-<li><p>获取用户授权手机号按钮</p>
-<pre><code class="highlight js"><span class="comment">// index.html</span>
-<span class="comment">// 用户主动触发进行授权手机号</span>
-&lt;button open-type=<span class="string">&quot;getPhoneNumber&quot;</span> bindgetphonenumber=<span class="string">&quot;bindPhoneNumber&quot;</span>&gt;
-  <span class="language-xml"><span class="tag">&lt;<span class="name">slot</span>&gt;</span><span class="tag">&lt;/<span class="name">slot</span>&gt;</span></span>
-&lt;/button&gt;
-
-<span class="comment">// index.js</span>
-<span class="keyword">async</span> <span class="title function_">bindPhoneNumber</span>(<span class="params">e</span>) &#123;
-  <span class="keyword">const</span> iv = e.<span class="property">detail</span>.<span class="property">iv</span>;
-  <span class="keyword">const</span> encryptedData = e.<span class="property">detail</span>.<span class="property">encryptedData</span>;
-  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getPhoneNum</span>(iv, encryptedData));
-  <span class="keyword">if</span> (phoneErr) &#123;
-    <span class="title class_">Toast</span>(<span class="string">&#x27;获取手机号失败&#x27;</span>);
-    <span class="keyword">return</span>;
-  &#125;
-  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;getPhoneNumber&#x27;</span>, phoneRes);
-&#125;</code></pre>
-</li>
-<li><p>页面组件，在小程序中一般都有一个页面组件，用于封装一些页面必需的功能，比如loading，导航栏，无效页面等等，登录也是必需的，所以我把登录逻辑封装到页面组件上，如果成功会通过triggerEvent触发给页面，如果失败就弹出登录弹窗，当然这种处理不太细，根据业务的不同改变相关的逻辑<br><img src="https://img-blog.csdnimg.cn/f6cd710acc4d45a1a7d88042623ad4bc.png#pic_center" alt="在这里插入图片描述"></p>
-</li>
-</ol>
-<pre><code class="highlight js"><span class="comment">// index.html</span>
-&lt;view&gt;
-  ...
-  &lt;login-modal show=&#123;loginShow&#125; &#123;...props&#125; /&gt;
-&lt;/view&gt;
-
-<span class="comment">// index.js</span>
-<span class="keyword">async</span> <span class="title function_">created</span>(<span class="params"></span>) &#123;
-  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
-  <span class="keyword">if</span> (loginErr) &#123;
-    <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>);
-    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
-      <span class="attr">loginShow</span>: <span class="literal">true</span>,
-    &#125;);
-    <span class="keyword">return</span>;
-  &#125;
-  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;login&#x27;</span>, loginRes);
-&#125;</code></pre>
-<ol start="5">
-<li>还有一些不是太通用的业务组件就不叙述了…</li>
-</ol>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>微信小程序</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>小程序滚动日历组件</title>
-    <url>/2021/04/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6/</url>
-    <content><![CDATA[<h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
-<ol>
-<li><p>在ready中初始化组件数据</p>
-<pre><code class="highlight js"><span class="comment">/**</span>
-<span class="comment"> * <span class="doctag">@description</span>: 初始化</span>
-<span class="comment"> */</span>
-<span class="title function_">ready</span>(<span class="params"></span>) &#123;
-  <span class="comment">// 这两个数据是从页面中传过来的，起始时间和结束时间</span>
-  <span class="comment">// 数组类型 [year, month, day]</span>
-  <span class="keyword">const</span> &#123; endDate, startDate &#125; = <span class="variable language_">this</span>.<span class="property">data</span>
-  <span class="keyword">let</span> monthList = [] <span class="comment">// 这个用于wxml中遍历，以每月为item</span>
-
-  <span class="comment">// 未跨年</span>
-  <span class="keyword">if</span> ( endDate[<span class="number">0</span>] === startDate[<span class="number">0</span>]) &#123;
-    <span class="keyword">let</span> rangeMonth = endDate[<span class="number">1</span>] - startDate[<span class="number">1</span>]
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= rangeMonth; i++) &#123;
-      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
-      <span class="comment">// monthInitData()初始化每月数据</span>
-      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
-      monthList.<span class="title function_">push</span>(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-  &#125; <span class="keyword">else</span> &#123;
-    <span class="comment">// 跨年前月份</span>
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, lng = <span class="number">12</span> - startDate[<span class="number">1</span>]; i &lt; lng; i++) &#123;
-      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
-      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
-      monthList.<span class="title function_">push</span>(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-
-    <span class="comment">// 跨年后月份</span>
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= endDate[<span class="number">1</span>]; i++) &#123;
-      <span class="keyword">let</span> date = [endDate[<span class="number">0</span>], i + <span class="number">1</span>]
-      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(endDate[<span class="number">0</span>], i)
-      monthList.<span class="title function_">push</span>(&#123;
-        date,
-        days,
-      &#125;)
-    &#125;
-  &#125;
-  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
-    monthList,
-  &#125;)
-&#125;</code></pre>
-</li>
-<li><p>初始化每月数据: </p>
-<blockquote>
-<p>逻辑是获取每个月第一天的星期数和每个月的最大天数，然后在之前和之后的空数据填充item占位<br>然后遍历，根据不同的需求，在遍历中处理，最后在html中flex布局即可</p>
-</blockquote>
-<pre><code class="highlight js"><span class="comment">/**</span>
-<span class="comment"> * <span class="doctag">@description</span>: 初始化每月数据</span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年</span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月</span>
-<span class="comment"> */</span>
-<span class="title function_">monthInitData</span>(<span class="params">year, month</span>) &#123;
-  <span class="keyword">let</span> &#123; calendarValue, startDate, endDate &#125;= <span class="variable language_">this</span>.<span class="property">data</span>, <span class="comment">// 当前点击时间，起始时间，结束时间</span>
-    firstWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, <span class="number">1</span>).<span class="title function_">getDay</span>(), <span class="comment">// 本月的第一天的星期数</span>
-    days = [], <span class="comment">// 日期数组</span>
-    max = <span class="variable language_">this</span>.<span class="title function_">getMonthMax</span>(year, month + <span class="number">1</span>), <span class="comment">// 每月最大天数</span>
-    lastWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, (month + <span class="number">1</span>), <span class="number">0</span>).<span class="title function_">getDay</span>() <span class="comment">// 本月的最后一天的星期数</span>
-
-  <span class="comment">// 填充每月一号之前的空数据</span>
-  <span class="keyword">if</span> (firstWeek &gt; <span class="number">0</span>) &#123;
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; firstWeek; i++) &#123;
-      days.<span class="title function_">push</span>(&#123;
-        <span class="attr">day</span>: <span class="number">0</span>
-      &#125;)
-    &#125;
-  &#125;
-
-  <span class="keyword">let</span> currentTime = <span class="number">0</span>, 
-      startTime = <span class="number">0</span>,
-      endTime = <span class="number">0</span>
-
-  <span class="keyword">if</span> (calendarValue[<span class="number">0</span>]) &#123;
-    currentTime = <span class="keyword">new</span> <span class="title class_">Date</span>(calendarValue[<span class="number">0</span>], calendarValue[<span class="number">1</span>], calendarValue[<span class="number">2</span>]).<span class="title function_">getTime</span>()
-  &#125;
-  <span class="keyword">if</span> (startDate[<span class="number">0</span>]) &#123;
-    startTime = <span class="keyword">new</span> <span class="title class_">Date</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>], startDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
-  &#125;
-  <span class="keyword">if</span> (endDate[<span class="number">0</span>]) &#123;
-    endTime = <span class="keyword">new</span> <span class="title class_">Date</span>(endDate[<span class="number">0</span>], endDate[<span class="number">1</span>], endDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
-  &#125;
-
-  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;
-    <span class="comment">// 以下状态是需要在html中判断处理，根据自己需求改变</span>
-    <span class="keyword">let</span> current = <span class="literal">false</span>, <span class="comment">// 当前点击状态</span>
-      disabled = <span class="literal">false</span>, <span class="comment">// 禁止状态</span>
-      now = <span class="literal">false</span>, <span class="comment">// 今天显示文案</span>
-      time = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, i).<span class="title function_">getTime</span>(),
-      nowTime = [<span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getFullYear</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getMonth</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getDate</span>()]
-    <span class="keyword">if</span> (currentTime &amp;&amp; currentTime == time) current = <span class="literal">true</span>
-    <span class="keyword">if</span> (startTime &amp;&amp; startTime &gt; time) disabled = <span class="literal">true</span>
-    <span class="keyword">if</span> (endTime &amp;&amp; endTime &lt; time) disabled = <span class="literal">true</span>
-    <span class="keyword">if</span> (year === nowTime[<span class="number">0</span>] &amp;&amp; month === nowTime[<span class="number">1</span>] &amp;&amp; i === nowTime[<span class="number">2</span>]) now = <span class="literal">true</span>
-
-    days.<span class="title function_">push</span>(&#123;
-      <span class="attr">day</span>: i,
-      current,
-      disabled,
-      now,
-    &#125;)
-  &#125;
-
-  <span class="comment">// 填充每月最后一天之后的空数据</span>
-  <span class="keyword">if</span> (lastWeek != <span class="number">6</span>) &#123;
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = (<span class="number">6</span> - lastWeek); i &lt; l; i++) &#123;
-      days.<span class="title function_">push</span>(&#123;
-        <span class="attr">day</span>: <span class="number">0</span>
-      &#125;)
-    &#125;
-  &#125;
-  <span class="keyword">return</span> days
-&#125;,
-
-<span class="comment">/**</span>
-<span class="comment"> * 获取一个月最大天数</span>
-<span class="comment"> * <span class="doctag">@method</span> <span class="variable">getMonthMax</span></span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年份</span>
-<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月份</span>
-<span class="comment"> */</span>
-<span class="title function_">getMonthMax</span>(<span class="params">year, month</span>) &#123;
-  <span class="keyword">let</span> max = <span class="number">31</span>
-  <span class="keyword">if</span> (month == <span class="number">4</span> || month == <span class="number">6</span> || month == <span class="number">9</span> || month == <span class="number">11</span>) &#123;
-    max = <span class="number">30</span>
-  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (month == <span class="number">2</span>) &#123;
-    <span class="keyword">if</span> (((year % <span class="number">4</span>) == <span class="number">0</span> &amp;&amp; (year % <span class="number">100</span>) &gt; <span class="number">0</span>) || (year % <span class="number">400</span>) == <span class="number">0</span>) &#123;
-      max = <span class="number">29</span>
-    &#125; <span class="keyword">else</span> &#123;
-      max = <span class="number">28</span>
-    &#125; 
-  &#125;
-
-  <span class="keyword">return</span> max
-&#125;,
-</code></pre></li>
-</ol>
 <ul>
-<li>以上就是核心逻辑，像一些弹窗事件和一些点击事件就不附上来了</li>
+<li><strong>docker client</strong>: 即docker命令行工具</li>
+<li><strong>docker host</strong>: 宿主机，docker daemon的运行环境服务器</li>
+<li><strong>docker daemon</strong>: docker的守护进程，docker client通过命令行与docker daemon交互</li>
+<li><strong>image</strong>: 镜像，可以理解为安装包，可以方便的进行传播和安装</li>
+<li><strong>container</strong>: 容器，镜像的运行实例，每个软件运行环境都是独立的，隔离的</li>
+<li><strong>registry</strong>: 镜像仓库，可以从镜像仓库拉取和推送镜像</li>
+</ul>
+<h3 id="底层原理"><a href="#底层原理" class="headerlink" title="底层原理"></a>底层原理</h3><p>docker底层使用了一些linux内核的特性，<code>namespace</code>，<code>cgroups</code>，<code>unionFS</code></p>
+<h3 id="namespace"><a href="#namespace" class="headerlink" title="namespace"></a>namespace</h3><ul>
+<li>namespace，也叫命名空间，名称空间，它表示一个标识符的可见范围。一个标识符可在多个名字空间中定义，它在不同名字空间中的含义是互不相干的。这样，在一个新的名字空间中可定义任何标识符，它不会与任何已有的标识符发生冲突，因为已有的定义都处于其他命名空间中</li>
+<li>docker使用linux namespace构建隔离的环境，它由以下namespace组成<ul>
+<li>pid：隔离进程</li>
+<li>net：隔离网络</li>
+<li>ipc：隔离IPC</li>
+<li>mnt：隔离文件系统挂载</li>
+<li>uts：隔离hostname</li>
+<li>user：隔离uid&#x2F;gid</li>
+</ul>
+</li>
+</ul>
+<h3 id="cgroups"><a href="#cgroups" class="headerlink" title="cgroups"></a>cgroups</h3><ul>
+<li>cgroups，是控制组群(control groups)的简写，是用来限制、控制与分离一个进程组的资源(如CPU、内存、磁盘输入输出等)</li>
+<li>cgroups功能：<ul>
+<li>资源限制：设置内存限制，包括虚拟内存</li>
+<li>优先级：一些资源可以得到大量的CPU或磁盘IO吞吐量</li>
+<li>结算：用来度量系统实际用了多少资源</li>
+<li>控制：冻结组或检查点和重启动</li>
+</ul>
+</li>
+</ul>
+<h3 id="unionFS"><a href="#unionFS" class="headerlink" title="unionFS"></a>unionFS</h3><ul>
+<li>unionFS(Union file systems)是一种分层、轻量级并且高性能的文件性能，支持对文件系统的修改作为一次提交来一层层的叠加。docker的镜像与容器就是分层存储，可用的存储引擎呦aufs，overlay等</li>
+</ul>
+<h3 id="镜像"><a href="#镜像" class="headerlink" title="镜像"></a>镜像</h3><ul>
+<li>镜像是一份用来创造容器的配置文件，而容器可以视作最小型的一个操作系统</li>
+<li>docker的镜像和容器都使用了unionFS做分层存储，镜像作为只读层是共享的，而容器在镜像之上附加了一层可写层，最大程度地减少了空间的浪费</li>
+<li>镜像的相关命令<ul>
+<li>镜像拉取：<code>docker pull node:alpine</code></li>
+<li>查看镜像信息：<code>docker inspect node:alpine</code></li>
+<li>列出所有镜像：<code>docker images</code></li>
+<li>镜像打包：<code>docker build -t docker-app:v1.0.0</code><ul>
+<li><code>-t</code>：设置镜像名字和版本号</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><ul>
+<li>Dockerfile是docker构建镜像的配置文件，比如一个简单的Dockerfile如下<pre><code class="highlight dockerfile"><span class="keyword">FROM</span> node:<span class="number">16</span>
+<span class="keyword">MAINTAINER</span> songlh
+
+<span class="keyword">ADD</span><span class="language-bash"> . /app</span>
+<span class="keyword">WORKDIR</span><span class="language-bash"> /app</span>
+
+<span class="keyword">RUN</span><span class="language-bash"> npm install pnpm -g</span>
+<span class="keyword">RUN</span><span class="language-bash"> pnpm install</span>
+
+<span class="keyword">CMD</span><span class="language-bash"> pnpm run dev</span></code></pre></li>
+<li>常用指令</li>
+<li><code>FROM</code>：表示基于一个已有的基础镜像，<code>FROM &lt;image&gt; [AS &lt;name&gt;]</code></li>
+<li><code>MAINTAINER</code>：声明dockerfile镜像构建的作者</li>
+<li><code>ADD</code>：表示把宿主机的文件或目录加入到镜像的文件系统，<code>ADD [--chown=&lt;user&gt;:&lt;group&gt;] &lt;src&gt;... &lt;dest&gt;</code></li>
+<li><code>RUN</code>: 在镜像中执行命令，由于ufs的文件系统，它会在当前镜像的顶层新增一层，<code>RUN &lt;command&gt;</code></li>
+<li><code>CMD</code>: 指定容器如何启动，一个Dockerfile中只允许有一个CMD</li>
+<li><code>WORKDIR</code>：设置工作目录</li>
+<li><code>ENV</code>：设置环境变量</li>
+</ul>
+<h2 id="容器"><a href="#容器" class="headerlink" title="容器"></a>容器</h2><ul>
+<li><code>docker run</code>：创建容器<ul>
+<li><code>docker run -p 8080:8080 --name docker-hello docker-app:v1.0.0</code>表示基于docker-app镜像的v1.0.0版本创建一个容器并在本地的8080端口运行，容器名字叫<code>docker-hellp</code></li>
+<li><code>-p host-port:container-port</code>：宿主机与容器端口映射，方便容器对外提供服务</li>
+<li><code>--name</code>：为容器指定名称</li>
+<li><code>-d</code>：后台运行</li>
+<li><code>--rm</code>：当停止容器时自动清除容器</li>
+</ul>
+</li>
+<li><code>docker stop</code>：停止容器</li>
+<li><code>docker rm</code>：删除容器</li>
+<li><code>docker exec -it container-name</code>：进入容器环境</li>
+<li><code>docker ps</code>：列出所有容器</li>
+<li><code>docker port</code>：查看容器端口映射</li>
+<li><code>docker stats</code>：查看容器资源占用</li>
+</ul>
+<h2 id="目录挂载"><a href="#目录挂载" class="headerlink" title="目录挂载"></a>目录挂载</h2><ul>
+<li>按照目前已有知识，如果改了项目代码不会立刻生效，需要重新build和run，很麻烦，而且容器产生的数据，如果容器删除了就会没有，目录挂载就是为了解决这些问题</li>
+<li>目前的挂载方式<ul>
+<li><code>bind mount</code>：直接把宿主机目录映射到容器内，适合挂载代码目录和配置文件，可挂载到多个容器上</li>
+<li><code>volume</code>：由容器创建和管理，创建在宿主机，所以删除容器不会丢失，官方推荐，更高效，Linux文件系统，适合存储数据库数据。可挂载到多个容器上</li>
+<li><code>tmpfs mount</code>：适合存储临时文件，存储在宿主机内存中。不可多容器共享</li>
+<li><img src="https://s1.ax1x.com/2022/10/30/xI2Qi9.png"></li>
+</ul>
+</li>
+</ul>
+<h3 id="bind-mount"><a href="#bind-mount" class="headerlink" title="bind mount"></a>bind mount</h3><ul>
+<li><code>bind mount</code>是通过<code>-v</code>参数来绑定宿主机目录，比如将外部的html文档挂载到Nginx容器的根目录下<ul>
+<li><code>docker run -v ~/html:/usr/share/nginx/html -p 81:80 -d --name nginx_bind nginx:latest</code></li>
+</ul>
+</li>
+<li>这种方式的缺点就是被挂载的宿主机目录(或文件)不受保护，任何容器都可以随意修改</li>
+</ul>
+<h3 id="volume"><a href="#volume" class="headerlink" title="volume"></a>volume</h3><ul>
+<li>volume也是一个文件，但是这个文件是在docker的管控范围内，docker可以通过挂载的设定来控制容器对volume的读写权限</li>
+<li>通过<code>docker volume create volume-name</code>创建一个Volume，实际上是在docker的<code>/var/lib/docker/volumes/</code>文件夹内创建一个相同名字的文件夹来保存数据</li>
+<li>比如设置一个只能读取volume<ul>
+<li><code>docker run --mount type=volume,source=nginx-volume,destination=/usr/share/nginx/html,readonly -p 82:80 -d --name nginx_volume nginx:latest</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="tmpfs-mount"><a href="#tmpfs-mount" class="headerlink" title="tmpfs mount"></a>tmpfs mount</h3><ul>
+<li>tmpfs挂载是临时的，仅保留在主机内存中。当容器停止时，tmpfs挂载被移除，写入的文件不会被持久化</li>
+<li><code>docker run --mount type=tmpfs,destination=/usr/share/nginx/html -p 83:80 -d --name nginx-tempfs nginx:latest</code></li>
+<li>tmpfs因为不是持久化，一般不使用</li>
+</ul>
+<h2 id="容器通信"><a href="#容器通信" class="headerlink" title="容器通信"></a>容器通信</h2><ul>
+<li>容器间的通信根据媒介可以分为：volume共享通信、网络通信</li>
+<li>根据通信范围可以分为：同主机通信、跨主机通信</li>
+</ul>
+<h3 id="网络通信"><a href="#网络通信" class="headerlink" title="网络通信"></a>网络通信</h3><ul>
+<li>Docker的网络通信模型分为以下几种，在安装Docker以后，会默认创建三种网络，可以通过<code>docker network ls</code>查看<ul>
+<li><strong>bridge</strong>：为每一个容器分配、设置IP等，并将容器连接到一个<code>docker0</code>虚拟网桥，默认为该模式</li>
+<li><strong>host</strong>：容器将不会虚拟出自己的网卡，配置自己的IP等，而是使用宿主机的IP和端口</li>
+<li><strong>none</strong>：容器有独立的<code>network namespace</code>，但并没有对其进行任何网络设置，如分配<code>veth pair</code>和网桥连接，IP等</li>
+<li><strong>overlay</strong>：可以连接多个docker守护进程或者满足集群服务之间的通信，适用于不同宿主机上的docker容器之间的通信</li>
+<li><strong>macvlan</strong>: 可以为docker容器分配MAC地址，使其像真实的物理及一样运行</li>
+</ul>
+</li>
+<li>Docker内置的<code>bridge network</code>，也就是docker0接口所属的network，所有未指定network的容器，默认连接到此network中，其网段未<code>172.17.0.1/16</code>，所以两个未进行任何连接操作的容器是可以通过IP地址互相通信的，因为他们同在一个network下，但通信只能通过IP地址进行，不可以通过容器名通信<ul>
+<li><img src="https://s1.ax1x.com/2022/10/30/xI21R1.png"></li>
+</ul>
+</li>
+<li>创建自定义网络：<code>docker network create custom_network</code></li>
+<li>查看网络模式：<code>docker network ls</code></li>
+<li>通过自定义网络创建容器：<code>docker run -di --name docker-app --net custom_network docker-app:v1.0.0</code></li>
+<li>查看容器的网络信息：<code>docker inspect 容器名称|ID</code>，然后在<code>NetworkSettings</code>节点中可以看到</li>
+<li>为容器连接新的网络：<code>docker network connect 网络名称 容器名称</code></li>
+<li>断开网络：<code>docker network disconnect 网络名称 容器名称</code></li>
+</ul>
+<h2 id="docker-compose"><a href="#docker-compose" class="headerlink" title="docker-compose"></a>docker-compose</h2><ul>
+<li>docker-compose是用于定义和运行多容器Docker应用程序的工具。通过compose，您可以使用YML文件来配置应用程序需要的所有服务，然后使用一个命令就可以从YML文件配置中创建并启动所有服务</li>
+<li>使用分三步<ul>
+<li><ol>
+<li>使用Dockerfile定义应用程序的环境</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>使用docker-compose.yml定义构成应用程序的服务，这样它们可以在隔离环境中一起运行</li>
+</ol>
+</li>
+<li><ol start="3">
+<li>最后，执行docker-compose up命令启动并运行整个应用程序</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>比如运行一个web项目和redis，可以编写一个如下的<code>docker-compose.yml</code>文件<pre><code class="highlight yml"><span class="attr">version:</span> <span class="string">&quot;3&quot;</span>
+
+<span class="attr">services:</span>
+  <span class="attr">app:</span>
+    <span class="attr">build:</span> <span class="string">./</span>
+    <span class="attr">ports:</span>
+      <span class="bullet">-</span> <span class="number">80</span><span class="string">:8080</span>
+    <span class="attr">volumes:</span>
+      <span class="bullet">-</span> <span class="string">./:/app</span>
+  <span class="attr">redis:</span>
+    <span class="attr">image:</span> <span class="string">redis:5.0.13</span>
+    <span class="attr">volumes:</span>
+      <span class="bullet">-</span> <span class="string">redis:/data</span>
+<span class="attr">volumes:</span>
+  <span class="attr">redis:</span></code></pre></li>
+<li>version：指定本yml依从的compose哪个版本指定的</li>
+<li>build: 指定构建镜像上下文路径</li>
+<li>image：指定启动容器的镜像</li>
+<li>volumes：卷挂载路径设置，如果跨多个服务并重用挂载卷，可以在volumes关键字中命名挂载卷</li>
+<li>ports：暴露端口信息</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://blog.csdn.net/Mr_YanMingXin/article/details/123016807">浅谈Docker底层原理</a></li>
+<li><a href="https://docker.easydoc.net/">Docker快速入门</a></li>
+<li><a href="https://q.shanyue.tech/deploy/docker.html#%E6%9C%AF%E8%AF%AD">Docker使用指南</a></li>
+<li><a href="https://juejin.cn/post/6993979788020940830">Docker与数据：三种挂载方式</a></li>
+<li><a href="https://www.cnblogs.com/mrhelloworld/p/docker11.html">Docker 网络模式详解及容器间网络通信</a></li>
 </ul>
 ]]></content>
       <categories>
         <category>gallery</category>
       </categories>
       <tags>
-        <tag>微信小程序</tag>
+        <tag>Docker</tag>
       </tags>
   </entry>
   <entry>
@@ -2474,6 +2125,355 @@ export async function render(url, manifest) &#123;
       <tags>
         <tag>markdown</tag>
         <tag>markdown-it</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>小程序滚动日历组件</title>
+    <url>/2021/04/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%BB%9A%E5%8A%A8%E6%97%A5%E5%8E%86%E7%BB%84%E4%BB%B6/</url>
+    <content><![CDATA[<h2 id="小程序滚动日历组件"><a href="#小程序滚动日历组件" class="headerlink" title="小程序滚动日历组件"></a>小程序滚动日历组件</h2><p>前段时间产品提出这个需求，要求做一个日历容器，并要求是滚动，不能是那种每个月切换的容器，所以我就在网上大概查找了一下类似组件，滚动的容器较少，于是我就自己写了这个组件，以下是大概的js思路，wxml和css就不附上了，每个UI都有不同的想法</p>
+<ol>
+<li><p>在ready中初始化组件数据</p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * <span class="doctag">@description</span>: 初始化</span>
+<span class="comment"> */</span>
+<span class="title function_">ready</span>(<span class="params"></span>) &#123;
+  <span class="comment">// 这两个数据是从页面中传过来的，起始时间和结束时间</span>
+  <span class="comment">// 数组类型 [year, month, day]</span>
+  <span class="keyword">const</span> &#123; endDate, startDate &#125; = <span class="variable language_">this</span>.<span class="property">data</span>
+  <span class="keyword">let</span> monthList = [] <span class="comment">// 这个用于wxml中遍历，以每月为item</span>
+
+  <span class="comment">// 未跨年</span>
+  <span class="keyword">if</span> ( endDate[<span class="number">0</span>] === startDate[<span class="number">0</span>]) &#123;
+    <span class="keyword">let</span> rangeMonth = endDate[<span class="number">1</span>] - startDate[<span class="number">1</span>]
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= rangeMonth; i++) &#123;
+      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
+      <span class="comment">// monthInitData()初始化每月数据</span>
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="comment">// 跨年前月份</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, lng = <span class="number">12</span> - startDate[<span class="number">1</span>]; i &lt; lng; i++) &#123;
+      <span class="keyword">let</span> date = [startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i + <span class="number">1</span>]
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>] + i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+
+    <span class="comment">// 跨年后月份</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= endDate[<span class="number">1</span>]; i++) &#123;
+      <span class="keyword">let</span> date = [endDate[<span class="number">0</span>], i + <span class="number">1</span>]
+      <span class="keyword">let</span> days = <span class="variable language_">this</span>.<span class="title function_">monthInitData</span>(endDate[<span class="number">0</span>], i)
+      monthList.<span class="title function_">push</span>(&#123;
+        date,
+        days,
+      &#125;)
+    &#125;
+  &#125;
+  <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
+    monthList,
+  &#125;)
+&#125;</code></pre>
+</li>
+<li><p>初始化每月数据: </p>
+<blockquote>
+<p>逻辑是获取每个月第一天的星期数和每个月的最大天数，然后在之前和之后的空数据填充item占位<br>然后遍历，根据不同的需求，在遍历中处理，最后在html中flex布局即可</p>
+</blockquote>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * <span class="doctag">@description</span>: 初始化每月数据</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月</span>
+<span class="comment"> */</span>
+<span class="title function_">monthInitData</span>(<span class="params">year, month</span>) &#123;
+  <span class="keyword">let</span> &#123; calendarValue, startDate, endDate &#125;= <span class="variable language_">this</span>.<span class="property">data</span>, <span class="comment">// 当前点击时间，起始时间，结束时间</span>
+    firstWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, <span class="number">1</span>).<span class="title function_">getDay</span>(), <span class="comment">// 本月的第一天的星期数</span>
+    days = [], <span class="comment">// 日期数组</span>
+    max = <span class="variable language_">this</span>.<span class="title function_">getMonthMax</span>(year, month + <span class="number">1</span>), <span class="comment">// 每月最大天数</span>
+    lastWeek = <span class="keyword">new</span> <span class="title class_">Date</span>(year, (month + <span class="number">1</span>), <span class="number">0</span>).<span class="title function_">getDay</span>() <span class="comment">// 本月的最后一天的星期数</span>
+
+  <span class="comment">// 填充每月一号之前的空数据</span>
+  <span class="keyword">if</span> (firstWeek &gt; <span class="number">0</span>) &#123;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; firstWeek; i++) &#123;
+      days.<span class="title function_">push</span>(&#123;
+        <span class="attr">day</span>: <span class="number">0</span>
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="keyword">let</span> currentTime = <span class="number">0</span>, 
+      startTime = <span class="number">0</span>,
+      endTime = <span class="number">0</span>
+
+  <span class="keyword">if</span> (calendarValue[<span class="number">0</span>]) &#123;
+    currentTime = <span class="keyword">new</span> <span class="title class_">Date</span>(calendarValue[<span class="number">0</span>], calendarValue[<span class="number">1</span>], calendarValue[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+  <span class="keyword">if</span> (startDate[<span class="number">0</span>]) &#123;
+    startTime = <span class="keyword">new</span> <span class="title class_">Date</span>(startDate[<span class="number">0</span>], startDate[<span class="number">1</span>], startDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+  <span class="keyword">if</span> (endDate[<span class="number">0</span>]) &#123;
+    endTime = <span class="keyword">new</span> <span class="title class_">Date</span>(endDate[<span class="number">0</span>], endDate[<span class="number">1</span>], endDate[<span class="number">2</span>]).<span class="title function_">getTime</span>()
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= max; i++) &#123;
+    <span class="comment">// 以下状态是需要在html中判断处理，根据自己需求改变</span>
+    <span class="keyword">let</span> current = <span class="literal">false</span>, <span class="comment">// 当前点击状态</span>
+      disabled = <span class="literal">false</span>, <span class="comment">// 禁止状态</span>
+      now = <span class="literal">false</span>, <span class="comment">// 今天显示文案</span>
+      time = <span class="keyword">new</span> <span class="title class_">Date</span>(year, month, i).<span class="title function_">getTime</span>(),
+      nowTime = [<span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getFullYear</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getMonth</span>(), <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">getDate</span>()]
+    <span class="keyword">if</span> (currentTime &amp;&amp; currentTime == time) current = <span class="literal">true</span>
+    <span class="keyword">if</span> (startTime &amp;&amp; startTime &gt; time) disabled = <span class="literal">true</span>
+    <span class="keyword">if</span> (endTime &amp;&amp; endTime &lt; time) disabled = <span class="literal">true</span>
+    <span class="keyword">if</span> (year === nowTime[<span class="number">0</span>] &amp;&amp; month === nowTime[<span class="number">1</span>] &amp;&amp; i === nowTime[<span class="number">2</span>]) now = <span class="literal">true</span>
+
+    days.<span class="title function_">push</span>(&#123;
+      <span class="attr">day</span>: i,
+      current,
+      disabled,
+      now,
+    &#125;)
+  &#125;
+
+  <span class="comment">// 填充每月最后一天之后的空数据</span>
+  <span class="keyword">if</span> (lastWeek != <span class="number">6</span>) &#123;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = (<span class="number">6</span> - lastWeek); i &lt; l; i++) &#123;
+      days.<span class="title function_">push</span>(&#123;
+        <span class="attr">day</span>: <span class="number">0</span>
+      &#125;)
+    &#125;
+  &#125;
+  <span class="keyword">return</span> days
+&#125;,
+
+<span class="comment">/**</span>
+<span class="comment"> * 获取一个月最大天数</span>
+<span class="comment"> * <span class="doctag">@method</span> <span class="variable">getMonthMax</span></span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; year 年份</span>
+<span class="comment"> * <span class="doctag">@param</span>: &#123; number &#125; month 月份</span>
+<span class="comment"> */</span>
+<span class="title function_">getMonthMax</span>(<span class="params">year, month</span>) &#123;
+  <span class="keyword">let</span> max = <span class="number">31</span>
+  <span class="keyword">if</span> (month == <span class="number">4</span> || month == <span class="number">6</span> || month == <span class="number">9</span> || month == <span class="number">11</span>) &#123;
+    max = <span class="number">30</span>
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (month == <span class="number">2</span>) &#123;
+    <span class="keyword">if</span> (((year % <span class="number">4</span>) == <span class="number">0</span> &amp;&amp; (year % <span class="number">100</span>) &gt; <span class="number">0</span>) || (year % <span class="number">400</span>) == <span class="number">0</span>) &#123;
+      max = <span class="number">29</span>
+    &#125; <span class="keyword">else</span> &#123;
+      max = <span class="number">28</span>
+    &#125; 
+  &#125;
+
+  <span class="keyword">return</span> max
+&#125;,
+</code></pre></li>
+</ol>
+<ul>
+<li>以上就是核心逻辑，像一些弹窗事件和一些点击事件就不附上来了</li>
+</ul>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>微信小程序</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>微信小程序前端登录模块设计</title>
+    <url>/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案</p>
+<h2 id="基本登录流程"><a href="#基本登录流程" class="headerlink" title="基本登录流程"></a>基本登录流程</h2><ol>
+<li>获取微信登录凭证，通过<code>wx.login</code>获取，这个api会返回一个带有时效性的code</li>
+<li>发送code给服务端，这一步就是通过你和后端定义的接口发送</li>
+<li>服务端根据前端发送的code获取用户身份信息，当然这一步就不是前端的逻辑了</li>
+<li>服务端处理完后，会把用户信息和sessinId发送给前端，然后前端把需要的信息进行存储，接下来的请求就可以带着sessinId来表示身份</li>
+<li>下面是微信官方的流程图<br><img src="https://img-blog.csdnimg.cn/3b0b114c140247ebbc666b027dfbda66.png#pic_center" alt="在这里插入图片描述"></li>
+</ol>
+<h2 id="逻辑封装"><a href="#逻辑封装" class="headerlink" title="逻辑封装"></a>逻辑封装</h2><p>针对以上登录流程，我会封装以下几个方法供业务层调用</p>
+<table>
+<thead>
+<tr>
+<th>方法名</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>getLoginCode</code></td>
+<td>获取微信登录凭证</td>
+</tr>
+<tr>
+<td><code>staticLogin</code></td>
+<td>静默登录</td>
+</tr>
+<tr>
+<td><code>singleLogin</code></td>
+<td>登录请求封装</td>
+</tr>
+<tr>
+<td><code>checkLogin</code></td>
+<td>判断是否登录</td>
+</tr>
+<tr>
+<td><code>getPhoneNum</code></td>
+<td>获取微信授权手机号</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p>我习惯在promise请求中使用await-to方法，这是一个针对异步比较优雅的方案</p>
+<ul>
+<li><a href="https://blog.grossman.io/how-to-write-async-await-without-try-catch-blocks-in-javascript/">How to write async await without try-catch blocks in Javascript</a></li>
+</ul>
+</li>
+<li><p>getLoginCode，一个简单的promise封装获取code</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getLoginCode</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;
+      wx.<span class="title function_">login</span>(&#123;
+        success (res) &#123;
+          <span class="keyword">if</span> (res.<span class="property">code</span>) &#123;
+            <span class="title function_">resolve</span>(res.<span class="property">code</span>)
+          &#125; <span class="keyword">else</span> &#123;
+            <span class="title function_">reject</span>(res)
+          &#125;
+        &#125;,
+        <span class="title function_">fail</span>(<span class="params">err</span>) &#123;
+          <span class="title function_">reject</span>(err)
+        &#125;
+      &#125;)
+  &#125;)
+&#125;</code></pre>
+</li>
+<li><p>静默登录封装，获取用户信息，并进行存储</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">staticLogin</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
+  <span class="comment">// 如果已经登录，直接返回登录信息</span>
+  <span class="keyword">if</span> (<span class="title function_">checkLogin</span>()) &#123;
+    <span class="keyword">return</span> <span class="title function_">getLoginInfo</span>()
+  &#125;
+  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">singleLogin</span>());
+  <span class="keyword">if</span> (loginErr) &#123;
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
+  &#125;
+  <span class="comment">// 存储用户信息，这个就根据自己的情况了，我这随便定个方法</span>
+  <span class="title function_">setLoginInfo</span>(&#123;
+    ...loginRes,
+  &#125;)
+  <span class="keyword">return</span> loginRes;
+&#125;</code></pre>
+</li>
+<li><p>登录请求封装，这里我是用单例模式并返回了一个promise，这样做是为了，你多次调用singleLogin时，比如快速切换页面，快速点击多个需登录区域，在数据没有返回的时候，都会等待，而不是触发多次请求</p>
+<pre><code class="highlight js"><span class="keyword">let</span> loginInstance = <span class="literal">null</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">singleLogin</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">if</span> (loginInstance) &#123;
+    <span class="keyword">return</span> loginInstance
+  &#125;
+  <span class="comment">// loginReq：封装请求，包括请求后端和getLoginCode</span>
+  loginInstance = <span class="title function_">loginReq</span>()
+  loginInstance.<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;
+    loginInstance = <span class="literal">null</span>;
+    <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(err);
+  &#125;)
+  <span class="keyword">return</span> loginInstance
+&#125;</code></pre>
+</li>
+<li><p>checkLogin，检查是否登录，这个就看你存储在那个地方了，视情况而定</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">checkLogin</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">return</span> <span class="title class_">Boolean</span>(loginInfo?.<span class="property">sid</span>)
+&#125;</code></pre>
+</li>
+<li><p>getPhoneNum</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getPhoneNum</span> = <span class="keyword">async</span> (<span class="params">iv, encryptedData</span>) =&gt; &#123;
+  <span class="keyword">const</span> [codeErr, codeRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getLoginCode</span>())
+  <span class="keyword">if</span> (codeErr) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(codeErr);
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(codeErr);
+  &#125;
+  <span class="comment">// decrypt：请求后端</span>
+  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">decrypt</span>(&#123;
+    iv,
+    encryptedData,
+    <span class="attr">code</span>: codeRes.<span class="property">code</span>
+  &#125;))
+  <span class="keyword">if</span> (phoneErr) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(phoneErr);
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(phoneErr);
+  &#125;
+  <span class="keyword">const</span> phoneNumber = phoneRes.<span class="property">result</span>.<span class="property">phoneNumber</span>
+  <span class="title function_">setLoginInfo</span>(&#123;
+    phoneNumber,
+  &#125;)
+  <span class="keyword">return</span> phoneNumber
+&#125;</code></pre></li>
+</ul>
+<h2 id="业务层"><a href="#业务层" class="headerlink" title="业务层"></a>业务层</h2><p>业务层我会在以下几个地方调用</p>
+<ol>
+<li><p>请求前根据options判断是否需登录，并进行处理</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">REQUEST</span> = <span class="keyword">async</span> (<span class="params">requestObj</span>) =&gt; &#123;
+  <span class="comment">// isLogin 当前接口请求是否需要登录</span>
+  <span class="keyword">if</span> (requestObj.<span class="property">isLogin</span> &amp;&amp; !<span class="title function_">checkLogin</span>()) &#123;
+    <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
+    <span class="keyword">if</span> (loginErr) &#123;
+      <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>)
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(loginErr);
+    &#125;
+  &#125;
+  ...
+&#125;</code></pre>
+</li>
+<li><p>登录按钮，这个主要用于登录失败兜底的情况，让用户主动点击，用于登录弹窗等组件，只需调用<code>staticLogin</code>即可</p>
+</li>
+<li><p>获取用户授权手机号按钮</p>
+<pre><code class="highlight js"><span class="comment">// index.html</span>
+<span class="comment">// 用户主动触发进行授权手机号</span>
+&lt;button open-type=<span class="string">&quot;getPhoneNumber&quot;</span> bindgetphonenumber=<span class="string">&quot;bindPhoneNumber&quot;</span>&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">slot</span>&gt;</span><span class="tag">&lt;/<span class="name">slot</span>&gt;</span></span>
+&lt;/button&gt;
+
+<span class="comment">// index.js</span>
+<span class="keyword">async</span> <span class="title function_">bindPhoneNumber</span>(<span class="params">e</span>) &#123;
+  <span class="keyword">const</span> iv = e.<span class="property">detail</span>.<span class="property">iv</span>;
+  <span class="keyword">const</span> encryptedData = e.<span class="property">detail</span>.<span class="property">encryptedData</span>;
+  <span class="keyword">const</span> [phoneErr, phoneRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">getPhoneNum</span>(iv, encryptedData));
+  <span class="keyword">if</span> (phoneErr) &#123;
+    <span class="title class_">Toast</span>(<span class="string">&#x27;获取手机号失败&#x27;</span>);
+    <span class="keyword">return</span>;
+  &#125;
+  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;getPhoneNumber&#x27;</span>, phoneRes);
+&#125;</code></pre>
+</li>
+<li><p>页面组件，在小程序中一般都有一个页面组件，用于封装一些页面必需的功能，比如loading，导航栏，无效页面等等，登录也是必需的，所以我把登录逻辑封装到页面组件上，如果成功会通过triggerEvent触发给页面，如果失败就弹出登录弹窗，当然这种处理不太细，根据业务的不同改变相关的逻辑<br><img src="https://img-blog.csdnimg.cn/f6cd710acc4d45a1a7d88042623ad4bc.png#pic_center" alt="在这里插入图片描述"></p>
+</li>
+</ol>
+<pre><code class="highlight js"><span class="comment">// index.html</span>
+&lt;view&gt;
+  ...
+  &lt;login-modal show=&#123;loginShow&#125; &#123;...props&#125; /&gt;
+&lt;/view&gt;
+
+<span class="comment">// index.js</span>
+<span class="keyword">async</span> <span class="title function_">created</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> [loginErr, loginRes] = <span class="keyword">await</span> <span class="title function_">_to</span>(<span class="title function_">staticLogin</span>());
+  <span class="keyword">if</span> (loginErr) &#123;
+    <span class="title class_">Toast</span>(<span class="string">&#x27;登录失败&#x27;</span>);
+    <span class="variable language_">this</span>.<span class="title function_">setData</span>(&#123;
+      <span class="attr">loginShow</span>: <span class="literal">true</span>,
+    &#125;);
+    <span class="keyword">return</span>;
+  &#125;
+  <span class="variable language_">this</span>.<span class="title function_">triggerEvent</span>(<span class="string">&#x27;login&#x27;</span>, loginRes);
+&#125;</code></pre>
+<ol start="5">
+<li>还有一些不是太通用的业务组件就不叙述了…</li>
+</ol>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>微信小程序</tag>
       </tags>
   </entry>
   <entry>
@@ -3336,6 +3336,140 @@ export async function render(url, manifest) &#123;
       </tags>
   </entry>
   <entry>
+    <title>解决react状态管理---React Query</title>
+    <url>/2021/06/12/%E8%A7%A3%E5%86%B3react%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86-ReactQuery/</url>
+    <content><![CDATA[<p><img src="https://img-blog.csdnimg.cn/20210612171112847.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDcxOTI1OA==,size_16,color_FFFFFF,t_70#pic_center" alt="React Query"></p>
+<h3 id="什么是React-Query"><a href="#什么是React-Query" class="headerlink" title="什么是React Query"></a>什么是React Query</h3><ul>
+<li><code>react-query</code>是一个适用于react hooks的请求库，它可以为任何类型的异步数据提供React状态管理功能，使React中的获取、缓存、同步和更新服务器数据变得轻而易举</li>
+<li><code>react-query</code>与一些传统的状态管理库如redux,mobx不同，它是负责管理服务器与客户端之间的状态，一些用户交互的中间状态，如loading状态，错误信息等都是通过hooks直接返回</li>
+<li><a href="https://react-query-v2.tanstack.com/">React Query官网</a></li>
+</ul>
+<h3 id="初步使用"><a href="#初步使用" class="headerlink" title="初步使用"></a>初步使用</h3><ol>
+<li><code>yarn add react-query</code> or <code>npm i react-query</code>安装react-query</li>
+<li>使用<code>QueryClientProvider</code>组件连接并提供一个<code>QueryClient</code>到你的应用程序<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">QueryClient</span>, <span class="title class_">QueryClientProvider</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query&#x27;</span>
+
+&lt;<span class="title class_">QueryClientProvider</span> client=&#123;<span class="keyword">new</span> <span class="title class_">QueryClient</span>()&#125;&gt;
+  &#123; ... &#125;
+&lt;/<span class="title class_">QueryClientProvider</span>&gt;</code></pre></li>
+</ol>
+<h4 id="Devtools"><a href="#Devtools" class="headerlink" title="Devtools"></a>Devtools</h4><ul>
+<li><code>yarn add react-query-devtools</code> or <code>npm i --save react-query-devtools</code>安装Devtools</li>
+<li><code>react-query-devtools</code>是与<code>react-query</code>相匹配的开发工具</li>
+<li>可在开发中实时查看缓存，手动获取和删除查询等等<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">ReactQueryDevtools</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query-devtools&#x27;</span>
+
+<span class="keyword">const</span> <span class="title function_">App</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;&gt;</span>    </span>
+<span class="language-xml">      &#123; ... &#125;</span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">ReactQueryDevtools</span> <span class="attr">initialIsOpen</span>=<span class="string">&#123;true&#125;</span> /&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;/&gt;</span></span>
+  );
+&#125;;</code></pre></li>
+</ul>
+<h3 id="增删改查"><a href="#增删改查" class="headerlink" title="增删改查"></a>增删改查</h3><ul>
+<li>react-query最常用的两个hook，查询(<code>useQuery</code>)、增删改(<code>useMutation</code>)</li>
+</ul>
+<h4 id="useQuery"><a href="#useQuery" class="headerlink" title="useQuery"></a>useQuery</h4><ul>
+<li><code>useQuery</code>：在<code>React Query</code>中，查询是对某些异步数据源的声明性依赖。查询可以与任何基于Promise的方法(GET)一起使用，从服务器获取数据<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">useTodos</span> = (<span class="params">param</span>) =&gt; &#123;
+  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()
+
+  <span class="comment">/**</span>
+<span class="comment">   * 第一个参数是QueryKey，是查询的关键，是一个独一无二的key，并在之后的增删改中需要，</span>
+<span class="comment">   *   如果需要动态的QueryKey，可以使用数组的方式，如[&#x27;todos&#x27;, params]</span>
+<span class="comment">   * 第二个参数是用于获取数据的异步函数</span>
+<span class="comment">   * useQuery的响应返回就是获取到的数据和一些中间状态，如isLoading，error，isIdle...</span>
+<span class="comment">   */</span>
+  <span class="keyword">return</span> <span class="title function_">useQuery</span>(<span class="string">&#x27;todos&#x27;</span>, <span class="function">() =&gt;</span>
+    <span class="title function_">request</span>(<span class="string">&#x27;todos&#x27;</span>, &#123; <span class="attr">data</span>: param &#125;)
+  )
+&#125;
+
+<span class="comment">// 在UI组件调用</span>
+<span class="keyword">const</span> &#123; isLoading, error, <span class="attr">data</span>: todos &#125; = <span class="title function_">useTodos</span>()</code></pre></li>
+</ul>
+<h4 id="useMutation"><a href="#useMutation" class="headerlink" title="useMutation"></a>useMutation</h4><ul>
+<li><code>useMutation</code>：常用于创建&#x2F;更新&#x2F;删除数据或执行服务器副作用<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">useAddTodo</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()
+
+  <span class="comment">/**</span>
+<span class="comment">   * 第一个参数是执行操作的异步函数，在返回的mutate中触发</span>
+<span class="comment">   * 第二个参数是执行成功或者失败的一些配置函数，可用于一些处理缓存的操作，例如乐观更新</span>
+<span class="comment">   */</span>
+  <span class="keyword">return</span> <span class="title function_">useMutation</span>(
+    <span class="function">(<span class="params">data</span>) =&gt;</span>
+      <span class="title function_">request</span>(<span class="string">`todos`</span>, &#123;
+        data,
+        <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,
+      &#125;),
+    &#123;
+      <span class="title function_">onSuccess</span>(<span class="params"></span>)&#123;&#125;
+      <span class="title function_">onError</span>(<span class="params"></span>)&#123;&#125;
+      <span class="title function_">onSettled</span>(<span class="params"></span>)&#123;&#125;
+      ...
+    &#125;
+  )
+&#125;
+
+<span class="comment">// 操作组件调用</span>
+<span class="keyword">const</span> <span class="title function_">TodosAddBtn</span> = (<span class="params"></span>) =&gt; &#123;
+  ...
+  <span class="keyword">const</span> &#123; mutateAsync, isLoading, error &#125; = <span class="title function_">useAddTodo</span>()
+  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> mutateAsync(todoData)&#125;&gt;add<span class="tag">&lt;/<span class="name">Button</span>&gt;</span></span>
+&#125;</code></pre></li>
+</ul>
+<h5 id="例：用第二个参数配置乐观更新"><a href="#例：用第二个参数配置乐观更新" class="headerlink" title="例：用第二个参数配置乐观更新"></a>例：用第二个参数配置乐观更新</h5><ul>
+<li>乐观更新就是在一些请求或者数据处理没有结束的时候，提前给用户显示理想的结果，如果失败就回滚更新<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">useAddConfig</span> = (<span class="params">queryKey</span>) =&gt; &#123;
+  <span class="comment">// 获取当前QueryClient的实例</span>
+  <span class="keyword">const</span> queryClient = <span class="title function_">useQueryClient</span>()
+  
+  <span class="keyword">return</span> &#123;
+    <span class="comment">// 当mutate被调用时触发</span>
+    <span class="keyword">async</span> <span class="title function_">onMutate</span>(<span class="params">target</span>) &#123;
+      <span class="comment">// 获取当前数据快照，用于错误时回滚更新</span>
+      <span class="keyword">const</span> previousItems = queryClient.<span class="title function_">getQueryData</span>(queryKey)
+      <span class="comment">// 乐观更新为新值</span>
+      queryClient.<span class="title function_">setQueryData</span>(queryKey, <span class="function">(<span class="params">old</span>) =&gt;</span> &#123;
+        <span class="keyword">return</span> <span class="function">(<span class="params">target, old</span>) =&gt;</span> (old ? [...old, target] : [])
+      &#125;)
+
+      <span class="comment">// 这个返回值会作为最后一个参数传递给onError和onSettled</span>
+      <span class="keyword">return</span> &#123; previousItems &#125;
+    &#125;,
+    <span class="comment">// 成功回调 清除缓存</span>
+    <span class="attr">onSuccess</span>: <span class="function">() =&gt;</span> queryClient.<span class="title function_">invalidateQueries</span>(queryKey),
+    <span class="comment">// 失败回调</span>
+    <span class="title function_">onError</span>(<span class="params">error, newItem, context</span>) &#123;
+      <span class="comment">// 当前queryKey的数据回滚</span>
+      queryClient.<span class="title function_">setQueryData</span>(
+        queryKey,
+        context.<span class="property">previousItems</span>
+      )
+    &#125;,
+    <span class="comment">// 无论错误或者成功都会触发，此例子没有使用</span>
+    <span class="title function_">onSettled</span>(<span class="params"></span>) &#123;&#125;
+  &#125;
+&#125;</code></pre></li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>本地&#x2F;客户端中间状态<ul>
+<li>redux与react-query都可，没有较大的优缺点</li>
+</ul>
+</li>
+<li>服务端中间状态<ul>
+<li>推荐react-query，将服务器状态从全局状态中解放出来，用更少的代码实现复杂的需求，让你的状态管理更优雅</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>React</tag>
+        <tag>ReactQuery</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>微信小程序蓝牙控制开门</title>
     <url>/2020/01/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%93%9D%E7%89%99%E6%8E%A7%E5%88%B6%E5%BC%80%E9%97%A8/</url>
     <content><![CDATA[<h2 id="小程序低功耗蓝牙控制开门"><a href="#小程序低功耗蓝牙控制开门" class="headerlink" title="小程序低功耗蓝牙控制开门"></a>小程序低功耗蓝牙控制开门</h2><h3 id="整体流程"><a href="#整体流程" class="headerlink" title="整体流程"></a>整体流程</h3><blockquote>
@@ -3598,140 +3732,6 @@ export async function render(url, manifest) &#123;
       <tags>
         <tag>微信小程序</tag>
         <tag>蓝牙</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>解决react状态管理---React Query</title>
-    <url>/2021/06/12/%E8%A7%A3%E5%86%B3react%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86-ReactQuery/</url>
-    <content><![CDATA[<p><img src="https://img-blog.csdnimg.cn/20210612171112847.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDcxOTI1OA==,size_16,color_FFFFFF,t_70#pic_center" alt="React Query"></p>
-<h3 id="什么是React-Query"><a href="#什么是React-Query" class="headerlink" title="什么是React Query"></a>什么是React Query</h3><ul>
-<li><code>react-query</code>是一个适用于react hooks的请求库，它可以为任何类型的异步数据提供React状态管理功能，使React中的获取、缓存、同步和更新服务器数据变得轻而易举</li>
-<li><code>react-query</code>与一些传统的状态管理库如redux,mobx不同，它是负责管理服务器与客户端之间的状态，一些用户交互的中间状态，如loading状态，错误信息等都是通过hooks直接返回</li>
-<li><a href="https://react-query-v2.tanstack.com/">React Query官网</a></li>
-</ul>
-<h3 id="初步使用"><a href="#初步使用" class="headerlink" title="初步使用"></a>初步使用</h3><ol>
-<li><code>yarn add react-query</code> or <code>npm i react-query</code>安装react-query</li>
-<li>使用<code>QueryClientProvider</code>组件连接并提供一个<code>QueryClient</code>到你的应用程序<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">QueryClient</span>, <span class="title class_">QueryClientProvider</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query&#x27;</span>
-
-&lt;<span class="title class_">QueryClientProvider</span> client=&#123;<span class="keyword">new</span> <span class="title class_">QueryClient</span>()&#125;&gt;
-  &#123; ... &#125;
-&lt;/<span class="title class_">QueryClientProvider</span>&gt;</code></pre></li>
-</ol>
-<h4 id="Devtools"><a href="#Devtools" class="headerlink" title="Devtools"></a>Devtools</h4><ul>
-<li><code>yarn add react-query-devtools</code> or <code>npm i --save react-query-devtools</code>安装Devtools</li>
-<li><code>react-query-devtools</code>是与<code>react-query</code>相匹配的开发工具</li>
-<li>可在开发中实时查看缓存，手动获取和删除查询等等<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">ReactQueryDevtools</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-query-devtools&#x27;</span>
-
-<span class="keyword">const</span> <span class="title function_">App</span> = (<span class="params"></span>) =&gt; &#123;
-  <span class="keyword">return</span> (
-    <span class="language-xml"><span class="tag">&lt;&gt;</span>    </span>
-<span class="language-xml">      &#123; ... &#125;</span>
-<span class="language-xml">      <span class="tag">&lt;<span class="name">ReactQueryDevtools</span> <span class="attr">initialIsOpen</span>=<span class="string">&#123;true&#125;</span> /&gt;</span></span>
-<span class="language-xml">    <span class="tag">&lt;/&gt;</span></span>
-  );
-&#125;;</code></pre></li>
-</ul>
-<h3 id="增删改查"><a href="#增删改查" class="headerlink" title="增删改查"></a>增删改查</h3><ul>
-<li>react-query最常用的两个hook，查询(<code>useQuery</code>)、增删改(<code>useMutation</code>)</li>
-</ul>
-<h4 id="useQuery"><a href="#useQuery" class="headerlink" title="useQuery"></a>useQuery</h4><ul>
-<li><code>useQuery</code>：在<code>React Query</code>中，查询是对某些异步数据源的声明性依赖。查询可以与任何基于Promise的方法(GET)一起使用，从服务器获取数据<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">useTodos</span> = (<span class="params">param</span>) =&gt; &#123;
-  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()
-
-  <span class="comment">/**</span>
-<span class="comment">   * 第一个参数是QueryKey，是查询的关键，是一个独一无二的key，并在之后的增删改中需要，</span>
-<span class="comment">   *   如果需要动态的QueryKey，可以使用数组的方式，如[&#x27;todos&#x27;, params]</span>
-<span class="comment">   * 第二个参数是用于获取数据的异步函数</span>
-<span class="comment">   * useQuery的响应返回就是获取到的数据和一些中间状态，如isLoading，error，isIdle...</span>
-<span class="comment">   */</span>
-  <span class="keyword">return</span> <span class="title function_">useQuery</span>(<span class="string">&#x27;todos&#x27;</span>, <span class="function">() =&gt;</span>
-    <span class="title function_">request</span>(<span class="string">&#x27;todos&#x27;</span>, &#123; <span class="attr">data</span>: param &#125;)
-  )
-&#125;
-
-<span class="comment">// 在UI组件调用</span>
-<span class="keyword">const</span> &#123; isLoading, error, <span class="attr">data</span>: todos &#125; = <span class="title function_">useTodos</span>()</code></pre></li>
-</ul>
-<h4 id="useMutation"><a href="#useMutation" class="headerlink" title="useMutation"></a>useMutation</h4><ul>
-<li><code>useMutation</code>：常用于创建&#x2F;更新&#x2F;删除数据或执行服务器副作用<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">useAddTodo</span> = (<span class="params"></span>) =&gt; &#123;
-  <span class="keyword">const</span> request = <span class="title function_">useHttp</span>()
-
-  <span class="comment">/**</span>
-<span class="comment">   * 第一个参数是执行操作的异步函数，在返回的mutate中触发</span>
-<span class="comment">   * 第二个参数是执行成功或者失败的一些配置函数，可用于一些处理缓存的操作，例如乐观更新</span>
-<span class="comment">   */</span>
-  <span class="keyword">return</span> <span class="title function_">useMutation</span>(
-    <span class="function">(<span class="params">data</span>) =&gt;</span>
-      <span class="title function_">request</span>(<span class="string">`todos`</span>, &#123;
-        data,
-        <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,
-      &#125;),
-    &#123;
-      <span class="title function_">onSuccess</span>(<span class="params"></span>)&#123;&#125;
-      <span class="title function_">onError</span>(<span class="params"></span>)&#123;&#125;
-      <span class="title function_">onSettled</span>(<span class="params"></span>)&#123;&#125;
-      ...
-    &#125;
-  )
-&#125;
-
-<span class="comment">// 操作组件调用</span>
-<span class="keyword">const</span> <span class="title function_">TodosAddBtn</span> = (<span class="params"></span>) =&gt; &#123;
-  ...
-  <span class="keyword">const</span> &#123; mutateAsync, isLoading, error &#125; = <span class="title function_">useAddTodo</span>()
-  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> mutateAsync(todoData)&#125;&gt;add<span class="tag">&lt;/<span class="name">Button</span>&gt;</span></span>
-&#125;</code></pre></li>
-</ul>
-<h5 id="例：用第二个参数配置乐观更新"><a href="#例：用第二个参数配置乐观更新" class="headerlink" title="例：用第二个参数配置乐观更新"></a>例：用第二个参数配置乐观更新</h5><ul>
-<li>乐观更新就是在一些请求或者数据处理没有结束的时候，提前给用户显示理想的结果，如果失败就回滚更新<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">useAddConfig</span> = (<span class="params">queryKey</span>) =&gt; &#123;
-  <span class="comment">// 获取当前QueryClient的实例</span>
-  <span class="keyword">const</span> queryClient = <span class="title function_">useQueryClient</span>()
-  
-  <span class="keyword">return</span> &#123;
-    <span class="comment">// 当mutate被调用时触发</span>
-    <span class="keyword">async</span> <span class="title function_">onMutate</span>(<span class="params">target</span>) &#123;
-      <span class="comment">// 获取当前数据快照，用于错误时回滚更新</span>
-      <span class="keyword">const</span> previousItems = queryClient.<span class="title function_">getQueryData</span>(queryKey)
-      <span class="comment">// 乐观更新为新值</span>
-      queryClient.<span class="title function_">setQueryData</span>(queryKey, <span class="function">(<span class="params">old</span>) =&gt;</span> &#123;
-        <span class="keyword">return</span> <span class="function">(<span class="params">target, old</span>) =&gt;</span> (old ? [...old, target] : [])
-      &#125;)
-
-      <span class="comment">// 这个返回值会作为最后一个参数传递给onError和onSettled</span>
-      <span class="keyword">return</span> &#123; previousItems &#125;
-    &#125;,
-    <span class="comment">// 成功回调 清除缓存</span>
-    <span class="attr">onSuccess</span>: <span class="function">() =&gt;</span> queryClient.<span class="title function_">invalidateQueries</span>(queryKey),
-    <span class="comment">// 失败回调</span>
-    <span class="title function_">onError</span>(<span class="params">error, newItem, context</span>) &#123;
-      <span class="comment">// 当前queryKey的数据回滚</span>
-      queryClient.<span class="title function_">setQueryData</span>(
-        queryKey,
-        context.<span class="property">previousItems</span>
-      )
-    &#125;,
-    <span class="comment">// 无论错误或者成功都会触发，此例子没有使用</span>
-    <span class="title function_">onSettled</span>(<span class="params"></span>) &#123;&#125;
-  &#125;
-&#125;</code></pre></li>
-</ul>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
-<li>本地&#x2F;客户端中间状态<ul>
-<li>redux与react-query都可，没有较大的优缺点</li>
-</ul>
-</li>
-<li>服务端中间状态<ul>
-<li>推荐react-query，将服务器状态从全局状态中解放出来，用更少的代码实现复杂的需求，让你的状态管理更优雅</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>React</tag>
-        <tag>ReactQuery</tag>
       </tags>
   </entry>
   <entry>
@@ -4094,240 +4094,6 @@ j = increasingNewIndexSequence.<span class="property">length</span> - <span clas
       <tags>
         <tag>Vue3</tag>
         <tag>Vue</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>颜色选择器的纯JS实现</title>
-    <url>/2022/11/05/%E9%A2%9C%E8%89%B2%E9%80%89%E6%8B%A9%E5%99%A8%E7%9A%84%E7%BA%AFJS%E5%AE%9E%E7%8E%B0/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在逛论坛的时候发现了一个新API：<code>EyeDropper</code>，仅需创建一个实例，然后调用open方法，就可以取到你屏幕内所有可以取到的颜色，可惜兼容性不太行，只有Chrome，Edge，Opera支持，<a href="https://developer.mozilla.org/en-US/docs/Web/API/EyeDropper">MDN文档</a><br>知道了这个API后我也有了一个想实现取色器的想法，工作摸鱼期间👻折腾了几天搞了出来，实现步骤大致以下几步</p>
-<ol>
-<li>所需页面创建实例，初始化所需属性</li>
-<li>需开启时调用open方法开启取色器，网页截屏生成canvas，初始化监听事件和浮动元素(放大镜)</li>
-<li>鼠标移动时根据坐标获取颜色数据修改放大镜颜色</li>
-<li>鼠标点击或者按Esc键后销毁</li>
-</ol>
-<h2 id="预览"><a href="#预览" class="headerlink" title="预览"></a>预览</h2><p>预览地址：<a href="https://songlh.top/page-color-picker/">https://songlh.top/page-color-picker/</a><br>github：<a href="https://github.com/LHRUN/page-color-picker">https://github.com/LHRUN/page-color-picker</a><br><img src="https://s1.ax1x.com/2022/11/05/xOoXo4.png"></p>
-<h2 id="初始化方法"><a href="#初始化方法" class="headerlink" title="初始化方法"></a>初始化方法</h2><p>初始化方法没什么说的，就是把需要的属性和方法赋值一遍初始值，然后接收一个鼠标点击时的回调</p>
-<pre><code class="highlight ts"><span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">ColorPicker</span> &#123;
-  <span class="attr">canvasContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// canvas容器元素</span>
-  <span class="attr">canvas</span>: <span class="title class_">HTMLCanvasElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas</span>
-  <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas[context]</span>
-  <span class="attr">floatContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 鼠标移动时的浮动容器元素</span>
-  onChange?: <span class="function">(<span class="params">color: <span class="built_in">string</span></span>) =&gt;</span> <span class="built_in">void</span> <span class="comment">// 点击鼠标后的回调</span>
-  color = <span class="string">&#x27;&#x27;</span> <span class="comment">// 颜色值</span>
-  elementId = <span class="string">&#x27;&#x27;</span> <span class="comment">// 元素唯一id</span>
-  <span class="attr">colorArr</span>: &#123;
-    <span class="attr">el</span>: <span class="title class_">HTMLDivElement</span>
-    <span class="attr">row</span>: <span class="built_in">number</span>
-    <span class="attr">col</span>: <span class="built_in">number</span>
-  &#125;[] = [] <span class="comment">// 放大镜颜色数组</span>
-
-  <span class="title function_">constructor</span>(<span class="params"></span>
-<span class="params">    onChange?: (color: <span class="built_in">string</span>) =&gt; <span class="built_in">void</span> <span class="comment">// 点击后回调</span></span>
-<span class="params">  </span>) &#123;
-    <span class="variable language_">this</span>.<span class="property">onChange</span> = onChange
-  &#125;
-  <span class="comment">// ...</span>
-&#125;</code></pre>
-
-<h2 id="开启取色器"><a href="#开启取色器" class="headerlink" title="开启取色器"></a>开启取色器</h2><p>开启取色器分为4步</p>
-<ol>
-<li>初始化canvas容器</li>
-<li>生成canvas，我使用的是<a href="https://www.npmjs.com/package/html2canvas">html2canvas</a></li>
-<li>初始化监听事件</li>
-<li>创建浮动元素</li>
-</ol>
-<pre><code class="highlight js"><span class="comment">/**</span>
-<span class="comment">* 开启取色器</span>
-<span class="comment">*/</span>
-<span class="title function_">open</span>(<span class="params"></span>) &#123;
-  <span class="comment">// 获取随机id</span>
-  <span class="variable language_">this</span>.<span class="property">elementId</span> = <span class="title function_">getId</span>()
-  <span class="comment">// 初始化canvas容器</span>
-  <span class="variable language_">this</span>.<span class="title function_">initContainer</span>()
-  <span class="title function_">html2canvas</span>(<span class="variable language_">document</span>.<span class="property">body</span>).<span class="title function_">then</span>(<span class="function">(<span class="params">canvas</span>) =&gt;</span> &#123;
-    <span class="keyword">if</span> (canvas &amp;&amp; <span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
-      <span class="comment">// 初始化事件</span>
-      <span class="variable language_">this</span>.<span class="title function_">initEvent</span>(canvas)
-      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="property">style</span>.<span class="property">display</span> = <span class="string">&#x27;block&#x27;</span>
-      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="title function_">appendChild</span>(canvas)
-      <span class="variable language_">this</span>.<span class="property">canvas</span> = canvas
-      <span class="variable language_">this</span>.<span class="property">context</span> = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>)
-      <span class="comment">// 创建浮动元素</span>
-      <span class="variable language_">this</span>.<span class="title function_">initFloatContainer</span>()
-    &#125;
-  &#125;)
-&#125;</code></pre>
-<ul>
-<li><p>初始化canvas容器</p>
-<pre><code class="highlight ts"><span class="title function_">initContainer</span>(<span class="params"></span>) &#123;
-  <span class="comment">// 创建元素我封装了一个方法</span>
-  <span class="keyword">const</span> canvasContainer = <span class="title function_">createDocument</span>(
-    <span class="string">&#x27;div&#x27;</span>,
-    styleObj.<span class="property">canvasContainer</span>,
-    <span class="variable language_">document</span>.<span class="property">body</span>
-  )
-  <span class="variable language_">this</span>.<span class="property">canvasContainer</span> = canvasContainer
-  <span class="keyword">return</span> canvasContainer
-&#125;
-
-<span class="comment">/**</span>
-<span class="comment"> * 创建元素</span>
-<span class="comment"> * <span class="doctag">@param</span> elType 元素类型</span>
-<span class="comment"> * <span class="doctag">@param</span> styleObj 样式对象</span>
-<span class="comment"> * <span class="doctag">@param</span> parent 父级元素</span>
-<span class="comment"> * <span class="doctag">@returns</span> <span class="variable">element</span></span>
-<span class="comment"> */</span>
-<span class="keyword">export</span> <span class="keyword">const</span> createDocument = &lt;T <span class="keyword">extends</span> keyof <span class="title class_">HTMLElementTagNameMap</span>&gt;(
-  <span class="attr">elType</span>: T,
-  <span class="attr">styleObj</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">string</span> | <span class="built_in">number</span>&gt;,
-  <span class="attr">parent</span>: <span class="title class_">HTMLElement</span> | <span class="title class_">DocumentFragment</span>
-): <span class="title class_">HTMLElementTagNameMap</span>[T] =&gt; &#123;
-  <span class="keyword">const</span> el = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(elType)
-  <span class="title class_">Object</span>.<span class="title function_">keys</span>(styleObj).<span class="title function_">forEach</span>(<span class="function">(<span class="params">key</span>) =&gt;</span> &#123;
-    <span class="keyword">if</span> (<span class="title function_">isValidKey</span>(key, styleObj)) &#123;
-      <span class="title class_">Reflect</span>.<span class="title function_">set</span>(el.<span class="property">style</span>, key, styleObj[key])
-    &#125;
-  &#125;)
-  parent.<span class="title function_">appendChild</span>(el)
-  <span class="keyword">return</span> el
-&#125;</code></pre>
-</li>
-<li><p>初始化事件</p>
-<pre><code class="highlight ts"><span class="comment">/**</span>
-<span class="comment"> * 初始化事件</span>
-<span class="comment"> * <span class="doctag">@param</span> <span class="variable">canvas</span></span>
-<span class="comment"> */</span>
-<span class="title function_">initEvent</span>(<span class="params">canvas: HTMLCanvasElement</span>) &#123;
-  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)
-  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)
-  <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)
-&#125;</code></pre>
-</li>
-<li><p>创建浮动元素容器</p>
-<pre><code class="highlight js"><span class="title function_">initFloatCOntainer</span>(<span class="params"></span>) &#123;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
-    <span class="comment">// 创建浮动元素容器</span>
-    <span class="keyword">const</span> floatContainer = <span class="title function_">createDocument</span>(
-      <span class="string">&#x27;div&#x27;</span>,
-      styleObj.<span class="property">floatContainer</span>,
-      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>
-    )
-
-    <span class="comment">// 创建放大镜的小颜色块</span>
-    <span class="keyword">const</span> fragment = <span class="variable language_">document</span>.<span class="title function_">createDocumentFragment</span>()
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>; i++) &#123;
-      <span class="keyword">const</span> row = <span class="title class_">Math</span>.<span class="title function_">ceil</span>(i / <span class="variable constant_">COLOR_ITEM_SIZE</span>)
-      <span class="keyword">const</span> col = i - (row - <span class="number">1</span>) * <span class="variable constant_">COLOR_ITEM_SIZE</span>
-      <span class="keyword">const</span> <span class="attr">style</span>: <span class="title class_">Record</span>&lt;string, string | number&gt; = &#123;
-        ...styleObj.<span class="property">colorItem</span>
-      &#125;
-
-      <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span>) &#123;
-        style.<span class="property">borderColor</span> = <span class="string">&#x27;#000000&#x27;</span>
-      &#125;
-      <span class="keyword">const</span> itemEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, style, fragment)
-      itemEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span><span class="subst">$&#123;i&#125;</span>`</span>)
-      <span class="variable language_">this</span>.<span class="property">colorArr</span>.<span class="title function_">push</span>(&#123;
-        <span class="attr">el</span>: itemEl,
-        row,
-        col
-      &#125;)
-    &#125;
-    floatContainer.<span class="title function_">appendChild</span>(fragment)
-    <span class="keyword">const</span> textEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, styleObj.<span class="property">text</span>, floatContainer)
-    textEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)
-    <span class="variable language_">this</span>.<span class="property">floatContainer</span> = floatContainer
-  &#125;
-&#125;</code></pre></li>
-</ul>
-<h2 id="鼠标移动"><a href="#鼠标移动" class="headerlink" title="鼠标移动"></a>鼠标移动</h2><ul>
-<li>根据鼠标移动时的坐标，计算需要处理的颜色区域，然后调用<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/getImageData">CanvasRenderingContext2D.getImageData()</a>方法，这个方法会返回一个ImageData对象，这个对象里就包含RGBA数据，然后把这些数据展示到放大镜元素上，就有了放大的效果<pre><code class="highlight ts">canvasMouseMove = <span class="function">(<span class="params">e: MouseEvent</span>) =&gt;</span> &#123;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;
-    <span class="keyword">const</span> x = e.<span class="property">pageX</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span>
-    <span class="keyword">const</span> y = e.<span class="property">pageY</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span>
-    <span class="comment">// 获取放大镜所需区域颜色</span>
-    <span class="keyword">const</span> colors = <span class="variable language_">this</span>.<span class="title function_">getColors</span>(x, y)
-    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span> &amp;&amp; colors) &#123;
-      <span class="comment">// 根据坐标改变放大镜位置</span>
-      <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">transform</span> = <span class="string">`translate(<span class="subst">$&#123;e.pageX - <span class="number">82.5</span>&#125;</span>px, <span class="subst">$&#123;</span></span>
-<span class="subst"><span class="string">        e.pageY - <span class="number">82.5</span></span></span>
-<span class="subst"><span class="string">      &#125;</span>px )`</span>
-      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">visibility</span> === <span class="string">&#x27;hidden&#x27;</span>) &#123;
-        <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">visibility</span> = <span class="string">&#x27;visible&#x27;</span>
-      &#125;
-      <span class="keyword">const</span> textEl = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)
-
-      <span class="comment">// 遍历每个颜色块，修改颜色</span>
-      <span class="keyword">for</span> (
-        <span class="keyword">let</span> i = <span class="number">0</span>;
-        i &lt; <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>;
-        i++
-      ) &#123;
-        <span class="keyword">const</span> &#123; el, row, col &#125; = <span class="variable language_">this</span>.<span class="property">colorArr</span>[i]
-        <span class="keyword">const</span> [r, g, b, a] = colors[i]
-        <span class="comment">// toHexString rgba转16进制</span>
-        <span class="keyword">const</span> hexStr = <span class="title function_">toHexString</span>(&#123; r, g, b, <span class="attr">a</span>: a / <span class="number">255</span> &#125;)
-
-        <span class="comment">//  最中间的颜色保存起来</span>
-        <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span> &amp;&amp; textEl) &#123;
-          textEl.<span class="property">textContent</span> = hexStr
-          textEl.<span class="property">style</span>.<span class="property">color</span> = hexStr
-          <span class="variable language_">this</span>.<span class="property">color</span> = hexStr
-        &#125;
-
-        el.<span class="property">style</span>.<span class="property">backgroundColor</span> = hexStr
-      &#125;
-    &#125;
-  &#125;
-&#125;
-
-<span class="comment">/**</span>
-<span class="comment"> * 获取放大镜所需区域颜色</span>
-<span class="comment"> * <span class="doctag">@param</span> <span class="variable">x</span></span>
-<span class="comment"> * <span class="doctag">@param</span> <span class="variable">y</span></span>
-<span class="comment"> * <span class="doctag">@returns</span></span>
-<span class="comment"> */</span>
-<span class="title function_">getColors</span>(<span class="params">x: <span class="built_in">number</span>, y: <span class="built_in">number</span></span>) &#123;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;
-    <span class="keyword">const</span> &#123; data &#125; = <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">getImageData</span>(
-      x - <span class="number">5</span>,
-      y - <span class="number">5</span>,
-      <span class="variable constant_">COLOR_ITEM_SIZE</span>,
-      <span class="variable constant_">COLOR_ITEM_SIZE</span>
-    )
-    <span class="keyword">const</span> colors = []
-    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; data.<span class="property">length</span>; i += <span class="number">4</span>) &#123;
-      colors.<span class="title function_">push</span>([data[i], data[i + <span class="number">1</span>], data[i + <span class="number">2</span>], data[i + <span class="number">3</span>]])
-    &#125;
-    <span class="keyword">return</span> colors
-  &#125;
-&#125;</code></pre></li>
-</ul>
-<h2 id="鼠标点击"><a href="#鼠标点击" class="headerlink" title="鼠标点击"></a>鼠标点击</h2><ul>
-<li>鼠标点击触发回调，销毁元素<pre><code class="highlight ts">canvasMouseDown = <span class="function">() =&gt;</span> &#123;
-  <span class="variable language_">this</span>?.<span class="property">onChange</span>?.(<span class="variable language_">this</span>.<span class="property">color</span>)
-  <span class="variable language_">this</span>.<span class="title function_">destroy</span>()
-&#125;
-
-<span class="title function_">destroy</span>(<span class="params"></span>) &#123;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvas</span>) &#123;
-    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)
-    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)
-  &#125;
-  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
-    <span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">removeChild</span>(<span class="variable language_">this</span>.<span class="property">canvasContainer</span>)
-  &#125;
-  <span class="variable language_">window</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)
-&#125;</code></pre></li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>有问题欢迎讨论👻</p>
-]]></content>
-      <categories>
-        <category>gallery</category>
-      </categories>
-      <tags>
-        <tag>微信小程序</tag>
       </tags>
   </entry>
   <entry>
@@ -4888,6 +4654,240 @@ targetMap = &#123;
       <tags>
         <tag>Vue3</tag>
         <tag>Vue</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>颜色选择器的纯JS实现</title>
+    <url>/2022/11/05/%E9%A2%9C%E8%89%B2%E9%80%89%E6%8B%A9%E5%99%A8%E7%9A%84%E7%BA%AFJS%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在逛论坛的时候发现了一个新API：<code>EyeDropper</code>，仅需创建一个实例，然后调用open方法，就可以取到你屏幕内所有可以取到的颜色，可惜兼容性不太行，只有Chrome，Edge，Opera支持，<a href="https://developer.mozilla.org/en-US/docs/Web/API/EyeDropper">MDN文档</a><br>知道了这个API后我也有了一个想实现取色器的想法，工作摸鱼期间👻折腾了几天搞了出来，实现步骤大致以下几步</p>
+<ol>
+<li>所需页面创建实例，初始化所需属性</li>
+<li>需开启时调用open方法开启取色器，网页截屏生成canvas，初始化监听事件和浮动元素(放大镜)</li>
+<li>鼠标移动时根据坐标获取颜色数据修改放大镜颜色</li>
+<li>鼠标点击或者按Esc键后销毁</li>
+</ol>
+<h2 id="预览"><a href="#预览" class="headerlink" title="预览"></a>预览</h2><p>预览地址：<a href="https://songlh.top/page-color-picker/">https://songlh.top/page-color-picker/</a><br>github：<a href="https://github.com/LHRUN/page-color-picker">https://github.com/LHRUN/page-color-picker</a><br><img src="https://s1.ax1x.com/2022/11/05/xOoXo4.png"></p>
+<h2 id="初始化方法"><a href="#初始化方法" class="headerlink" title="初始化方法"></a>初始化方法</h2><p>初始化方法没什么说的，就是把需要的属性和方法赋值一遍初始值，然后接收一个鼠标点击时的回调</p>
+<pre><code class="highlight ts"><span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">ColorPicker</span> &#123;
+  <span class="attr">canvasContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// canvas容器元素</span>
+  <span class="attr">canvas</span>: <span class="title class_">HTMLCanvasElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas</span>
+  <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 截屏canvas[context]</span>
+  <span class="attr">floatContainer</span>: <span class="title class_">HTMLDivElement</span> | <span class="literal">null</span> = <span class="literal">null</span> <span class="comment">// 鼠标移动时的浮动容器元素</span>
+  onChange?: <span class="function">(<span class="params">color: <span class="built_in">string</span></span>) =&gt;</span> <span class="built_in">void</span> <span class="comment">// 点击鼠标后的回调</span>
+  color = <span class="string">&#x27;&#x27;</span> <span class="comment">// 颜色值</span>
+  elementId = <span class="string">&#x27;&#x27;</span> <span class="comment">// 元素唯一id</span>
+  <span class="attr">colorArr</span>: &#123;
+    <span class="attr">el</span>: <span class="title class_">HTMLDivElement</span>
+    <span class="attr">row</span>: <span class="built_in">number</span>
+    <span class="attr">col</span>: <span class="built_in">number</span>
+  &#125;[] = [] <span class="comment">// 放大镜颜色数组</span>
+
+  <span class="title function_">constructor</span>(<span class="params"></span>
+<span class="params">    onChange?: (color: <span class="built_in">string</span>) =&gt; <span class="built_in">void</span> <span class="comment">// 点击后回调</span></span>
+<span class="params">  </span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">onChange</span> = onChange
+  &#125;
+  <span class="comment">// ...</span>
+&#125;</code></pre>
+
+<h2 id="开启取色器"><a href="#开启取色器" class="headerlink" title="开启取色器"></a>开启取色器</h2><p>开启取色器分为4步</p>
+<ol>
+<li>初始化canvas容器</li>
+<li>生成canvas，我使用的是<a href="https://www.npmjs.com/package/html2canvas">html2canvas</a></li>
+<li>初始化监听事件</li>
+<li>创建浮动元素</li>
+</ol>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment">* 开启取色器</span>
+<span class="comment">*/</span>
+<span class="title function_">open</span>(<span class="params"></span>) &#123;
+  <span class="comment">// 获取随机id</span>
+  <span class="variable language_">this</span>.<span class="property">elementId</span> = <span class="title function_">getId</span>()
+  <span class="comment">// 初始化canvas容器</span>
+  <span class="variable language_">this</span>.<span class="title function_">initContainer</span>()
+  <span class="title function_">html2canvas</span>(<span class="variable language_">document</span>.<span class="property">body</span>).<span class="title function_">then</span>(<span class="function">(<span class="params">canvas</span>) =&gt;</span> &#123;
+    <span class="keyword">if</span> (canvas &amp;&amp; <span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
+      <span class="comment">// 初始化事件</span>
+      <span class="variable language_">this</span>.<span class="title function_">initEvent</span>(canvas)
+      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="property">style</span>.<span class="property">display</span> = <span class="string">&#x27;block&#x27;</span>
+      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>.<span class="title function_">appendChild</span>(canvas)
+      <span class="variable language_">this</span>.<span class="property">canvas</span> = canvas
+      <span class="variable language_">this</span>.<span class="property">context</span> = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>)
+      <span class="comment">// 创建浮动元素</span>
+      <span class="variable language_">this</span>.<span class="title function_">initFloatContainer</span>()
+    &#125;
+  &#125;)
+&#125;</code></pre>
+<ul>
+<li><p>初始化canvas容器</p>
+<pre><code class="highlight ts"><span class="title function_">initContainer</span>(<span class="params"></span>) &#123;
+  <span class="comment">// 创建元素我封装了一个方法</span>
+  <span class="keyword">const</span> canvasContainer = <span class="title function_">createDocument</span>(
+    <span class="string">&#x27;div&#x27;</span>,
+    styleObj.<span class="property">canvasContainer</span>,
+    <span class="variable language_">document</span>.<span class="property">body</span>
+  )
+  <span class="variable language_">this</span>.<span class="property">canvasContainer</span> = canvasContainer
+  <span class="keyword">return</span> canvasContainer
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 创建元素</span>
+<span class="comment"> * <span class="doctag">@param</span> elType 元素类型</span>
+<span class="comment"> * <span class="doctag">@param</span> styleObj 样式对象</span>
+<span class="comment"> * <span class="doctag">@param</span> parent 父级元素</span>
+<span class="comment"> * <span class="doctag">@returns</span> <span class="variable">element</span></span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> createDocument = &lt;T <span class="keyword">extends</span> keyof <span class="title class_">HTMLElementTagNameMap</span>&gt;(
+  <span class="attr">elType</span>: T,
+  <span class="attr">styleObj</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">string</span> | <span class="built_in">number</span>&gt;,
+  <span class="attr">parent</span>: <span class="title class_">HTMLElement</span> | <span class="title class_">DocumentFragment</span>
+): <span class="title class_">HTMLElementTagNameMap</span>[T] =&gt; &#123;
+  <span class="keyword">const</span> el = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(elType)
+  <span class="title class_">Object</span>.<span class="title function_">keys</span>(styleObj).<span class="title function_">forEach</span>(<span class="function">(<span class="params">key</span>) =&gt;</span> &#123;
+    <span class="keyword">if</span> (<span class="title function_">isValidKey</span>(key, styleObj)) &#123;
+      <span class="title class_">Reflect</span>.<span class="title function_">set</span>(el.<span class="property">style</span>, key, styleObj[key])
+    &#125;
+  &#125;)
+  parent.<span class="title function_">appendChild</span>(el)
+  <span class="keyword">return</span> el
+&#125;</code></pre>
+</li>
+<li><p>初始化事件</p>
+<pre><code class="highlight ts"><span class="comment">/**</span>
+<span class="comment"> * 初始化事件</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">canvas</span></span>
+<span class="comment"> */</span>
+<span class="title function_">initEvent</span>(<span class="params">canvas: HTMLCanvasElement</span>) &#123;
+  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)
+  canvas.<span class="title function_">addEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)
+  <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)
+&#125;</code></pre>
+</li>
+<li><p>创建浮动元素容器</p>
+<pre><code class="highlight js"><span class="title function_">initFloatCOntainer</span>(<span class="params"></span>) &#123;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
+    <span class="comment">// 创建浮动元素容器</span>
+    <span class="keyword">const</span> floatContainer = <span class="title function_">createDocument</span>(
+      <span class="string">&#x27;div&#x27;</span>,
+      styleObj.<span class="property">floatContainer</span>,
+      <span class="variable language_">this</span>.<span class="property">canvasContainer</span>
+    )
+
+    <span class="comment">// 创建放大镜的小颜色块</span>
+    <span class="keyword">const</span> fragment = <span class="variable language_">document</span>.<span class="title function_">createDocumentFragment</span>()
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>; i++) &#123;
+      <span class="keyword">const</span> row = <span class="title class_">Math</span>.<span class="title function_">ceil</span>(i / <span class="variable constant_">COLOR_ITEM_SIZE</span>)
+      <span class="keyword">const</span> col = i - (row - <span class="number">1</span>) * <span class="variable constant_">COLOR_ITEM_SIZE</span>
+      <span class="keyword">const</span> <span class="attr">style</span>: <span class="title class_">Record</span>&lt;string, string | number&gt; = &#123;
+        ...styleObj.<span class="property">colorItem</span>
+      &#125;
+
+      <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span>) &#123;
+        style.<span class="property">borderColor</span> = <span class="string">&#x27;#000000&#x27;</span>
+      &#125;
+      <span class="keyword">const</span> itemEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, style, fragment)
+      itemEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span><span class="subst">$&#123;i&#125;</span>`</span>)
+      <span class="variable language_">this</span>.<span class="property">colorArr</span>.<span class="title function_">push</span>(&#123;
+        <span class="attr">el</span>: itemEl,
+        row,
+        col
+      &#125;)
+    &#125;
+    floatContainer.<span class="title function_">appendChild</span>(fragment)
+    <span class="keyword">const</span> textEl = <span class="title function_">createDocument</span>(<span class="string">&#x27;div&#x27;</span>, styleObj.<span class="property">text</span>, floatContainer)
+    textEl.<span class="title function_">setAttribute</span>(<span class="string">&#x27;id&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)
+    <span class="variable language_">this</span>.<span class="property">floatContainer</span> = floatContainer
+  &#125;
+&#125;</code></pre></li>
+</ul>
+<h2 id="鼠标移动"><a href="#鼠标移动" class="headerlink" title="鼠标移动"></a>鼠标移动</h2><ul>
+<li>根据鼠标移动时的坐标，计算需要处理的颜色区域，然后调用<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/getImageData">CanvasRenderingContext2D.getImageData()</a>方法，这个方法会返回一个ImageData对象，这个对象里就包含RGBA数据，然后把这些数据展示到放大镜元素上，就有了放大的效果<pre><code class="highlight ts">canvasMouseMove = <span class="function">(<span class="params">e: MouseEvent</span>) =&gt;</span> &#123;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;
+    <span class="keyword">const</span> x = e.<span class="property">pageX</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span>
+    <span class="keyword">const</span> y = e.<span class="property">pageY</span> * <span class="variable language_">window</span>.<span class="property">devicePixelRatio</span>
+    <span class="comment">// 获取放大镜所需区域颜色</span>
+    <span class="keyword">const</span> colors = <span class="variable language_">this</span>.<span class="title function_">getColors</span>(x, y)
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span> &amp;&amp; colors) &#123;
+      <span class="comment">// 根据坐标改变放大镜位置</span>
+      <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">transform</span> = <span class="string">`translate(<span class="subst">$&#123;e.pageX - <span class="number">82.5</span>&#125;</span>px, <span class="subst">$&#123;</span></span>
+<span class="subst"><span class="string">        e.pageY - <span class="number">82.5</span></span></span>
+<span class="subst"><span class="string">      &#125;</span>px )`</span>
+      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">visibility</span> === <span class="string">&#x27;hidden&#x27;</span>) &#123;
+        <span class="variable language_">this</span>.<span class="property">floatContainer</span>.<span class="property">style</span>.<span class="property">visibility</span> = <span class="string">&#x27;visible&#x27;</span>
+      &#125;
+      <span class="keyword">const</span> textEl = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.elementId&#125;</span>text`</span>)
+
+      <span class="comment">// 遍历每个颜色块，修改颜色</span>
+      <span class="keyword">for</span> (
+        <span class="keyword">let</span> i = <span class="number">0</span>;
+        i &lt; <span class="variable constant_">COLOR_ITEM_SIZE</span> * <span class="variable constant_">COLOR_ITEM_SIZE</span>;
+        i++
+      ) &#123;
+        <span class="keyword">const</span> &#123; el, row, col &#125; = <span class="variable language_">this</span>.<span class="property">colorArr</span>[i]
+        <span class="keyword">const</span> [r, g, b, a] = colors[i]
+        <span class="comment">// toHexString rgba转16进制</span>
+        <span class="keyword">const</span> hexStr = <span class="title function_">toHexString</span>(&#123; r, g, b, <span class="attr">a</span>: a / <span class="number">255</span> &#125;)
+
+        <span class="comment">//  最中间的颜色保存起来</span>
+        <span class="keyword">if</span> (row === <span class="number">6</span> &amp;&amp; col === <span class="number">6</span> &amp;&amp; textEl) &#123;
+          textEl.<span class="property">textContent</span> = hexStr
+          textEl.<span class="property">style</span>.<span class="property">color</span> = hexStr
+          <span class="variable language_">this</span>.<span class="property">color</span> = hexStr
+        &#125;
+
+        el.<span class="property">style</span>.<span class="property">backgroundColor</span> = hexStr
+      &#125;
+    &#125;
+  &#125;
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 获取放大镜所需区域颜色</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">x</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">y</span></span>
+<span class="comment"> * <span class="doctag">@returns</span></span>
+<span class="comment"> */</span>
+<span class="title function_">getColors</span>(<span class="params">x: <span class="built_in">number</span>, y: <span class="built_in">number</span></span>) &#123;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">context</span>) &#123;
+    <span class="keyword">const</span> &#123; data &#125; = <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">getImageData</span>(
+      x - <span class="number">5</span>,
+      y - <span class="number">5</span>,
+      <span class="variable constant_">COLOR_ITEM_SIZE</span>,
+      <span class="variable constant_">COLOR_ITEM_SIZE</span>
+    )
+    <span class="keyword">const</span> colors = []
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; data.<span class="property">length</span>; i += <span class="number">4</span>) &#123;
+      colors.<span class="title function_">push</span>([data[i], data[i + <span class="number">1</span>], data[i + <span class="number">2</span>], data[i + <span class="number">3</span>]])
+    &#125;
+    <span class="keyword">return</span> colors
+  &#125;
+&#125;</code></pre></li>
+</ul>
+<h2 id="鼠标点击"><a href="#鼠标点击" class="headerlink" title="鼠标点击"></a>鼠标点击</h2><ul>
+<li>鼠标点击触发回调，销毁元素<pre><code class="highlight ts">canvasMouseDown = <span class="function">() =&gt;</span> &#123;
+  <span class="variable language_">this</span>?.<span class="property">onChange</span>?.(<span class="variable language_">this</span>.<span class="property">color</span>)
+  <span class="variable language_">this</span>.<span class="title function_">destroy</span>()
+&#125;
+
+<span class="title function_">destroy</span>(<span class="params"></span>) &#123;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvas</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousemove&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseMove</span>)
+    <span class="variable language_">this</span>.<span class="property">canvas</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;mousedown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">canvasMouseDown</span>)
+  &#125;
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">canvasContainer</span>) &#123;
+    <span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">removeChild</span>(<span class="variable language_">this</span>.<span class="property">canvasContainer</span>)
+  &#125;
+  <span class="variable language_">window</span>.<span class="title function_">removeEventListener</span>(<span class="string">&#x27;keydown&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onKeyDown</span>)
+&#125;</code></pre></li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>有问题欢迎讨论👻</p>
+]]></content>
+      <categories>
+        <category>gallery</category>
+      </categories>
+      <tags>
+        <tag>微信小程序</tag>
       </tags>
   </entry>
   <entry>
