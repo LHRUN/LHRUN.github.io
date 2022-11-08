@@ -1,12 +1,13 @@
 .header {
   border: $line-secondary solid $color-text-primary;
+  background-color: #fffcf2;
 }
 .header-inner {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  margin-top: $margin-l-0;
-  margin-bottom: $margin-m-0;
+  margin-top: $margin-m-1;
+  margin-bottom: $margin-m-1;
 }
 .header-inner #menu-btn {
   display: none;

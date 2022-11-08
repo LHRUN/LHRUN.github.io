@@ -737,6 +737,20 @@ targetMap = &#123;
     </nav>
 </div>
 
+    <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#vue3%E5%93%8D%E5%BA%94%E5%BC%8F%E5%88%86%E6%9E%90"><span class="toc-text">vue3响应式分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#reactive"><span class="toc-text">reactive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#baseHandler"><span class="toc-text">baseHandler</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#get"><span class="toc-text">get</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#set"><span class="toc-text">set</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#deleteProperty%E3%80%81has%E2%80%A6"><span class="toc-text">deleteProperty、has…</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#collectionHandlers"><span class="toc-text">collectionHandlers</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#get-1"><span class="toc-text">get</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#size"><span class="toc-text">size</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#set-1"><span class="toc-text">set</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#has%E3%80%81clear%E2%80%A6"><span class="toc-text">has、clear…</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#effect"><span class="toc-text">effect</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#effect-1"><span class="toc-text">effect</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#track"><span class="toc-text">track</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#trigger"><span class="toc-text">trigger</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+
     
       <div class="post-comment">
 
