@@ -1,6 +1,10 @@
 .header {
   border: $line-secondary solid $color-text-primary;
   background-color: #fffcf2;
+  position: sticky;
+  width: 100%;
+  top: 0;
+  box-sizing: border-box;
 }
 .header-inner {
   display: flex;

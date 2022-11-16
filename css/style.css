@@ -313,6 +313,10 @@ input[type="search"]::-webkit-search-results-decoration {
   line-height: 1.25rem;
   color: #002a56;
   background-color: #fffcf2;
+  position: sticky;
+  width: 100%;
+  top: 0;
+  box-sizing: border-box;
 }
 .header-inner {
   display: flex;
