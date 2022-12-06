@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>canvas画板之绘画元素的框选 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/canvas/">
+                            canvas
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                canvas画板之绘画元素的框选
+            
+            
+        </div>
+        <span class="post-date">
+            12月 5, 2022
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img loading="lazy" src="https://s1.ax1x.com/2022/12/05/zyq7Bn.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>我大概在两个月之前做了一个基于canvas的画板，<a target="_blank" rel="noopener" href="https://songlh.top/2022/09/21/%E5%9F%BA%E4%BA%8Ecanvas%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%A4%9A%E5%8A%9F%E8%83%BD%E7%94%BB%E6%9D%BF/">基于canvas实现的多功能画板</a>，然后最近不是太忙，就利用下班的时间又迭代了一个版本，增加了以下内容</p>
+<ol>
+<li>在选择模式下可以点击元素进行框选，并按住手柄进行缩放或者移动，点击Backspace键可以删除选择元素</li>
+<li>双击画板输入文字绘制在指定位置</li>
+</ol>
+<p>本篇我就详细介绍下框选元素的实现思路和具体代码，效果如下</p>
+<h2 id="预览"><a href="#预览" class="headerlink" title="预览"></a>预览</h2><p>预览地址：<a target="_blank" rel="noopener" href="https://songlh.top/paint-board/">https://songlh.top/paint-board/</a><br>repo：<a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">https://github.com/LHRUN/paint-board</a> 欢迎Star⭐️ </p>
+<p><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f5bd83319aae4af5aeaad2e83a73580c~tplv-k3u1fbpfcp-watermark.image"></p>
+<h2 id="实现思路"><a href="#实现思路" class="headerlink" title="实现思路"></a>实现思路</h2><ol>
+<li>首先需要框选的元素必须在初始化时和更新时记录矩形属性，比如宽高、矩形坐标，这是实现框选的基础</li>
+<li>鼠标在移动时需要根据当前坐标判断悬浮在哪个元素上方，这样才能在点击时进行处理，并且鼠标移动时需要有光标的改变</li>
+<li>在有框选元素的情况下，渲染时在最后根据框选元素的矩形属性渲染框选效果</li>
+<li>在有框选元素的情况下，拖拽时根据拖拽的位置来判断是移动还是改变大小</li>
+<li>元素改变大小有两种情况，保持比例(文字)的缩放和不保持比例(画笔)的缩放</li>
+</ol>
+<h2 id="记录矩形属性"><a href="#记录矩形属性" class="headerlink" title="记录矩形属性"></a>记录矩形属性</h2><p>因为画笔随着绘画一直在增加新的坐标点，所以我在矩形属性外另记录了最小和最大的xy坐标用于计算宽高</p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * 根据新坐标点，更新矩形属性</span>
+<span class="comment"> * <span class="doctag">@param</span> instance 画笔元素</span>
+<span class="comment"> * <span class="doctag">@param</span> position 坐标点</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">updateRect</span> = (<span class="params">instance: FreeDraw, position: MousePosition</span>) =&gt; &#123;
+  <span class="keyword">const</span> &#123; x, y &#125; = position
+  <span class="keyword">let</span> &#123; minX, maxX, minY, maxY &#125; = instance.<span class="property">rect</span>
+  <span class="keyword">if</span> (x &lt; minX) &#123;
+    minX = x
+  &#125;
+  <span class="keyword">if</span> (x &gt; maxX) &#123;
+    maxX = x
+  &#125;
+  <span class="keyword">if</span> (y &lt; minY) &#123;
+    minY = y
+  &#125;
+  <span class="keyword">if</span> (y &gt; maxY) &#123;
+    maxY = y
+  &#125;
+  <span class="keyword">const</span> rect = &#123;
+    minX,
+    maxX,
+    minY,
+    maxY,
+    <span class="attr">x</span>: minX,
+    <span class="attr">y</span>: minY,
+    <span class="attr">width</span>: maxX - minX,
+    <span class="attr">height</span>: maxY - minY
+  &#125;
+  instance.<span class="property">rect</span> = rect
+  <span class="keyword">return</span> rect
+&#125;</code></pre>
+
+<h2 id="计算鼠标移动坐标"><a href="#计算鼠标移动坐标" class="headerlink" title="计算鼠标移动坐标"></a>计算鼠标移动坐标</h2><ul>
+<li>随着鼠标移动，我们需要改变光标让使用者感知到已经移动到元素上方，所以就需要计算鼠标坐标是否已经和绘画路径临近到一定距离</li>
+<li>绘画路径是由一个个的坐标点组成，我们可以把每个坐标点和上一个坐标点连成一个线段，然后在满足以下任何一种情况就可以认为是悬浮在元素上方了<ul>
+<li>鼠标坐标距离线段起点小于10像素</li>
+<li>鼠标坐标距离线段终点小于10像素</li>
+<li>鼠标坐标距离线段小于10像素并且x和y坐标在线段的两端点范围内</li>
+<li><img src="https://s1.ax1x.com/2022/12/05/zy7D6s.png"><pre><code class="highlight js"><span class="comment">// 遍历画笔元素所有坐标点</span>
+<span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; positions.<span class="property">length</span>; i++) &#123;
+  <span class="comment">// 距离起点距离</span>
+  <span class="keyword">const</span> startDistance = <span class="title function_">getDistance</span>(movePos, positions[i - <span class="number">1</span>])
+  <span class="comment">// 距离终点距离</span>
+  <span class="keyword">const</span> endDistance = <span class="title function_">getDistance</span>(movePos, positions[i])
+  <span class="comment">// 距离线段距离</span>
+  <span class="keyword">const</span> lineDistance = <span class="title function_">getPositionToLineDistance</span>(
+    movePos,
+    positions[i - <span class="number">1</span>],
+    positions[i]
+  )
+  <span class="keyword">const</span> rangeX =
+    <span class="title class_">Math</span>.<span class="title function_">max</span>(positions[i - <span class="number">1</span>].<span class="property">x</span>, positions[i].<span class="property">x</span>) &gt;= movePos.<span class="property">x</span> &amp;&amp;
+    movePos.<span class="property">x</span> &gt;= <span class="title class_">Math</span>.<span class="title function_">min</span>(positions[i - <span class="number">1</span>].<span class="property">x</span>, positions[i].<span class="property">x</span>)
+  <span class="keyword">const</span> rangeY =
+    <span class="title class_">Math</span>.<span class="title function_">max</span>(positions[i - <span class="number">1</span>].<span class="property">y</span>, positions[i].<span class="property">y</span>) &gt;= movePos.<span class="property">y</span> &amp;&amp;
+    movePos.<span class="property">y</span> &gt;= <span class="title class_">Math</span>.<span class="title function_">min</span>(positions[i - <span class="number">1</span>].<span class="property">y</span>, positions[i].<span class="property">y</span>)
+
+  <span class="comment">// 满足三种情况其中一种就可以记录下画笔元素</span>
+  <span class="keyword">if</span> (
+    startDistance &lt; <span class="number">10</span> ||
+    endDistance &lt; <span class="number">10</span> ||
+    (lineDistance &lt; <span class="number">10</span> &amp;&amp; rangeX &amp;&amp; rangeY)
+  ) &#123;
+    <span class="variable language_">this</span>.<span class="property">mouseHoverElementIndex</span> = eleIndex
+  &#125;
+&#125;
+<span class="comment">// ...</span>
+
+<span class="comment">/**</span>
+<span class="comment"> * 计算两点之间的距离</span>
+<span class="comment"> * <span class="doctag">@param</span> start 起点</span>
+<span class="comment"> * <span class="doctag">@param</span> end 终点</span>
+<span class="comment"> * <span class="doctag">@returns</span> 距离</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getDistance</span> = (<span class="params">start: MousePosition, end: MousePosition</span>) =&gt; &#123;
+  <span class="keyword">return</span> <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(<span class="title class_">Math</span>.<span class="title function_">pow</span>(start.<span class="property">x</span> - end.<span class="property">x</span>, <span class="number">2</span>) + <span class="title class_">Math</span>.<span class="title function_">pow</span>(start.<span class="property">y</span> - end.<span class="property">y</span>, <span class="number">2</span>))
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 获取鼠标坐标距离线段距离</span>
+<span class="comment"> * <span class="doctag">@param</span> pos 鼠标坐标</span>
+<span class="comment"> * <span class="doctag">@param</span> startPos 线段起点</span>
+<span class="comment"> * <span class="doctag">@param</span> endPos 线段终点</span>
+<span class="comment"> * <span class="doctag">@returns</span> 距离</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getPositionToLineDistance</span> = (<span class="params"></span>
+<span class="params">  pos: MousePosition,</span>
+<span class="params">  startPos: MousePosition,</span>
+<span class="params">  endPos: MousePosition</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="comment">/**</span>
+<span class="comment">   * 1. 计算三点之间的直线距离</span>
+<span class="comment">   * 2. 计算三角形半周长</span>
+<span class="comment">   * 3. 通过海伦公式求面积</span>
+<span class="comment">   * 4. 根据面积公式求三角形的高</span>
+<span class="comment">   */</span>
+  <span class="keyword">const</span> A = <span class="title class_">Math</span>.<span class="title function_">abs</span>(<span class="title function_">getDistance</span>(pos, startPos))
+  <span class="keyword">const</span> B = <span class="title class_">Math</span>.<span class="title function_">abs</span>(<span class="title function_">getDistance</span>(pos, endPos))
+  <span class="keyword">const</span> C = <span class="title class_">Math</span>.<span class="title function_">abs</span>(<span class="title function_">getDistance</span>(startPos, endPos))
+
+  <span class="keyword">const</span> P = (A + B + C) / <span class="number">2</span>
+  <span class="keyword">const</span> area = <span class="title class_">Math</span>.<span class="title function_">abs</span>(<span class="title class_">Math</span>.<span class="title function_">sqrt</span>(P * (P - A) * (P - B) * (P - C)))
+  <span class="keyword">const</span> distance = (<span class="number">2</span> * area) / C
+  <span class="keyword">return</span> distance
+&#125;</code></pre></li>
+</ul>
+</li>
+</ul>
+<h2 id="点击渲染框选效果"><a href="#点击渲染框选效果" class="headerlink" title="点击渲染框选效果"></a>点击渲染框选效果</h2><ul>
+<li>点击时如果在之前hover时满足三种情况已经记录下来了，就继续记录为框选元素</li>
+<li>然后在画板渲染时，就按照框选元素的矩形属性渲染框选效果<pre><code class="highlight js"><span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">select</span>.<span class="property">selectElementIndex</span> !== -<span class="number">1</span>) &#123;
+  <span class="comment">// 获取选择元素的矩形属性，绘制框选效果</span>
+  <span class="keyword">const</span> rect = <span class="variable language_">this</span>.<span class="property">select</span>.<span class="title function_">getCurSelectElement</span>().<span class="property">rect</span>
+  <span class="title function_">drawResizeRect</span>(<span class="variable language_">this</span>.<span class="property">context</span>, rect)
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 绘制拖拽矩形</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">drawResizeRect</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  rect: ElementRect</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">const</span> &#123; x, y, width, height &#125; = rect
+  context.<span class="title function_">save</span>()
+  context.<span class="property">strokeStyle</span> = <span class="string">&#x27;#65CC8A&#x27;</span>
+  context.<span class="title function_">setLineDash</span>([<span class="number">5</span>])
+  context.<span class="property">lineWidth</span> = <span class="number">2</span>
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="comment">// 绘制虚线框</span>
+  <span class="title function_">drawRect</span>(context, x, y, width, height)
+
+  <span class="comment">// 绘制四角手柄</span>
+  context.<span class="property">fillStyle</span> = <span class="string">&#x27;#65CC8A&#x27;</span>
+  <span class="title function_">drawRect</span>(context, x - <span class="number">10</span>, y - <span class="number">10</span>, <span class="number">10</span>, <span class="number">10</span>, <span class="literal">true</span>)
+  <span class="title function_">drawRect</span>(context, x + width, y - <span class="number">10</span>, <span class="number">10</span>, <span class="number">10</span>, <span class="literal">true</span>)
+  <span class="title function_">drawRect</span>(context, x - <span class="number">10</span>, y + height, <span class="number">10</span>, <span class="number">10</span>, <span class="literal">true</span>)
+  <span class="title function_">drawRect</span>(context, x + width, y + height, <span class="number">10</span>, <span class="number">10</span>, <span class="literal">true</span>)
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 绘制矩形</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">drawRect</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  x: number,</span>
+<span class="params">  y: number,</span>
+<span class="params">  width: number,</span>
+<span class="params">  height: number,</span>
+<span class="params">  fill = <span class="literal">false</span> <span class="comment">// 是否填充</span></span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">beginPath</span>()
+  context.<span class="title function_">rect</span>(x, y, width, height)
+  <span class="keyword">if</span> (fill) &#123;
+    context.<span class="title function_">fill</span>()
+  &#125; <span class="keyword">else</span> &#123;
+    context.<span class="title function_">stroke</span>()
+  &#125;
+&#125;</code></pre></li>
+</ul>
+<h2 id="拖拽元素"><a href="#拖拽元素" class="headerlink" title="拖拽元素"></a>拖拽元素</h2><p>拖拽元素比较简单，就是计算鼠标移动的距离，然后遍历坐标点加上距离即可</p>
+<pre><code class="highlight js"><span class="comment">// startMousePos就是上一个移动的坐标</span>
+<span class="keyword">const</span> disntanceX = x - <span class="variable language_">this</span>.<span class="property">startMousePos</span>.<span class="property">x</span>
+<span class="keyword">const</span> disntanceY = y - <span class="variable language_">this</span>.<span class="property">startMousePos</span>.<span class="property">y</span>
+
+<span class="comment">/**</span>
+<span class="comment"> * 更新位置</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">distanceX</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">distanceY</span></span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">moveFreeDraw</span> = (<span class="params"></span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  distanceX: number,</span>
+<span class="params">  distanceY: number</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="title function_">initRect</span>(instance)
+  instance.<span class="property">positions</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">position</span>) =&gt;</span> &#123;
+    position.<span class="property">x</span> += distanceX
+    position.<span class="property">y</span> += distanceY
+    <span class="title function_">updateRect</span>(instance, position)
+  &#125;)
+&#125;</code></pre>
+
+<h2 id="画笔缩放-不保持比例"><a href="#画笔缩放-不保持比例" class="headerlink" title="画笔缩放(不保持比例)"></a>画笔缩放(不保持比例)</h2><ul>
+<li>画笔缩放我先以右下角手柄拖拽为例分析</li>
+<li>首先画笔的缩放比例是分为水平缩放比例和垂直缩放比例<ul>
+<li>水平缩放比例 &#x3D; (旧矩形的宽 + 鼠标水平移动的距离) &#x2F; 旧矩形的宽</li>
+<li>垂直缩放比例 &#x3D; (旧矩形的高 + 鼠标垂直移动的距离) &#x2F; 旧矩形的高</li>
+</ul>
+</li>
+<li>然后遍历画笔的所有坐标点进行缩放，这时会出现一个偏移的缩放效果，如下图<ul>
+<li><img src="https://s1.ax1x.com/2022/12/05/zy7600.png"></li>
+</ul>
+</li>
+<li>这时就需要计算当前拖拽手柄对角顶点移动的距离是多少，然后减去这个距离就得到了正确的缩放效果了<ul>
+<li><img src="https://s1.ax1x.com/2022/12/05/zy72kT.png"></li>
+</ul>
+</li>
+<li>当然四个角的拖拽计算是不一致的，但是思路一致<pre><code class="highlight js"><span class="keyword">switch</span> (<span class="variable language_">this</span>.<span class="property">resizeType</span>) &#123;
+  <span class="comment">// disntanceX 鼠标水平移动距离</span>
+  <span class="comment">// disntanceY 鼠标垂直移动距离</span>
+  <span class="comment">// 右下角</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>:
+    <span class="title function_">resizeFreeDraw</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">FreeDraw</span>,
+      (rect.<span class="property">width</span> + disntanceX) / rect.<span class="property">width</span>,
+      (rect.<span class="property">height</span> + disntanceY) / rect.<span class="property">height</span>,
+      rect,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// 左下角</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>:
+    <span class="title function_">resizeFreeDraw</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">FreeDraw</span>,
+      (rect.<span class="property">width</span> - disntanceX) / rect.<span class="property">width</span>,
+      (rect.<span class="property">height</span> + disntanceY) / rect.<span class="property">height</span>,
+      rect,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// 左上角</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>:
+    <span class="title function_">resizeFreeDraw</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">FreeDraw</span>,
+      (rect.<span class="property">width</span> - disntanceX) / rect.<span class="property">width</span>,
+      (rect.<span class="property">height</span> - disntanceY) / rect.<span class="property">height</span>,
+      rect,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// 右上角</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>:
+    <span class="title function_">resizeFreeDraw</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">FreeDraw</span>,
+      (rect.<span class="property">width</span> + disntanceX) / rect.<span class="property">width</span>,
+      (rect.<span class="property">height</span> - disntanceY) / rect.<span class="property">height</span>,
+      rect,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="attr">default</span>:
+    <span class="keyword">break</span>
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 缩放绘画</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">instance</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">scaleX</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">scaleY</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">rect</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">resizeType</span></span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">resizeFreeDraw</span> = (<span class="params"></span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  scaleX: number,</span>
+<span class="params">  scaleY: number,</span>
+<span class="params">  rect: FreeDrawRect,</span>
+<span class="params">  resizeType: string</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="comment">// 初始化矩形</span>
+  <span class="title function_">initRect</span>(instance)
+  <span class="comment">// 遍历所有坐标进行缩放</span>
+  instance.<span class="property">positions</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">position</span>) =&gt;</span> &#123;
+    position.<span class="property">x</span> = position.<span class="property">x</span> * scaleX
+    position.<span class="property">y</span> = position.<span class="property">y</span> * scaleY
+    <span class="title function_">updateRect</span>(instance, position)
+  &#125;)
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: newX, <span class="attr">y</span>: newY, <span class="attr">width</span>: newWidth, <span class="attr">height</span>: newHeight &#125; = instance.<span class="property">rect</span>
+  <span class="keyword">let</span> offsetX = <span class="number">0</span>
+  <span class="keyword">let</span> offsetY = <span class="number">0</span>
+  <span class="comment">// 计算偏移距离，这个是要根据当前缩放手柄的对角顶点进行计算，所以要分为4种情况</span>
+  <span class="keyword">switch</span> (resizeType) &#123;
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>:
+      offsetX = newX - rect.<span class="property">x</span>
+      offsetY = newY - rect.<span class="property">y</span>
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>:
+      offsetX = newX + newWidth - (rect.<span class="property">x</span> + rect.<span class="property">width</span>)
+      offsetY = newY - rect.<span class="property">y</span>
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>:
+      offsetX = newX + newWidth - (rect.<span class="property">x</span> + rect.<span class="property">width</span>)
+      offsetY = newY + newHeight - (rect.<span class="property">y</span> + rect.<span class="property">height</span>)
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>:
+      offsetX = newX - rect.<span class="property">x</span>
+      offsetY = newY + newHeight - (rect.<span class="property">y</span> + rect.<span class="property">height</span>)
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+  <span class="title function_">initRect</span>(instance)
+  <span class="comment">// 减去偏移距离</span>
+  instance.<span class="property">positions</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">position</span>) =&gt;</span> &#123;
+    position.<span class="property">x</span> = position.<span class="property">x</span> - offsetX
+    position.<span class="property">y</span> = position.<span class="property">y</span> - offsetY
+    <span class="title function_">updateRect</span>(instance, position)
+  &#125;)
+&#125;</code></pre></li>
+</ul>
+<h2 id="文字缩放-保持比例"><a href="#文字缩放-保持比例" class="headerlink" title="文字缩放(保持比例)"></a>文字缩放(保持比例)</h2><ul>
+<li>文字缩放需要一直保持着宽高比，通过计算出新旧矩形的宽高比<ul>
+<li>当新的宽高比小于旧的宽高比时，宽度不变，计算 高度 &#x3D; 宽度 &#x2F; 旧的宽高比</li>
+<li>但新的宽高比大于旧的宽高比时，高度不变，计算 宽度 &#x3D; 高度 * 旧的宽高比<pre><code class="highlight js"><span class="keyword">switch</span> (<span class="variable language_">this</span>.<span class="property">resizeType</span>) &#123;
+  <span class="comment">// ...</span>
+  <span class="comment">// 右下角</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>:
+    <span class="title function_">resizeTextElement</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">TextElement</span>,
+      resizeElement.<span class="property">rect</span>.<span class="property">width</span> + disntanceX,
+      resizeElement.<span class="property">rect</span>.<span class="property">height</span> + disntanceY,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// 左下角</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>:
+    <span class="title function_">resizeTextElement</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">TextElement</span>,
+      resizeElement.<span class="property">rect</span>.<span class="property">width</span> - disntanceX,
+      resizeElement.<span class="property">rect</span>.<span class="property">height</span> + disntanceY,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// 左上角</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>:
+    <span class="title function_">resizeTextElement</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">TextElement</span>,
+      resizeElement.<span class="property">rect</span>.<span class="property">width</span> - disntanceX,
+      resizeElement.<span class="property">rect</span>.<span class="property">height</span> - disntanceY,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// 右上角</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>:
+    <span class="title function_">resizeTextElement</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">TextElement</span>,
+      resizeElement.<span class="property">rect</span>.<span class="property">width</span> + disntanceX,
+      resizeElement.<span class="property">rect</span>.<span class="property">height</span> - disntanceY,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="attr">default</span>:
+    <span class="keyword">break</span>
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 修改文本元素大小</span>
+<span class="comment"> * <span class="doctag">@param</span> ele 文本元素</span>
+<span class="comment"> * <span class="doctag">@param</span> width 改变后的宽度</span>
+<span class="comment"> * <span class="doctag">@param</span> height 改变后的高度</span>
+<span class="comment"> * <span class="doctag">@param</span> resizeType 拖拽类型</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">resizeTextElement</span> = (<span class="params"></span>
+<span class="params">  ele: TextElement,</span>
+<span class="params">  width: number,</span>
+<span class="params">  height: number,</span>
+<span class="params">  resizeType: string</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">const</span> oldRatio = ele.<span class="property">rect</span>.<span class="property">width</span> / ele.<span class="property">rect</span>.<span class="property">height</span>
+  <span class="keyword">const</span> newRatio = width / height
+  <span class="comment">// 按照之前的说明，修改宽高比不一致的情况</span>
+  <span class="keyword">if</span> (newRatio &lt; oldRatio) &#123;
+    height = width / oldRatio
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (newRatio &gt; oldRatio) &#123;
+    width = oldRatio * height
+  &#125;
+
+  <span class="comment">/**</span>
+<span class="comment">   * 因为这个缩放是按照左上角缩放的</span>
+<span class="comment">   * 所以为了达到当前拖拽手柄不移动，就需要进行偏移操作</span>
+<span class="comment">   */</span>
+  <span class="keyword">switch</span> (resizeType) &#123;
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>:
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>:
+      ele.<span class="property">rect</span>.<span class="property">x</span> -= width - ele.<span class="property">rect</span>.<span class="property">width</span>
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>:
+      ele.<span class="property">rect</span>.<span class="property">x</span> -= width - ele.<span class="property">rect</span>.<span class="property">width</span>
+      ele.<span class="property">rect</span>.<span class="property">y</span> -= height - ele.<span class="property">rect</span>.<span class="property">height</span>
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>:
+      ele.<span class="property">rect</span>.<span class="property">y</span> -= height - ele.<span class="property">rect</span>.<span class="property">height</span>
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+  ele.<span class="property">rect</span>.<span class="property">height</span> = height
+  ele.<span class="property">rect</span>.<span class="property">width</span> = width
+  <span class="comment">// 字体大小按照高度修改</span>
+  ele.<span class="property">fontSize</span> = ele.<span class="property">rect</span>.<span class="property">height</span>
+&#125;</code></pre></li>
+</ul>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>如果有发现问题或者有好的方案，欢迎讨论👻</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2022/11/05/%E9%A2%9C%E8%89%B2%E9%80%89%E6%8B%A9%E5%99%A8%E7%9A%84%E7%BA%AFJS%E5%AE%9E%E7%8E%B0/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%84%E8%A7%88"><span class="toc-text">预览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="toc-text">实现思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%B0%E5%BD%95%E7%9F%A9%E5%BD%A2%E5%B1%9E%E6%80%A7"><span class="toc-text">记录矩形属性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E9%BC%A0%E6%A0%87%E7%A7%BB%E5%8A%A8%E5%9D%90%E6%A0%87"><span class="toc-text">计算鼠标移动坐标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%82%B9%E5%87%BB%E6%B8%B2%E6%9F%93%E6%A1%86%E9%80%89%E6%95%88%E6%9E%9C"><span class="toc-text">点击渲染框选效果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8B%96%E6%8B%BD%E5%85%83%E7%B4%A0"><span class="toc-text">拖拽元素</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%BB%E7%AC%94%E7%BC%A9%E6%94%BE-%E4%B8%8D%E4%BF%9D%E6%8C%81%E6%AF%94%E4%BE%8B"><span class="toc-text">画笔缩放(不保持比例)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E5%AD%97%E7%BC%A9%E6%94%BE-%E4%BF%9D%E6%8C%81%E6%AF%94%E4%BE%8B"><span class="toc-text">文字缩放(保持比例)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2022/12/05/canvas%E7%94%BB%E6%9D%BF%E4%B9%8B%E7%BB%98%E7%94%BB%E5%85%83%E7%B4%A0%E7%9A%84%E6%A1%86%E9%80%89/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2022/12/05/canvas画板之绘画元素的框选/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
