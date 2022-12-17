@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>canvas画板之画笔的多种效果 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tag/">Tag</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/canvas/">
+                            canvas
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                canvas画板之画笔的多种效果
+            
+            
+        </div>
+        <span class="post-date">
+            12月 17, 2022
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img loading="lazy" src="https://s1.ax1x.com/2022/12/05/zyq7Bn.jpg" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>我之前做了一个画板，已经迭代了两个版本，但既然是画板，如果只有一种画笔就显得太单调了，我就搜罗了一下网上的各种方案和自己的一些想法，目前做出了5种样式，包括基础的总共6种，当然有了一些思路后，后续会继续增加。我会在本文详细说明实现思路和具体代码，6种样式包括：</p>
+<ol>
+<li>基础单色</li>
+<li>荧光</li>
+<li>多色画笔</li>
+<li>喷雾</li>
+<li>蜡笔</li>
+<li>泡泡</li>
+</ol>
+<h2 id="预览"><a href="#预览" class="headerlink" title="预览"></a>预览</h2><p>预览地址：<a target="_blank" rel="noopener" href="https://songlh.top/paint-board/">https://songlh.top/paint-board/</a><br>源码：<a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">https://github.com/LHRUN/paint-board</a> 欢迎Star⭐️</p>
+<p><img src="https://s1.ax1x.com/2022/12/17/zH59vn.png"></p>
+<h2 id="基础单色"><a href="#基础单色" class="headerlink" title="基础单色"></a>基础单色</h2><p>画笔的基础实现，除了点与点之间的连接，还需要注意两点</p>
+<ol>
+<li>首先是在鼠标移动时计算当前移动的速度，然后根据速度计算线宽，这个是为了实现鼠标移动快，线宽就变窄，移动慢，线宽就恢复正常这个效果</li>
+<li>为了避免直线连接点效果不好，我会采用贝塞尔曲线进行连接</li>
+</ol>
+<p><img src="https://s1.ax1x.com/2022/12/17/zH5YPe.png"></p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * 鼠标移动时添加新的坐标</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">position</span></span>
+<span class="comment"> */</span>
+<span class="title function_">addPosition</span>(<span class="params">position: MousePosition</span>) &#123;
+  <span class="variable language_">this</span>.<span class="property">positions</span>.<span class="title function_">push</span>(position)
+  <span class="comment">// 处理当前线宽</span>
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> &gt; <span class="number">1</span>) &#123;
+    <span class="comment">// 计算移动速度</span>
+    <span class="keyword">const</span> mouseSpeed = <span class="variable language_">this</span>.<span class="title function_">_computedSpeed</span>(
+      <span class="variable language_">this</span>.<span class="property">positions</span>[<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">2</span>],
+      <span class="variable language_">this</span>.<span class="property">positions</span>[<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">1</span>]
+    )
+    <span class="comment">// 计算线宽</span>
+    <span class="keyword">const</span> lineWidth = <span class="variable language_">this</span>.<span class="title function_">_computedLineWidth</span>(mouseSpeed)
+    <span class="variable language_">this</span>.<span class="property">lineWidths</span>.<span class="title function_">push</span>(lineWidth)
+  &#125;
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 计算移动速度</span>
+<span class="comment"> * <span class="doctag">@param</span> start 起点</span>
+<span class="comment"> * <span class="doctag">@param</span> end 终点</span>
+<span class="comment"> */</span>
+<span class="title function_">_computedSpeed</span>(<span class="params">start: MousePosition, end: MousePosition</span>) &#123;
+  <span class="comment">// 获取距离</span>
+  <span class="keyword">const</span> moveDistance = <span class="title function_">getDistance</span>(start, end)
+
+  <span class="keyword">const</span> curTime = <span class="title class_">Date</span>.<span class="title function_">now</span>()
+  <span class="comment">// 获取移动间隔时间   lastMoveTime：最后鼠标移动时间</span>
+  <span class="keyword">const</span> moveTime = curTime - <span class="variable language_">this</span>.<span class="property">lastMoveTime</span>
+  <span class="comment">// 计算速度</span>
+  <span class="keyword">const</span> mouseSpeed = moveDistance / moveTime
+  <span class="comment">// 更新最后移动时间</span>
+  <span class="variable language_">this</span>.<span class="property">lastMoveTime</span> = curTime
+  <span class="keyword">return</span> mouseSpeed
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 计算画笔宽度</span>
+<span class="comment"> * <span class="doctag">@param</span> speed 鼠标移动速度</span>
+<span class="comment"> */</span>
+<span class="title function_">_computedLineWidth</span>(<span class="params">speed: number</span>) &#123;
+  <span class="keyword">let</span> lineWidth = <span class="number">0</span>
+  <span class="keyword">const</span> minWidth = <span class="variable language_">this</span>.<span class="property">minWidth</span>
+  <span class="keyword">const</span> maxWidth = <span class="variable language_">this</span>.<span class="property">maxWidth</span>
+  <span class="keyword">if</span> (speed &gt;= <span class="variable language_">this</span>.<span class="property">maxSpeed</span>) &#123;
+    lineWidth = minWidth
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (speed &lt;= <span class="variable language_">this</span>.<span class="property">minSpeed</span>) &#123;
+    lineWidth = maxWidth
+  &#125; <span class="keyword">else</span> &#123;
+    lineWidth = maxWidth - (speed / <span class="variable language_">this</span>.<span class="property">maxSpeed</span>) * maxWidth
+  &#125;
+
+  lineWidth = lineWidth * (<span class="number">1</span> / <span class="number">3</span>) + <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> * (<span class="number">2</span> / <span class="number">3</span>)
+  <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> = lineWidth
+  <span class="keyword">return</span> lineWidth
+&#125;</code></pre>
+
+<p>渲染时就遍历所有坐标</p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * 自由画笔渲染</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span>
+<span class="comment"> * <span class="doctag">@param</span> instance FreeDraw</span>
+<span class="comment"> */</span>
+<span class="keyword">function</span> <span class="title function_">freeDrawRender</span>(<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeLine</span>
+<span class="params"></span>) &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// 现在是只有基础画笔，后续会增加不同的case</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Basic</span>:
+      context.<span class="property">strokeStyle</span> = instance.<span class="property">colors</span>[<span class="number">0</span>]
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Basic</span>:
+        <span class="title function_">_drawBasic</span>(instance, i, context)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 绘制基础线条</span>
+<span class="comment"> * <span class="doctag">@param</span> instance FreeDraw 实例</span>
+<span class="comment"> * <span class="doctag">@param</span> i 下标</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span>
+<span class="comment"> * <span class="doctag">@param</span> cb 一些绘制前的处理，修改一些样式</span>
+<span class="comment"> * </span>
+<span class="comment"> * 画笔轨迹是借鉴了网上的一些方案，分两种情况</span>
+<span class="comment"> * 1. 如果是前两个坐标，就通过lineTo连接即可</span>
+<span class="comment"> * 2. 如果是前两个坐标之后的坐标，就采用贝塞尔曲线进行连接，</span>
+<span class="comment"> *    比如现在有a, b, c 三个点，到c点时，把ab坐标的中间点作为起点</span>
+<span class="comment"> *     bc坐标的中间点作为终点，b点作为控制点进行连接</span>
+<span class="comment"> */</span>
+<span class="keyword">function</span> <span class="title function_">_drawBasic</span>(<span class="params"></span>
+<span class="params">  instance: FreeLine,</span>
+<span class="params">  i: number,</span>
+<span class="params">  context: CanvasRenderingContext2D</span>
+<span class="params">  cb?: (</span>
+<span class="params">    instance: FreeDraw,</span>
+<span class="params">    i: number,</span>
+<span class="params">    context: CanvasRenderingContext2D</span>
+<span class="params">  ) =&gt; <span class="keyword">void</span></span>
+<span class="params"></span>) &#123;
+  <span class="keyword">const</span> &#123; positions, lineWidths &#125; = instance
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: centerX, <span class="attr">y</span>: centerY &#125; = positions[i - <span class="number">1</span>]
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: endX, <span class="attr">y</span>: endY &#125; = positions[i]
+  context.<span class="title function_">beginPath</span>()
+  <span class="keyword">if</span> (i == <span class="number">1</span>) &#123;
+    context.<span class="title function_">moveTo</span>(centerX, centerY)
+    context.<span class="title function_">lineTo</span>(endX, endY)
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="keyword">const</span> &#123; <span class="attr">x</span>: startX, <span class="attr">y</span>: startY &#125; = positions[i - <span class="number">2</span>]
+    <span class="keyword">const</span> lastX = (startX + centerX) / <span class="number">2</span>
+    <span class="keyword">const</span> lastY = (startY + centerY) / <span class="number">2</span>
+    <span class="keyword">const</span> x = (centerX + endX) / <span class="number">2</span>
+    <span class="keyword">const</span> y = (centerY + endY) / <span class="number">2</span>
+    context.<span class="title function_">moveTo</span>(lastX, lastY)
+    context.<span class="title function_">quadraticCurveTo</span>(centerX, centerY, x, y)
+  &#125;
+
+  context.<span class="property">lineWidth</span> = lineWidths[i]
+  cb?.(instance, i, context)
+  context.<span class="title function_">stroke</span>()
+&#125;</code></pre>
+
+<h2 id="荧光"><a href="#荧光" class="headerlink" title="荧光"></a>荧光</h2><p>荧光只需在基础样式上增加一个阴影即可</p>
+<p><img src="https://s1.ax1x.com/2022/12/17/zH53VK.png"></p>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">freeDrawRender</span>(<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeLine</span>
+<span class="params"></span>) &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// ...</span>
+    <span class="comment">// 荧光 增加阴影效果</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Shadow</span>:
+      context.<span class="property">shadowColor</span> = instance.<span class="property">colors</span>[<span class="number">0</span>]
+      context.<span class="property">strokeStyle</span> = instance.<span class="property">colors</span>[<span class="number">0</span>]
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="comment">// ...</span>
+      <span class="comment">// 荧光</span>
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Shadow</span>:
+        <span class="title function_">_drawBasic</span>(instance, i, context, <span class="function">(<span class="params">instance, i, context</span>) =&gt;</span> &#123;
+          context.<span class="property">shadowBlur</span> = instance.<span class="property">lineWidths</span>[i]
+        &#125;)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;</code></pre>
+
+<h2 id="多色画笔"><a href="#多色画笔" class="headerlink" title="多色画笔"></a>多色画笔</h2><p>多色画笔需要使用<code>context.createPattern</code>，这个api是可以通过canvas创建一个指定的模版，然后可以让这个模版在指定的方向上重复元图像，具体使用可以看<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/createPattern">MDN</a></p>
+<p><img src="https://s1.ax1x.com/2022/12/17/zH58UO.png"></p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * 自由画笔渲染</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span>
+<span class="comment"> * <span class="doctag">@param</span> instance FreeDraw</span>
+<span class="comment"> * <span class="doctag">@param</span> material 画笔素材</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">freeDrawRender</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  material: Material</span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// ...</span>
+    <span class="comment">// 多色画笔</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">MultiColor</span>:
+      context.<span class="property">strokeStyle</span> = <span class="title function_">getMultiColorPattern</span>(instance.<span class="property">colors</span>)
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="comment">// ...</span>
+      <span class="comment">// 多色画笔</span>
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">MultiColor</span>:
+        <span class="title function_">_drawBasic</span>(instance, i, context)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 获取多色模版</span>
+<span class="comment"> * <span class="doctag">@param</span> colors 多色数组</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">getMultiColorPattern</span> = (<span class="params">colors: string[]</span>) =&gt; &#123;
+  <span class="keyword">const</span> canvas = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;canvas&#x27;</span>)
+  <span class="keyword">const</span> context = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasRenderingContext2D</span>
+  <span class="keyword">const</span> <span class="variable constant_">COLOR_WIDTH</span> = <span class="number">5</span> <span class="comment">// 每个颜色的宽度</span>
+
+  canvas.<span class="property">width</span> = <span class="variable constant_">COLOR_WIDTH</span> * colors.<span class="property">length</span>
+  canvas.<span class="property">height</span> = <span class="number">20</span>
+  colors.<span class="title function_">forEach</span>(<span class="function">(<span class="params">color, i</span>) =&gt;</span> &#123;
+    context.<span class="property">fillStyle</span> = color
+    context.<span class="title function_">fillRect</span>(<span class="variable constant_">COLOR_WIDTH</span> * i, <span class="number">0</span>, <span class="variable constant_">COLOR_WIDTH</span>, <span class="number">20</span>)
+  &#125;)
+  <span class="keyword">return</span> context.<span class="title function_">createPattern</span>(canvas, <span class="string">&#x27;repeat&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasPattern</span>
+&#125;</code></pre>
+
+<h2 id="喷雾"><a href="#喷雾" class="headerlink" title="喷雾"></a>喷雾</h2><p>喷雾是一种类似雪花的效果，在鼠标移动路径上随机绘制，但是最初我在写的时候发现，如果对每个点都进行随机雪花点记录然后缓存下来，内存占用过多，我就尝试了提前生成5套不同的数据，按顺序展示，也能达到随机的效果</p>
+<p><img src="https://s1.ax1x.com/2022/12/17/zH5N2d.png"></p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">freeDrawRender</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  material: Material</span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// ...</span>
+    <span class="comment">// 喷雾</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Spray</span>:
+      context.<span class="property">fillStyle</span> = instance.<span class="property">colors</span>[<span class="number">0</span>]
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="comment">// ...</span>
+      <span class="comment">// 喷雾</span>
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Spray</span>:
+        <span class="title function_">_drawSpray</span>(instance, i, context)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 绘制喷雾</span>
+<span class="comment"> * <span class="doctag">@param</span> instance FreeDraw 实例</span>
+<span class="comment"> * <span class="doctag">@param</span> i 下标</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">_drawSpray</span> = (<span class="params"></span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  i: number,</span>
+<span class="params">  context: CanvasRenderingContext2D</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">const</span> &#123; x, y &#125; = instance.<span class="property">positions</span>[i]
+  <span class="keyword">for</span> (<span class="keyword">let</span> j = <span class="number">0</span>; j &lt; <span class="number">50</span>; j++) &#123;
+    <span class="comment">/**</span>
+<span class="comment">     * sprayPoint 是我提前生成的5套随机喷雾数据，按顺序展示</span>
+<span class="comment">     * &#123;</span>
+<span class="comment">     *    angle 弧度</span>
+<span class="comment">     *    radius 半径</span>
+<span class="comment">     *    alpha 透明度</span>
+<span class="comment">     * &#125;</span>
+<span class="comment">     */</span>
+    <span class="keyword">const</span> &#123; angle, radius, alpha &#125; = sprayPoint[i % <span class="number">5</span>][j]
+    context.<span class="property">globalAlpha</span> = alpha
+    <span class="keyword">const</span> distanceX = radius * <span class="title class_">Math</span>.<span class="title function_">cos</span>(angle)
+    <span class="keyword">const</span> distanceY = radius * <span class="title class_">Math</span>.<span class="title function_">sin</span>(angle)
+    <span class="comment">// 根据宽度限制喷雾宽度，因为喷雾太细了不好看，我就统一放大一倍</span>
+    <span class="keyword">if</span> (
+      distanceX &lt; instance.<span class="property">lineWidths</span>[i] * <span class="number">2</span> &amp;&amp;
+      distanceY &lt; instance.<span class="property">lineWidths</span>[i] * <span class="number">2</span> &amp;&amp;
+      distanceX &gt; -instance.<span class="property">lineWidths</span>[i] * <span class="number">2</span> &amp;&amp;
+      distanceY &gt; -instance.<span class="property">lineWidths</span>[i] * <span class="number">2</span>
+    ) &#123;
+      context.<span class="title function_">fillRect</span>(x + distanceX, y + distanceY, <span class="number">2</span>, <span class="number">2</span>)
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<h2 id="蜡笔"><a href="#蜡笔" class="headerlink" title="蜡笔"></a>蜡笔</h2><p>蜡笔效果也是使用了<code>context.createPattern</code>，首先我是以当前画笔颜色为底色，然后通过在网上找的一张蜡笔材质的透明图覆盖在上面，就可以实现蜡笔的效果</p>
+<p><img src="https://s1.ax1x.com/2022/12/17/zH5G5D.png"></p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * 自由画笔渲染</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span>
+<span class="comment"> * <span class="doctag">@param</span> instance FreeDraw</span>
+<span class="comment"> * <span class="doctag">@param</span> material 画笔素材</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">freeDrawRender</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  material: Material</span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// ...</span>
+    <span class="comment">// 蜡笔</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Crayon</span>:
+      context.<span class="property">strokeStyle</span> = <span class="title function_">getCrayonPattern</span>(
+        instance.<span class="property">colors</span>[<span class="number">0</span>],
+        material.<span class="property">crayon</span>
+      )
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="comment">// ...</span>
+      <span class="comment">// 蜡笔</span>
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Crayon</span>:
+        <span class="title function_">_drawBasic</span>(instance, i, context)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 获取蜡笔模版</span>
+<span class="comment"> * <span class="doctag">@param</span> color 蜡笔底色</span>
+<span class="comment"> * <span class="doctag">@param</span> crayon 蜡笔素材</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">getCrayonPattern</span> = (<span class="params">color: string, crayon: Material[<span class="string">&#x27;crayon&#x27;</span>]</span>) =&gt; &#123;
+  <span class="keyword">const</span> canvas = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;canvas&#x27;</span>)
+  <span class="keyword">const</span> context = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasRenderingContext2D</span>
+  canvas.<span class="property">width</span> = <span class="number">100</span>
+  canvas.<span class="property">height</span> = <span class="number">100</span>
+  context.<span class="property">fillStyle</span> = color
+  context.<span class="title function_">fillRect</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">100</span>, <span class="number">100</span>)
+  <span class="keyword">if</span> (crayon) &#123;
+    context.<span class="title function_">drawImage</span>(crayon, <span class="number">0</span>, <span class="number">0</span>, <span class="number">100</span>, <span class="number">100</span>)
+  &#125;
+  <span class="keyword">return</span> context.<span class="title function_">createPattern</span>(canvas, <span class="string">&#x27;repeat&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasPattern</span>
+&#125;</code></pre>
+
+<h2 id="泡泡"><a href="#泡泡" class="headerlink" title="泡泡"></a>泡泡</h2><ol>
+<li>鼠标移动时记录泡泡的半径和透明度</li>
+<li>渲染时通过<code>context.arc</code>进行画圆绘制</li>
+</ol>
+<p><img src="https://s1.ax1x.com/2022/12/17/zH5t8H.png"></p>
+<pre><code class="highlight js"><span class="title function_">addPosition</span>(<span class="params">position: MousePosition</span>) &#123;
+  <span class="comment">// ...</span>
+  <span class="comment">// 记录泡泡半径和透明度</span>
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">style</span> === <span class="title class_">FreeDrawStyle</span>.<span class="property">Bubble</span> &amp;&amp; <span class="variable language_">this</span>.<span class="property">bubbles</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">bubbles</span>.<span class="title function_">push</span>(&#123;
+      <span class="comment">// getRandomInt 获取范围内随机整数</span>
+      <span class="attr">radius</span>: <span class="title function_">getRandomInt</span>(<span class="variable language_">this</span>.<span class="property">minWidth</span> * <span class="number">2</span>, <span class="variable language_">this</span>.<span class="property">maxWidth</span> * <span class="number">2</span>),
+      <span class="comment">// 透明度</span>
+      <span class="attr">opacity</span>: <span class="title class_">Math</span>.<span class="title function_">random</span>()
+    &#125;)
+  &#125;
+  <span class="comment">// ...</span>
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * 绘制泡泡</span>
+<span class="comment"> * <span class="doctag">@param</span> instance FreeDraw 实例</span>
+<span class="comment"> * <span class="doctag">@param</span> i 下标</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas二维渲染上下文</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">_drawBubble</span> = (<span class="params"></span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  i: number,</span>
+<span class="params">  context: CanvasRenderingContext2D</span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">beginPath</span>()
+  <span class="keyword">if</span> (instance.<span class="property">bubbles</span>) &#123;
+    <span class="keyword">const</span> &#123; x, y &#125; = instance.<span class="property">positions</span>[i]
+    context.<span class="property">globalAlpha</span> = instance.<span class="property">bubbles</span>[i].<span class="property">opacity</span>
+    context.<span class="title function_">arc</span>(x, y, instance.<span class="property">bubbles</span>[i].<span class="property">radius</span>, <span class="number">0</span>, <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">2</span>, <span class="literal">false</span>)
+    context.<span class="title function_">fill</span>()
+  &#125;
+&#125;</code></pre>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>如果有发现问题或者有好的方案，欢迎讨论👻</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2022/12/05/canvas%E7%94%BB%E6%9D%BF%E4%B9%8B%E7%BB%98%E7%94%BB%E5%85%83%E7%B4%A0%E7%9A%84%E6%A1%86%E9%80%89/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%84%E8%A7%88"><span class="toc-text">预览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E5%8D%95%E8%89%B2"><span class="toc-text">基础单色</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8D%A7%E5%85%89"><span class="toc-text">荧光</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E8%89%B2%E7%94%BB%E7%AC%94"><span class="toc-text">多色画笔</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%96%B7%E9%9B%BE"><span class="toc-text">喷雾</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%9C%A1%E7%AC%94"><span class="toc-text">蜡笔</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A1%E6%B3%A1"><span class="toc-text">泡泡</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2022/12/17/canvas%E7%94%BB%E6%9D%BF%E4%B9%8B%E7%94%BB%E7%AC%94%E7%9A%84%E5%A4%9A%E7%A7%8D%E6%95%88%E6%9E%9C/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2022/12/17/canvas画板之画笔的多种效果/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
