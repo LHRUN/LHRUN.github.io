@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】“return null” vs “return false” in React | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/React/">
+                            React
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】“return null” vs “return false” in React
+            
+            
+        </div>
+        <span class="post-date">
+            5月 13, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇(由简到难慢慢来吧🤣)和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://caglayanyanikoglu.medium.com/return-null-vs-return-false-in-react-826d8abcc429">“return null” vs “return false” in React</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>大家好，在本周的#SundayTechMusings，我将尝试解释在React中”return null”和”return false”之间的区别。</p>
+<p>这实际上与性能有关，在写之前，你可以看看我的文章<a target="_blank" rel="noopener" href="https://tech.jotform.com/react-performance-improvements-356f81b1904f">Performance Optimization Techniques</a></p>
+<p><img src="https://miro.medium.com/v2/resize:fit:1400/0*yaIvvEwXKIvFQ_8g"></p>
+<p>我知道很多人认为”return null”和”return false”是一样的，实际上是非常相似的，但是也有一些区别，这和React的工作方式有关。</p>
+<p>在使用React开发时，通常会使用条件渲染根据不同的条件显示不同的组件。在一些条件下，你可能想明确指出一个组件不应该渲染任何东西。这就是null和false的来历，虽然这两个值都会阻止一个组件的渲染，但是它们之间有着重要的区别。</p>
+<h3 id="Returning-null"><a href="#Returning-null" class="headerlink" title="Returning null"></a>Returning null</h3><p>当一个组件返回null，它会告诉React不要在DOM中为该组件渲染任何东西。当你想要根据某种状态有条件地渲染一个组件时，但不希望在不符合该状态时显示任何东西时，返回null就很有用，比如说：</p>
+<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">Greeting</span> = (<span class="params">props</span>) =&gt; &#123;
+  <span class="keyword">if</span> (!props.<span class="property">name</span>) &#123;
+    <span class="keyword">return</span> <span class="literal">null</span>;
+  &#125;
+
+  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>Hello, &#123;props.name&#125;!<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span>;
+&#125;;</code></pre>
+
+<p>在上面的例子中，如果没有提供 <code>name</code> prop，组件会返回null，这样就不会渲染<code>&lt;h1&gt;</code>元素。如果提供了 <code>name</code> prop，该组件就会渲染带有实际内容的<code>&lt;h1&gt;</code>元素，这实际上是每个人的经典做法。</p>
+<h3 id="Returning-false"><a href="#Returning-false" class="headerlink" title="Returning false"></a>Returning false</h3><p>当一个组件返回false时，它告诉会React不要再DOM中为该组件渲染任何东西，就像null一样。然而，有一个重要的区别：返回false也会阻止该组件在未来的更新。这是因为React将false解释为“卸载”组件的信号，这意味着从DOM中完全删除它。</p>
+<p>下面是一个返回false的组件的例子：</p>
+<pre><code class="highlight js"><span class="keyword">const</span> <span class="title function_">Button</span> = (<span class="params">props</span>) =&gt; &#123;
+  <span class="keyword">if</span> (!props.<span class="property">onClick</span>) &#123;
+    <span class="keyword">return</span> <span class="literal">false</span>;
+  &#125;
+
+  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;props.onClick&#125;</span>&gt;</span>Click me<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>;
+&#125;;</code></pre>
+
+<p>在这个例子中，如果没有提供 <code>onClick</code> prop，组件就会返回false，从而阻止 <code>&lt;button&gt;</code>元素渲染。如果提供了 <code>onClick</code> prop，组件会用指定的点击处理来渲染 <code>&lt;button&gt;</code> 元素</p>
+<p>值得注意的是，返回false可能会有意想不到的后果，比如在应该更新的时候阻止组件的更新。出于这个原因，当你想在不影响未来更新的情况下阻止渲染，使用null通常更安全</p>
+<p>从一个组件的渲染方法中返回false，只有在该组件没有任何副作用时才有用，比如更新状态或者触发API请求。如果一个组件有副作用并返回false时，这些副作用仍然会发生，可能会导致意外的行为。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/facebook/react/blob/main/packages/react/src/ReactElementValidator.js#L347-L385">react&#x2F;ReactElementValidator.js at main</a></p>
+<p>如果你在React库中检查上面这段代码时，你会看到一个”null”检查，为了更好的理解React的工作，你可以看看这段代码。</p>
+<h3 id="To-sum-up"><a href="#To-sum-up" class="headerlink" title="To sum up"></a>To sum up</h3><p>总而言之，返回null和返回false都会阻止一个组件在DOM中渲染任何东西，但它们之间有重要的区别。null是一个简单的方法来有条件的渲染一个组件，并且不影响未来的更新，而false则是向React发出卸载组件的信号，并可能导致意想不到的后果。为你特定的用例选择正确的选项是很重要的</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2023/05/20/%E3%80%90%E7%BF%BB%E3%80%91Stop-using-in-React-Conditional-Rendering/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/05/05/%E3%80%90%E7%BF%BB%E3%80%91How%20peers%20are%20resolved/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Returning-null"><span class="toc-text">Returning null</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Returning-false"><span class="toc-text">Returning false</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#To-sum-up"><span class="toc-text">To sum up</span></a></li></ol></li></ol></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/05/13/%E3%80%90%E7%BF%BB%E3%80%91%E2%80%9Creturn-null%E2%80%9D-vs-%E2%80%9Creturn-false%E2%80%9D-in-React/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/05/13/【翻】“return-null”-vs-“return-false”-in-React/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

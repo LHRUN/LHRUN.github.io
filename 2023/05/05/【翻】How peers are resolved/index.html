@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】How peers are resolved | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/pnpm/">
+                            pnpm
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】How peers are resolved
+            
+            
+        </div>
+        <span class="post-date">
+            5月 5, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇(由简到难慢慢来吧🤣)和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://pnpm.io/how-peers-are-resolved">How peers are resolved</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>pnpm最大的一个特点是，在一个项目中，一个特定版本的package总是有一组依赖关系。不过，这个规则有一个例外–有peer dependencies的packages</p>
+<p>在dependency graph中，peer dependencies是从更高级别的依赖中解析的，因为它们与它们的父依赖项共享相同的版本。这意味着如果<a href="mailto:&#x66;&#111;&#111;&#x40;&#x31;&#x2e;&#x30;&#x2e;&#48;">&#x66;&#111;&#111;&#x40;&#x31;&#x2e;&#x30;&#x2e;&#48;</a>有两个peer依赖项(bar@^1 和 baz@^1)，那么在同一个项目中它可能会有多个不同的依赖项集合</p>
+<pre><code class="highlight text">- foo-parent-1
+  - bar@1.0.0
+  - baz@1.0.0
+  - foo@1.0.0
+- foo-parent-2
+  - bar@1.0.0
+  - baz@1.1.0
+  - foo@1.0.0</code></pre>
+
+<p>在上面这个例子中，<a href="mailto:&#x66;&#111;&#x6f;&#x40;&#x31;&#x2e;&#x30;&#x2e;&#48;">&#x66;&#111;&#x6f;&#x40;&#x31;&#x2e;&#x30;&#x2e;&#48;</a>是在foo-parent-1和foo-parent-2安装的。这两个packages中都有bar和baz，但是他们依赖不同版本的baz。因此，<a href="mailto:&#x66;&#x6f;&#x6f;&#64;&#x31;&#46;&#x30;&#x2e;&#48;">&#x66;&#x6f;&#x6f;&#64;&#x31;&#46;&#x30;&#x2e;&#48;</a>有两个不同的依赖集：一个是<a href="mailto:&#98;&#97;&#122;&#x40;&#x31;&#x2e;&#x30;&#46;&#x30;">&#98;&#97;&#122;&#x40;&#x31;&#x2e;&#x30;&#46;&#x30;</a>，另一个是<a href="mailto:&#x62;&#97;&#x7a;&#64;&#49;&#x2e;&#49;&#x2e;&#48;">&#x62;&#97;&#x7a;&#64;&#49;&#x2e;&#49;&#x2e;&#48;</a>。为了支持这些用例，pnpm必须hand link <a href="mailto:&#x66;&#111;&#x6f;&#64;&#49;&#x2e;&#x30;&#x2e;&#48;">&#x66;&#111;&#x6f;&#64;&#49;&#x2e;&#x30;&#x2e;&#48;</a>，次数和不同的依赖集一样多。</p>
+<p>通常，如果一个package没有peer依赖项，它会与其依赖项的symlinks一起hard linked到node_modules文件夹中，就像：</p>
+<pre><code class="highlight text">node_modules
+└── .pnpm
+    ├── foo@1.0.0
+    │   └── node_modules
+    │       ├── foo
+    │       ├── qux   -&gt; ../../qux@1.0.0/node_modules/qux
+    │       └── plugh -&gt; ../../plugh@1.0.0/node_modules/plugh
+    ├── qux@1.0.0
+    ├── plugh@1.0.0</code></pre>
+
+<p>然后，如果foo有peer dependencies，它可能有多组依赖关系，所以我们为不同的peer dependencies 创建不同的集合：</p>
+<pre><code class="highlight text">node_modules
+└── .pnpm
+    ├── foo@1.0.0_bar@1.0.0+baz@1.0.0
+    │   └── node_modules
+    │       ├── foo
+    │       ├── bar   -&gt; ../../bar@1.0.0/node_modules/bar
+    │       ├── baz   -&gt; ../../baz@1.0.0/node_modules/baz
+    │       ├── qux   -&gt; ../../qux@1.0.0/node_modules/qux
+    │       └── plugh -&gt; ../../plugh@1.0.0/node_modules/plugh
+    ├── foo@1.0.0_bar@1.0.0+baz@1.1.0
+    │   └── node_modules
+    │       ├── foo
+    │       ├── bar   -&gt; ../../bar@1.0.0/node_modules/bar
+    │       ├── baz   -&gt; ../../baz@1.1.0/node_modules/baz
+    │       ├── qux   -&gt; ../../qux@1.0.0/node_modules/qux
+    │       └── plugh -&gt; ../../plugh@1.0.0/node_modules/plugh
+    ├── bar@1.0.0
+    ├── baz@1.0.0
+    ├── baz@1.1.0
+    ├── qux@1.0.0
+    ├── plugh@1.0.0</code></pre>
+
+<p>我们要么创建symlinks到<code>foo@1.0.0_bar@1.0.0+baz@1.0.0</code>中的foo，要么创建symlinks到<code>foo@1.0.0_bar@1.0.0+baz@1.1.0</code>中的foo。因此，Node.js模块解析可以找到正确的peers依赖项。</p>
+<p>如果一个package没有peer依赖项，但是有依赖于已在图中解析的同级依赖项的依赖项，那么这个transitive package可以以不同的依赖项集出现在项目中。例如，存在一个版本为<code>a@1.0.0</code>的包，它只有一个依赖项<code>b@1.0.0</code>。<code>b@1.0.0</code>有一个同级依赖项<code>c@^1</code>。<code>a@1.0.0</code>永远不会解析<code>b@1.0.0</code>的同级依赖项，所以它也会依赖于<code>b@1.0.0</code>的同级依赖项。</p>
+<p>下面是这个结构在<code>node_modules</code>中的样子，在这个例子中，<a href="mailto:&#97;&#64;&#49;&#x2e;&#48;&#46;&#48;">&#97;&#64;&#49;&#x2e;&#48;&#46;&#48;</a>需要在项目的<code>node_modules</code>中出现两次，一次和<code>c@1.0.0</code>，另一次和<code>c@1.1.0</code>解决。</p>
+<pre><code class="highlight text">node_modules
+└── .pnpm
+    ├── a@1.0.0_c@1.0.0
+    │   └── node_modules
+    │       ├── a
+    │       └── b -&gt; ../../b@1.0.0_c@1.0.0/node_modules/b
+    ├── a@1.0.0_c@1.1.0
+    │   └── node_modules
+    │       ├── a
+    │       └── b -&gt; ../../b@1.0.0_c@1.1.0/node_modules/b
+    ├── b@1.0.0_c@1.0.0
+    │   └── node_modules
+    │       ├── b
+    │       └── c -&gt; ../../c@1.0.0/node_modules/c
+    ├── b@1.0.0_c@1.1.0
+    │   └── node_modules
+    │       ├── b
+    │       └── c -&gt; ../../c@1.1.0/node_modules/c
+    ├── c@1.0.0
+    ├── c@1.1.0</code></pre>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2023/05/13/%E3%80%90%E7%BF%BB%E3%80%91%E2%80%9Creturn-null%E2%80%9D-vs-%E2%80%9Creturn-false%E2%80%9D-in-React/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/05/01/%E3%80%90%E7%BF%BB%E3%80%91Flat%20node_modules%20is%20not%20the%20only%20way/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/05/05/%E3%80%90%E7%BF%BB%E3%80%91How%20peers%20are%20resolved/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/05/05/【翻】How peers are resolved/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
