@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】Mastering TypeScript: A Guide to Choosing Between ‘type’ and ‘interface’ | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/TypeScript/">
+                            TypeScript
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】Mastering TypeScript: A Guide to Choosing Between ‘type’ and ‘interface’
+            
+            
+        </div>
+        <span class="post-date">
+            5月 24, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇(由简到难慢慢来吧🤣)和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://levelup.gitconnected.com/mastering-typescript-a-guide-to-choosing-between-type-and-interface-c31d3527693b">Mastering TypeScript: A Guide to Choosing Between ‘type’ and ‘interface’</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>TypeScript现在已经成为捕捉错误和提高代码稳定性的可靠工具。然而，在使用TypeScript时，我经常想知道type和interface之间的区别，以及如何使用它们</p>
+<p>在这篇博客中，我想分享我所知道的的关于type和interface之间的区别，以及何时使用它们，我会提供明确的例子和解释，帮助你更好地理解如何在TypeScript项目中使用这两个强大的工具。</p>
+<p>在本篇文章结束时，你将对type和interface之间的区别有更好的理解，以及知道如何在TypeScript代码中更有效地使用它们。我希望这篇文章对希望提高TypeScript技能和希望编写更多可靠代码的web开发者有所帮助。</p>
+<h3 id="Type-vs-Interface"><a href="#Type-vs-Interface" class="headerlink" title="Type vs Interface"></a>Type vs Interface</h3><p>在TypeScript中，type和interface都可以用来定义对象类型，但他们在语法和功能上有一些区别，首先interface是一个用来定义对象类型关键字，其语法是：</p>
+<pre><code class="highlight ts"><span class="keyword">interface</span> <span class="title class_">IUser</span> &#123;
+  <span class="attr">name</span>: <span class="built_in">string</span>;
+  <span class="attr">age</span>: <span class="built_in">number</span>;
+  ...
+&#125;</code></pre>
+
+<p>另一方面，type也是一个定义对象类型的关键字，其语法是：</p>
+<pre><code class="highlight ts"><span class="keyword">type</span> <span class="title class_">User</span> = &#123;
+  <span class="attr">name</span>: <span class="built_in">string</span>;
+  <span class="attr">age</span>: <span class="built_in">number</span>;
+  ...
+&#125;;</code></pre>
+
+<p>语法差异不大，但在功能上还有其他差异。</p>
+<p>interface可以扩展并创建继承父interface属性的新类型：</p>
+<pre><code class="highlight ts"><span class="keyword">interface</span> <span class="title class_">IUser</span> &#123;
+  <span class="attr">name</span>: <span class="built_in">string</span>;
+&#125;
+
+<span class="keyword">interface</span> <span class="title class_">IMember</span> <span class="keyword">extends</span> <span class="title class_">IUser</span> &#123;
+  <span class="attr">department</span>: <span class="built_in">string</span>;
+&#125;</code></pre>
+
+<p>这允许你定义一套多个类型共享的基础属性，然后根据需要为更多的特定类型进行扩展。这可以帮助你避免代码重复，使你的代码更具有模块化和组织。</p>
+<p>而type不能以同样的方式被扩展，但它可以用来定义联合、交叉和其他复杂类型：</p>
+<pre><code class="highlight ts"><span class="keyword">type</span> <span class="title class_">Union</span> = <span class="title class_">Type1</span> | <span class="title class_">Type2</span>;
+
+<span class="keyword">type</span> <span class="title class_">Intersection</span> = <span class="title class_">Type1</span> &amp; <span class="title class_">Type2</span>;</code></pre>
+
+<p>这些type允许你定义类型更复杂的关系，并且可以帮助你更准确地建立数据模型。</p>
+<h3 id="Example-—-Building-a-Messaging-App"><a href="#Example-—-Building-a-Messaging-App" class="headerlink" title="Example — Building a Messaging App"></a>Example — Building a Messaging App</h3><p>假如你正在构建一个消息app，你想为一条信息定义一个类型，它可以包含文本或图像，你可以使用一个联合类型来定义：</p>
+<pre><code class="highlight ts"><span class="keyword">type</span> <span class="title class_">Message</span> = &#123;
+  <span class="attr">type</span>: <span class="string">&#x27;text&#x27;</span> | <span class="string">&#x27;image&#x27;</span>;
+  <span class="attr">content</span>: <span class="built_in">string</span> | <span class="title class_">File</span>;
+&#125;</code></pre>
+
+<p>在这个例子中，我们使用type来定义一个联合类型，它只能是两个字符串值中的一个：”text”或者”image”，我们还使用联合类型来定义content属性，他可以是一个字符串(text messages)或者是一个File对象(image messages)。</p>
+<p>现在，假如你想在你的app中为一组拥有不同角色的用户定义一个类型，比如管理员、版主和普通用户。你可以使用一个交叉类型来定义：</p>
+<pre><code class="highlight ts"><span class="keyword">type</span> <span class="title class_">User</span> = &#123;
+  <span class="attr">id</span>: <span class="built_in">number</span>;
+  <span class="attr">name</span>: <span class="built_in">string</span>;
+&#125;
+
+<span class="keyword">type</span> <span class="title class_">Admin</span> = <span class="title class_">User</span> &amp; &#123;
+  <span class="attr">role</span>: <span class="string">&#x27;admin&#x27;</span>;
+  <span class="attr">permissions</span>: <span class="built_in">string</span>[];
+&#125;
+
+<span class="keyword">type</span> <span class="title class_">Moderator</span> = <span class="title class_">User</span> &amp; &#123;
+  <span class="attr">role</span>: <span class="string">&#x27;moderator&#x27;</span>;
+  <span class="attr">canDelete</span>: <span class="built_in">boolean</span>;
+&#125;
+
+<span class="keyword">type</span> <span class="title class_">RegularUser</span> = <span class="title class_">User</span> &amp; &#123;
+  <span class="attr">role</span>: <span class="string">&#x27;user&#x27;</span>;
+  <span class="attr">isPremium</span>: <span class="built_in">boolean</span>;
+&#125;</code></pre>
+
+<p>在这个例子中，我们定义了一个有两个属性的用户类型：id和name。然后我们定义了另外三个类型(Admin、Moderator和RegularUser)，它们使用一个交叉类型(&amp;)来扩展User类型。这些类型中每一个都有一个不同的role属性和针对其角色的额外属性。</p>
+<p>使用联合类型和交叉类型可以帮助你在TypeScript代码中定义更复杂的类型，并使其更容易对现实世界的数据进行建模。</p>
+<h3 id="Declaration-Merging"><a href="#Declaration-Merging" class="headerlink" title="Declaration Merging"></a>Declaration Merging</h3><p>interface还支持声明合并，它允许你定义多个同名的interface，并将它们的属性合并到一个interface中：</p>
+<pre><code class="highlight ts"><span class="keyword">interface</span> <span class="title class_">MyObject</span> &#123;
+  <span class="attr">property1</span>: <span class="title class_">Type1</span>;
+&#125;
+
+<span class="keyword">interface</span> <span class="title class_">MyObject</span> &#123;
+  <span class="attr">property2</span>: <span class="title class_">Type2</span>;
+&#125;
+
+<span class="keyword">const</span> <span class="attr">myObject</span>: <span class="title class_">MyObject</span> = &#123;
+  <span class="attr">property1</span>: <span class="string">&#x27;value1&#x27;</span>,
+  <span class="attr">property2</span>: <span class="string">&#x27;value2&#x27;</span>
+&#125;;</code></pre>
+
+<p>当你与第三方库或系统一起工作时，这很有用，它们分别定义了它们的interface，然后在需要时把它们合并成一个interface。</p>
+<h3 id="Example-—-Unleashing-the-Power-of-Declaration-Merging"><a href="#Example-—-Unleashing-the-Power-of-Declaration-Merging" class="headerlink" title="Example — Unleashing the Power of Declaration Merging"></a>Example — Unleashing the Power of Declaration Merging</h3><p>假如你正在构建一个需要用户登录的app，你想为认证API返回的用户对象定义一个interface。你可以像这样定义这个interface：</p>
+<pre><code class="highlight ts"><span class="keyword">interface</span> <span class="title class_">User</span> &#123;
+  <span class="attr">username</span>: <span class="built_in">string</span>;
+  <span class="attr">email</span>: <span class="built_in">string</span>;
+&#125;</code></pre>
+
+<p>后来，你发现认证API也会为每个用户返回一个userId属性，但你不想修改原来的User interface。相反，你可以定义一个同名的新interface，它将自动将属性与原来的User interface合并：</p>
+<pre><code class="highlight ts"><span class="keyword">interface</span> <span class="title class_">User</span> &#123;
+  <span class="attr">userId</span>: <span class="built_in">number</span>;
+&#125;
+
+<span class="comment">// Now the User interface has three properties: username, email, and userId</span>
+<span class="keyword">const</span> <span class="attr">user</span>: <span class="title class_">User</span> = &#123;
+  <span class="attr">username</span>: <span class="string">&#x27;john.doe&#x27;</span>,
+  <span class="attr">email</span>: <span class="string">&#x27;john.doe@example.com&#x27;</span>,
+  <span class="attr">userId</span>: <span class="number">123</span>
+&#125;;</code></pre>
+
+<p>在这个例子中，我们定义了User interface， 有两个属性：username和email，然后，我们定义了一个新的User interface，并带有userId属性。当我们使用User interface来定义我们的用户对象时，两个接口的属性会被合并在一起，创建一个具有三个属性的对象：username，email和userId。</p>
+<p>声明合并是interface一个很有用的功能，它允许你在不修改原有定义的情况下扩展现有interface。</p>
+<h3 id="Let’s-talk-about-the-Open-x2F-Closed-Principle"><a href="#Let’s-talk-about-the-Open-x2F-Closed-Principle" class="headerlink" title="Let’s talk about the Open&#x2F;Closed Principle"></a>Let’s talk about the Open&#x2F;Closed Principle</h3><p>开闭原则(OCP)，是面向对象编程设计SOLID原则之一。它就像软件开发的圣杯。每个人都在谈论它，但是你们真的了解它吗？还只是假装了解？</p>
+<p>我希望你记住：SOLID是一个缩写，代表了Robert C.Martin（也被称为Bob叔叔）提出的面向对象编程设计的五个原则。这些原则使软件开发具有可伸缩、可维护、可扩展</p>
+<p>之前的例子很好的说明了开闭原则，因为它展示了如何在不修改原有interface的情况下扩展它。通过定义一个带有userId属性的新interface，而不是修改原来的User interface，在保持原来的接口不被修改的同时还能扩展其功能。这种方式随着时间的推移，使你的代码更容易维护和扩展，而不会引入意想不到的问题和破坏式变化。</p>
+<p>但是等等，还有更多！如果你使用TypeScript或其他具有声明合并功能的语言，你可以只用两个属性来定义user interface，然后用userId属性定义一个新的user interface，但你用User interface定义用户对象时，两个接口的属性会神奇地合并在一起，创建一个有三个属性的对象。这就像魔术一样，只不过没有兔子，更多的是TypeScript。</p>
+<p>但是实际中，谁有时间去研究OCP这些废话？有时你只是需要完成一些功能，而修改现有代码是最快的办法。谁会关心OCP呢？它只是软件开发者喜欢抛出的一个花哨的原则，让自己听起来很聪明。</p>
+<p>所以，如果你必须做的话，就去违反OCP吧。只要确保你有一个很好的理由这样做。如果有人问起，就告诉他们你是在遵循KCP(保持满足原则)。这是一个我们都支持的原则。</p>
+<h3 id="React-Component-Props"><a href="#React-Component-Props" class="headerlink" title="React Component Props"></a>React Component Props</h3><p>所以你是想用type还是interface来定义React component props？让我告诉你，你来对地方了，我的意思是，当你可以将时间花在探讨TypeScript语法的细微差别时，谁还需要生活呢？你就像现代的苏格拉底，提着重要的问题，比如“我应该是用type还是interface？”而我们这些凡人则忙着在Tinder上左滑右滑。所以，请系好安全带，我的朋友，因为我们即将深入探索React Components 类型定义的精彩世界</p>
+<p>在React组件上使用type还是interface来定义props在很大程度上是一个个人偏好的问题，因为这两个选项提供了相似的功能。然而，在选择它们的时候，有一些区别需要考虑。</p>
+<p>首先interface是React组件中定义props的一种常用方式。因为interface允许你扩展和重用来定义props对象。例如，你可以创建一个基本props interface，然后在每个单独的组件中扩展它</p>
+<pre><code class="highlight ts"><span class="keyword">interface</span> <span class="title class_">Props</span> &#123;
+  className?: <span class="built_in">string</span>;
+  onClick?: <span class="function">() =&gt;</span> <span class="built_in">void</span>;
+&#125;
+
+<span class="keyword">interface</span> <span class="title class_">ButtonProps</span> <span class="keyword">extends</span> <span class="title class_">Props</span> &#123;
+  <span class="keyword">type</span>?: <span class="string">&#x27;button&#x27;</span> | <span class="string">&#x27;submit&#x27;</span> | <span class="string">&#x27;reset&#x27;</span>;
+&#125;
+
+<span class="keyword">function</span> <span class="title function_">Button</span>(<span class="params">&#123; className, onClick, <span class="keyword">type</span> &#125;: ButtonProps</span>) &#123;
+  <span class="comment">// render button with props</span>
+&#125;</code></pre>
+
+<p>在这个例子中，我们定义了一个包含className和onClick属性的interface。然后我们扩展这个interface，创建了一个ButtonProps interface，增加了一个可选的type prop。然后用这个interface来定义Button组件的props。</p>
+<p>另一方面，当你需要定义更复杂的类型时，比如联合或者交叉类型时，type就很有用。比如，你可以使用type来定义一个size options，代表一个组件的不同size选项。</p>
+<pre><code class="highlight ts"><span class="keyword">type</span> <span class="title class_">Size</span> = <span class="string">&#x27;small&#x27;</span> | <span class="string">&#x27;medium&#x27;</span> | <span class="string">&#x27;large&#x27;</span>;
+
+<span class="keyword">interface</span> <span class="title class_">Props</span> &#123;
+  <span class="attr">size</span>: <span class="title class_">Size</span>;
+&#125;
+
+<span class="keyword">function</span> <span class="title function_">Component</span>(<span class="params">&#123; size &#125;: Props</span>) &#123;
+  <span class="comment">// render component with props</span>
+&#125;</code></pre>
+
+<p>在这个例子中，我们使用type定义了一个size类型，代表组件的不同尺寸。然后，我们用props interface来定义size prop，要求是必须的并且是尺寸类型中的一个。</p>
+<p>通常，使用interface是定义简单props的好选择，可以扩展或重复使用，而使用type是定义复杂类型的好选择。</p>
+<p>总之，type和interface都可以用来React组件中定义props，但它们在功能上有一些区别。interface可以扩展或重复使用，而type对于定义更复杂的类型很有用。最终，在type和interface之间选择是一个个人偏好和你项目具体需求的问题。</p>
+<h3 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h3><p>一般来说，interface经常被用来定义对象的结构，并作为其他系统或库的interface。另一方面，type经常用来定义更复杂的类型，如联合、交叉或映射类型，或者定义不能用interface表达的类型，如函数类型或条件类型。</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/05/20/%E3%80%90%E7%BF%BB%E3%80%91Stop-using-in-React-Conditional-Rendering/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Type-vs-Interface"><span class="toc-text">Type vs Interface</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Example-%E2%80%94-Building-a-Messaging-App"><span class="toc-text">Example — Building a Messaging App</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Declaration-Merging"><span class="toc-text">Declaration Merging</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Example-%E2%80%94-Unleashing-the-Power-of-Declaration-Merging"><span class="toc-text">Example — Unleashing the Power of Declaration Merging</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Let%E2%80%99s-talk-about-the-Open-x2F-Closed-Principle"><span class="toc-text">Let’s talk about the Open&#x2F;Closed Principle</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#React-Component-Props"><span class="toc-text">React Component Props</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Summary"><span class="toc-text">Summary</span></a></li></ol></li></ol></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/05/24/%E3%80%90%E7%BF%BB%E3%80%91Mastering-TypeScript-A-Guide-to-Choosing-Between-%E2%80%98type%E2%80%99-and-%E2%80%98interface%E2%80%99/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/05/24/【翻】Mastering-TypeScript-A-Guide-to-Choosing-Between-‘type’-and-‘interface’/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
