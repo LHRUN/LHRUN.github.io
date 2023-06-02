@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】SOLID Principles in JavaScript | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/JavaScript/">
+                            JavaScript
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】SOLID Principles in JavaScript
+            
+            
+        </div>
+        <span class="post-date">
+            6月 2, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇(由简到难慢慢来吧🤣)和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://medium.com/@akashjha9041/solid-principles-in-javascript-ab69197e4cf7">SOLID Principles in JavaScript</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>SOLID原则是由Robert C. Martin提出的一套软件设计原则。这些原则指导开发人员构建出健壮的、可维护的应用程序，同时将维护的成本降到最低。在这篇文章中，我们将讨论如何在JavaScript中使用这些原则，并会展示一些代码示例</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:1400/0*b8uhCfoR8YgDFc58"></p>
+<p>SOLID原则是由Robert C. Martin. “Bob叔叔” 提出的一套软件设计原则。这些原则指导开发人员构建出健壮的、可维护的应用程序，同时将维护的成本降到最低。</p>
+<p>尽管SOLID原则经常被用于面向对象的编程，但我们可以将其用于其他语言，比如JavaScript。在这篇文章中，我们将讨论如何在JavaScript中使用这些原则，并会展示一些代码示例</p>
+<h2 id="What-are-the-SOLID-principles"><a href="#What-are-the-SOLID-principles" class="headerlink" title="What are the SOLID principles?"></a>What are the SOLID principles?</h2><ul>
+<li>Single responsibility principle（单一职责原则）</li>
+<li>Open-closed principle（开闭原则）</li>
+<li>Liskov substitution principle（里式替换原则）</li>
+<li>Interface segregation principle（接口分离原则）</li>
+<li>Dependency inversion principle（依赖倒置原则）</li>
+</ul>
+<h2 id="Single-responsibility-principle"><a href="#Single-responsibility-principle" class="headerlink" title="Single responsibility principle"></a>Single responsibility principle</h2><p>一个class，一个module或者一个function应该只负责一个角色。所以它应该只有一个改变原因。</p>
+<p>单一职责原则是SOLID最简单的原则之一。然而，开发者经常误解它。认为一个模块应该只做一件事。</p>
+<p>让我们用一个简单的例子来理解这个原则。下面的JavaScript代码片段有一个名为 ManageEmployee 的 class 和几个管理雇员的 function</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">ManageEmployee</span> &#123;
+
+  <span class="title function_">constructor</span>(<span class="params">private http: HttpClient</span>)
+  <span class="variable constant_">SERVER_URL</span> = <span class="string">&#x27;http://localhost:5000/employee&#x27;</span>;
+
+  getEmployee (empId)&#123;
+     <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">http</span>.<span class="title function_">get</span>(<span class="variable language_">this</span>.<span class="property">SERVER_URL</span> + <span class="string">`/<span class="subst">$&#123;empId&#125;</span>`</span>);
+  &#125;
+
+  updateEmployee (employee)&#123;
+     <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">http</span>.<span class="title function_">put</span>(<span class="variable language_">this</span>.<span class="property">SERVER_URL</span> + <span class="string">`/<span class="subst">$&#123;employee.id&#125;</span>`</span>,employee);
+  &#125;
+
+  deleteEmployee (empId)&#123;
+     <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">http</span>.<span class="title function_">delete</span>(<span class="variable language_">this</span>.<span class="property">SERVER_URL</span> + <span class="string">`/<span class="subst">$&#123;empId&#125;</span>`</span>);
+  &#125;
+
+  calculateEmployeeSalary (empId, workingHours)&#123;
+    <span class="keyword">var</span> employee = <span class="variable language_">this</span>.<span class="property">http</span>.<span class="title function_">get</span>(<span class="variable language_">this</span>.<span class="property">SERVER_URL</span> + <span class="string">`/<span class="subst">$&#123;empId&#125;</span>`</span>);
+    <span class="keyword">return</span> employee.<span class="property">rate</span> * workingHours;
+  &#125;
+
+&#125;</code></pre>
+
+<p>前面的代码看上去完全没有问题，并且很多开发者都会按照相同的方法来做并不会有任何问题。然而，由于它是对两个角色负责，这样他就有违单一职责原则。<code>getEmployee()</code>、<code>updateEmployee()</code>和<code>deleteEmployee()</code>函数直接与 HR 管理有关，而<code>calculateEmployeeSalary()</code>则与财务管理有关。</p>
+<p>将来，如果你需要为HR或财务更新一个功能时，你就必须改变 <code>ManageEmployee class</code> 来影响两个角色，因此， <code>ManageEmployee class</code> 违反了单一职责原则。你需要把HR和财务有关的功能分开，使代码符合单一职责原则。下面的代码示例证明了这一点。</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">ManageEmployee</span> &#123;
+
+  <span class="title function_">constructor</span>(<span class="params">private http: HttpClient</span>)
+  <span class="variable constant_">SERVER_URL</span> = <span class="string">&#x27;http://localhost:5000/employee&#x27;</span>;
+
+  getEmployee (empId)&#123;
+     <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">http</span>.<span class="title function_">get</span>(<span class="variable language_">this</span>.<span class="property">SERVER_URL</span> + <span class="string">`/<span class="subst">$&#123;empId&#125;</span>`</span>);
+  &#125;
+
+  updateEmployee (employee)&#123;
+     <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">http</span>.<span class="title function_">put</span>(<span class="variable language_">this</span>.<span class="property">SERVER_URL</span> + <span class="string">`/<span class="subst">$&#123;employee.id&#125;</span>`</span>,employee);
+  &#125;
+
+  deleteEmployee (empId)&#123;
+     <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">http</span>.<span class="title function_">delete</span>(<span class="variable language_">this</span>.<span class="property">SERVER_URL</span> + <span class="string">`/<span class="subst">$&#123;empId&#125;</span>`</span>);
+  &#125;
+
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">ManageSalaries</span> &#123;
+
+  <span class="title function_">constructor</span>(<span class="params">private http: HttpClient</span>)
+  <span class="variable constant_">SERVER_URL</span> = <span class="string">&#x27;http://localhost:5000/employee&#x27;</span>;
+
+  calculateEmployeeSalary (empId, workingHours)&#123;
+    <span class="keyword">var</span> employee = <span class="variable language_">this</span>.<span class="property">http</span>.<span class="title function_">get</span>(<span class="variable language_">this</span>.<span class="property">SERVER_URL</span> + <span class="string">`/<span class="subst">$&#123;empId&#125;</span>`</span>);
+    <span class="keyword">return</span> employee.<span class="property">rate</span> * workingHours;
+  &#125;
+
+&#125;</code></pre>
+
+<h2 id="Open-closed-principle"><a href="#Open-closed-principle" class="headerlink" title="Open-closed principle"></a>Open-closed principle</h2><p>Functions, modules, 和 classes 应该是可扩展的，但不是可修改的。</p>
+<p>这是实现大型应用时需要遵循的一个重要原则。根据这一原则，我们应该能够很容易地为应用添加新的功能，但同时我们不应该对现有的代码引入破坏式修改。</p>
+<p>举个例子，假设我们实现一个 <code>calculateSalaries()</code> 的函数，该函数使用一个带有工作角色和时薪的数组来计算工资。</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">ManageSalaries</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">salaryRates</span> = [
+      &#123; <span class="attr">id</span>: <span class="number">1</span>, <span class="attr">role</span>: <span class="string">&#x27;developer&#x27;</span>, <span class="attr">rate</span>: <span class="number">100</span> &#125;,
+      &#123; <span class="attr">id</span>: <span class="number">2</span>, <span class="attr">role</span>: <span class="string">&#x27;architect&#x27;</span>, <span class="attr">rate</span>: <span class="number">200</span> &#125;,
+      &#123; <span class="attr">id</span>: <span class="number">3</span>, <span class="attr">role</span>: <span class="string">&#x27;manager&#x27;</span>, <span class="attr">rate</span>: <span class="number">300</span> &#125;,
+    ];
+  &#125;
+
+  <span class="title function_">calculateSalaries</span>(<span class="params">empId, hoursWorked</span>) &#123;
+    <span class="keyword">let</span> salaryObject = <span class="variable language_">this</span>.<span class="property">salaryRates</span>.<span class="title function_">find</span>(<span class="function">(<span class="params">o</span>) =&gt;</span> o.<span class="property">id</span> === empId);
+    <span class="keyword">return</span> hoursWorked * salaryObject.<span class="property">rate</span>;
+  &#125;
+&#125;
+
+<span class="keyword">const</span> mgtSalary = <span class="keyword">new</span> <span class="title class_">ManageSalaries</span>();
+<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Salary : &quot;</span>, mgtSalary.<span class="title function_">calculateSalaries</span>(<span class="number">1</span>, <span class="number">100</span>));</code></pre>
+
+<p>直接修改 salaryRates 数组会违反开闭原则。例如，你需要为一个新角色进行工资计算。在这种情况下，你需要创建一个单独的方法，将工资添加到 salaryRates 数组中，而不是对原代码进行修改。</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">ManageSalaries</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">salaryRates</span> = [
+      &#123; <span class="attr">id</span>: <span class="number">1</span>, <span class="attr">role</span>: <span class="string">&#x27;developer&#x27;</span>, <span class="attr">rate</span>: <span class="number">100</span> &#125;,
+      &#123; <span class="attr">id</span>: <span class="number">2</span>, <span class="attr">role</span>: <span class="string">&#x27;architect&#x27;</span>, <span class="attr">rate</span>: <span class="number">200</span> &#125;,
+      &#123; <span class="attr">id</span>: <span class="number">3</span>, <span class="attr">role</span>: <span class="string">&#x27;manager&#x27;</span>, <span class="attr">rate</span>: <span class="number">300</span> &#125;,
+    ];
+  &#125;
+
+  <span class="title function_">calculateSalaries</span>(<span class="params">empId, hoursWorked</span>) &#123;
+    <span class="keyword">let</span> salaryObject = <span class="variable language_">this</span>.<span class="property">salaryRates</span>.<span class="title function_">find</span>(<span class="function">(<span class="params">o</span>) =&gt;</span> o.<span class="property">id</span> === empId);
+    <span class="keyword">return</span> hoursWorked * salaryObject.<span class="property">rate</span>;
+  &#125;
+
+  <span class="title function_">addSalaryRate</span>(<span class="params">id, role, rate</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">salaryRates</span>.<span class="title function_">push</span>(&#123; <span class="attr">id</span>: id, <span class="attr">role</span>: role, <span class="attr">rate</span>: rate &#125;);
+  &#125;
+&#125;
+
+<span class="keyword">const</span> mgtSalary = <span class="keyword">new</span> <span class="title class_">ManageSalaries</span>();
+mgtSalary.<span class="title function_">addSalaryRate</span>(<span class="number">4</span>, <span class="string">&#x27;developer&#x27;</span>, <span class="number">250</span>);
+<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Salary : &#x27;</span>, mgtSalary.<span class="title function_">calculateSalaries</span>(<span class="number">4</span>, <span class="number">100</span>));</code></pre>
+
+<h2 id="Liskov-substitution-principle"><a href="#Liskov-substitution-principle" class="headerlink" title="Liskov substitution principle"></a>Liskov substitution principle</h2><p>假设P(y)是类型A的对象y的一个可证明属性，那么对于类型B的对象x，其中B是A的子类型，P(x)应该为真</p>
+<p>你能在网上找到关于里式替换原则的不同定义，但它们都有相同的含义。简单的说，里式替换原则指出，如果父类的子类在应用中产生意外行为，我们就不应该用子类替换父类。</p>
+<p>例如，有一个名为 Animal 的类，它包括一个名为 <code>eat()</code> 的函数。</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">Animal</span>&#123;
+  <span class="title function_">eat</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Animal Eats&quot;</span>)
+  &#125;
+&#125;</code></pre>
+
+<p>现在，我将把 Animal 类扩展成一个名为Bird的新类，其函数名为 <code>fly()</code> 。</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">Bird</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Animal</span>&#123;
+  <span class="title function_">fly</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Bird Flies&quot;</span>)
+  &#125;
+&#125;
+
+<span class="keyword">var</span> parrot = <span class="keyword">new</span> <span class="title class_">Bird</span>();
+parrot.<span class="title function_">eat</span>();
+parrot.<span class="title function_">fly</span>();</code></pre>
+
+<p>在之前的例子中，我根据 Bird 类创建了一个名为 parrot 的对象，并同时拥有 eat 和 fly 方法。由于鹦鹉能够完成这两个动作，因此将 Animal 类扩展到 Bird 类并不违反里式替换原则</p>
+<p>现在我们进一步扩展 Bird ，创建了一个名为 Ostrich 的新类</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">Ostrich</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Bird</span>&#123;
+  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Ostriches Do Not Fly&quot;</span>)
+&#125;
+
+<span class="keyword">var</span> ostrich = <span class="keyword">new</span> <span class="title class_">Ostrich</span>();
+ostrich.<span class="title function_">eat</span>();
+ostrich.<span class="title function_">fly</span>();</code></pre>
+
+<p>这个对 Bird 类的扩展就违反了里式替换原则，因为鸵鸟不会飞行，这可能会在应用中引发意外行为。解决这个情况的最佳方法是从 Animal 类扩展 Ostrich 类。</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">Ostrich</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Animal</span>&#123;
+
+  <span class="title function_">walk</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Ostrich Walks&quot;</span>)
+  &#125;
+
+&#125;</code></pre>
+
+<h2 id="Interface-segregation-principle"><a href="#Interface-segregation-principle" class="headerlink" title="Interface segregation principle"></a>Interface segregation principle</h2><p>客户端不应该添加他们永远不会使用的依赖接口。</p>
+<p>这个原则和接口有关，主要是将大接口分为小接口。举个例子，假如你要去驾校学习如何驾驶汽车，他们给你一大套关于驾驶汽车、卡车、火车的说明。由于你只需要学习驾驶汽车，你不需要其他的信息。驾校就应该把说明分开，只给你专门针对汽车的说明。</p>
+<p>由于 JavaScript 不支持 interface ，所以在基于 JavaScript 的应用中很难采用这一原则。然而，我们可以使用 JavaScript 组合来实现这一点。组合允许开发人员在不继承整个类的情况下添加功能。假设有一个名为 DrivingTest 的类，然后有两个名为 startCarTest 和 startTruckTest 的函数。然后我们有 CarDrivingTest 和 TruckDrivingTest 扩展 DrivingTest 类，然后我们必须强制这两个类实现 startCarTest 和 startTruckTest s函数。</p>
+<pre><code class="highlight js"><span class="title class_">Class</span> <span class="title class_">DrivingTest</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params">userType</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">userType</span> = userType;
+  &#125;
+
+  <span class="title function_">startCarTest</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(“<span class="title class_">This</span> is <span class="keyword">for</span> <span class="title class_">Car</span> <span class="title class_">Drivers</span>”’);
+  &#125;
+
+  <span class="title function_">startTruckTest</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(“<span class="title class_">This</span> is <span class="keyword">for</span> <span class="title class_">Truck</span> <span class="title class_">Drivers</span>”);
+  &#125;
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">CarDrivingTest</span> <span class="keyword">extends</span> <span class="title class_ inherited__">DrivingTest</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params">userType</span>) &#123;
+    <span class="variable language_">super</span>(userType);
+  &#125;
+
+  <span class="title function_">startCarTest</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> “<span class="title class_">Car</span> <span class="title class_">Test</span> <span class="title class_">Started</span>”;
+  &#125;
+
+  <span class="title function_">startTruckTest</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> <span class="literal">null</span>;
+  &#125;
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">TruckDrivingTest</span> <span class="keyword">extends</span> <span class="title class_ inherited__">DrivingTest</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params">userType</span>) &#123;
+    <span class="variable language_">super</span>(userType);
+  &#125;
+
+  <span class="title function_">startCarTest</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> <span class="literal">null</span>;
+  &#125;
+
+  <span class="title function_">startTruckTest</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> “<span class="title class_">Truck</span> <span class="title class_">Test</span> <span class="title class_">Started</span>”;
+  &#125;
+&#125;
+
+<span class="keyword">const</span> carTest = <span class="keyword">new</span> <span class="title class_">CarDrivingTest</span>(carDriver );
+<span class="variable language_">console</span>.<span class="title function_">log</span>(carTest.<span class="title function_">startCarTest</span>());
+<span class="variable language_">console</span>.<span class="title function_">log</span>(carTest.<span class="title function_">startTruckTest</span>());
+
+<span class="keyword">const</span> truckTest = <span class="keyword">new</span> <span class="title class_">TruckDrivingTest</span>( ruckdriver );
+<span class="variable language_">console</span>.<span class="title function_">log</span>(truckTest.<span class="title function_">startCarTest</span>());
+<span class="variable language_">console</span>.<span class="title function_">log</span>(truckTest.<span class="title function_">startTruckTest</span>());</code></pre>
+
+<p>然而，这种实现方法违反了接口分离原则，因为我们强迫那两个扩展类实现这两种功能。我们可以通过组合来为所需的类添加功能来解决这个问题，如下面的例子中所示。</p>
+<pre><code class="highlight js"><span class="title class_">Class</span> <span class="title class_">DrivingTest</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params">userType</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">userType</span> = userType;
+  &#125;
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">CarDrivingTest</span> <span class="keyword">extends</span> <span class="title class_ inherited__">DrivingTest</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params">userType</span>) &#123;
+    <span class="variable language_">super</span>(userType);
+  &#125;
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">TruckDrivingTest</span> <span class="keyword">extends</span> <span class="title class_ inherited__">DrivingTest</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params">userType</span>) &#123;
+    <span class="variable language_">super</span>(userType);
+  &#125;
+&#125;
+
+<span class="keyword">const</span> carUserTests = &#123;
+  <span class="title function_">startCarTest</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> ‘<span class="title class_">Car</span> <span class="title class_">Test</span> <span class="title class_">Started</span>’;
+  &#125;,
+&#125;;
+
+<span class="keyword">const</span> truckUserTests = &#123;
+  <span class="title function_">startTruckTest</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> ‘<span class="title class_">Truck</span> <span class="title class_">Test</span> <span class="title class_">Started</span>’;
+  &#125;,
+&#125;;
+
+<span class="title class_">Object</span>.<span class="title function_">assign</span>(<span class="title class_">CarDrivingTest</span>.<span class="property"><span class="keyword">prototype</span></span>, carUserTests);
+<span class="title class_">Object</span>.<span class="title function_">assign</span>(<span class="title class_">TruckDrivingTest</span>.<span class="property"><span class="keyword">prototype</span></span>, truckUserTests);
+
+<span class="keyword">const</span> carTest = <span class="keyword">new</span> <span class="title class_">CarDrivingTest</span>(carDriver );
+<span class="variable language_">console</span>.<span class="title function_">log</span>(carTest.<span class="title function_">startCarTest</span>());
+<span class="variable language_">console</span>.<span class="title function_">log</span>(carTest.<span class="title function_">startTruckTest</span>()); <span class="comment">// Will throw an exception</span>
+
+<span class="keyword">const</span> truckTest = <span class="keyword">new</span> <span class="title class_">TruckDrivingTest</span>( ruckdriver );
+<span class="variable language_">console</span>.<span class="title function_">log</span>(truckTest.<span class="title function_">startTruckTest</span>());
+<span class="variable language_">console</span>.<span class="title function_">log</span>(truckTest.<span class="title function_">startCarTest</span>()); <span class="comment">// Will throw an exception</span></code></pre>
+
+<p>现在， <code>carTest.startTruckTest()</code> 将抛出一个异常，因为 <code>startTruckTest()</code> 函数没有分配给 CarDrivingTest 类。</p>
+<h2 id="Dependency-inversion-principle"><a href="#Dependency-inversion-principle" class="headerlink" title="Dependency inversion principle"></a>Dependency inversion principle</h2><p>高层模块应该使用抽象化。并且，他们不应该依赖于低层模块。</p>
+<p>依赖倒置是关于解耦代码的。遵循这个原则将使你能够灵活地在最高级别上扩展和改变你的应用而不出现任何问题。</p>
+<p>关于JavaScript，我们不需要考虑抽象的问题，因为JavaScript是一种动态语言。然而，我们需要确保高层模块不依赖于低层模块。</p>
+<p>我们来用一个简单的例子来解释依赖倒置是如何工作的。假设你在你的应用中需要使用 Yahoo 的 email API ，现在你需要把它改为 Gmail 的 API 。如果你像下面的例子一样实现了没有依赖倒置的控制器，你需要对每个控制器都进行修改。这是因为多个控制器使用了 Yahoo API ，你需要找到每个实例并更新它。</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">EmailController</span> &#123; 
+  <span class="title function_">sendEmail</span>(<span class="params">emailDetails</span>) &#123; 
+    <span class="comment">// Need to change this line in every controller that uses YahooAPI.const response = YahooAPI.sendEmail(emailDetails); </span>
+    <span class="keyword">if</span> (response.<span class="property">status</span> == <span class="number">200</span>) &#123; 
+       <span class="keyword">return</span> <span class="literal">true</span>;
+    &#125; <span class="keyword">else</span> &#123;
+       <span class="keyword">return</span> <span class="literal">false</span>;
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<p>依赖倒置原则可以帮助开发者避免这种高昂的错误，在这个原则下，将 email API 处理部分转移到一个单独的控制器。然后你只需要在 email API 发生改变时改变该控制器即可。</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">EmailController</span> &#123; 
+  <span class="title function_">sendEmail</span>(<span class="params">emailDetails</span>) &#123; 
+    <span class="keyword">const</span> response = <span class="title class_">EmailApiController</span>.<span class="title function_">sendEmail</span>(emailDetails);   
+    <span class="keyword">if</span> (response.<span class="property">status</span> == <span class="number">200</span>) &#123; 
+       <span class="keyword">return</span> <span class="literal">true</span>;
+    &#125; <span class="keyword">else</span> &#123;
+       <span class="keyword">return</span> <span class="literal">false</span>;
+    &#125;
+  &#125;
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">EmailApiController</span> &#123;
+  <span class="title function_">sendEmail</span>(<span class="params">emailDetails</span>) &#123;
+    <span class="comment">// Only need to change this controller. return YahooAPI.sendEmail(emailDetails);</span>
+  &#125;
+&#125;</code></pre>
+
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>在这篇文章中，我们讨论了在软件设计中SOLID原则的重要性，以及我们如何在JavaScript应用中采用这些概念。作为开发人员，理解并在我们的应用中使用这些核心概念是很重要的。有时，在处理一些小的应用时，这些原则的好处可能并不明显，但一旦你开始在一个大规模的项目上工作时，你一定会知道它们的不同。</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/05/24/%E3%80%90%E7%BF%BB%E3%80%91Mastering-TypeScript-A-Guide-to-Choosing-Between-%E2%80%98type%E2%80%99-and-%E2%80%98interface%E2%80%99/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#What-are-the-SOLID-principles"><span class="toc-text">What are the SOLID principles?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Single-responsibility-principle"><span class="toc-text">Single responsibility principle</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Open-closed-principle"><span class="toc-text">Open-closed principle</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Liskov-substitution-principle"><span class="toc-text">Liskov substitution principle</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Interface-segregation-principle"><span class="toc-text">Interface segregation principle</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Dependency-inversion-principle"><span class="toc-text">Dependency inversion principle</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-text">Conclusion</span></a></li></ol></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/06/02/%E3%80%90%E7%BF%BB%E3%80%91SOLID-Principles-in-JavaScript/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/06/02/【翻】SOLID-Principles-in-JavaScript/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
