@@ -818,6 +818,7 @@ del {
   background-position: 100% 100%, 0 100%;
   background-repeat: no-repeat, no-repeat;
   transition: background-size 0.6s linear;
+  word-break: break-word;
 }
 .post-content a:hover {
   background-size: 100% 1px, 100% 2px;

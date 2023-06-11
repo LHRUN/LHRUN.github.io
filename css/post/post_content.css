@@ -10,6 +10,9 @@ h6 {
   margin-top: $margin-l-0;
   margin-bottom: $margin-m-1;
 }
+.post-content a {
+  word-break: break-word;
+}
 blockquote {
   margin-left: 0;
   margin-right: 0;
