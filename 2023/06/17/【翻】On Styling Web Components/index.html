@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】On Styling Web Components | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Web-Component/">
+                            Web Component
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】On Styling Web Components
+            
+            
+        </div>
+        <span class="post-date">
+            6月 17, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://blog.webf.zone/on-styling-web-components-b74b8c70c492">On Styling Web Components</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>以正确的方式进行 — 使用CSSOM</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:2000/format:webp/1*nrlNnE1jCyNVqNQllN1Qzw.png"></p>
+<p>更好的封装性可能是你开始使用Web Components的主要原因。特别是，ShadowDOM是实现真正封装性的机制。多年来，Web社区发明了一些方案来修复和改善CSS和JS的全局特性，这些解决方案虽起作用了但并不完美。直到有了Shadow DOM，我们才真正实现了CSS的完美作用域。</p>
+<p>在这篇文章中，我们会探索如何将样式应用到Web Components上，并尝试找到最合适的方法。此外，我们还将尝试将我们的解决方案和当前的构建工具相结合。</p>
+<h2 id="The-naive-way-—-Plain-lt-style-gt-tag"><a href="#The-naive-way-—-Plain-lt-style-gt-tag" class="headerlink" title="The naive way — Plain &lt;style&gt; tag"></a>The naive way — Plain <code>&lt;style&gt;</code> tag</h2><p>在使用Shadow DOM时，为了使 style sheet 发挥作用，目前是要在每个shadow root中使用<code>&lt;style&gt;</code> 元素，在大多数文章中，都会很表面的说出这个方案</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">FancyComponent</span> <span class="keyword">extends</span> <span class="title class_ inherited__">HTMLElement</span> &#123;
+
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">super</span>();
+
+    <span class="keyword">const</span> shadowRoot = <span class="variable language_">this</span>.<span class="title function_">attachShadow</span>(&#123; <span class="attr">mode</span>: <span class="string">&#x27;open&#x27;</span> &#125;);
+
+    shadowRoot.<span class="property">innerHTML</span> = <span class="string">`</span>
+<span class="string">      &lt;!-- Styles are scoped --&gt;</span>
+<span class="string">      &lt;style&gt;</span>
+<span class="string">        p &#123; color: red; &#125;</span>
+<span class="string">      &lt;/style&gt;</span>
+<span class="string">      &lt;div&gt;</span>
+<span class="string">        &lt;p&gt;Hello World&lt;/p&gt;</span>
+<span class="string">      &lt;/div&gt;</span>
+<span class="string">    `</span>;
+  &#125;
+&#125;
+
+customElements.<span class="title function_">define</span>(<span class="string">&#x27;fancy-comp&#x27;</span>, <span class="title class_">FacyComponent</span>);</code></pre>
+
+<p>这个解决办法简单直接，然而有一个问题：</p>
+<blockquote>
+<p>对于页面中添加的每个组件实例，浏览器都会解析它的样式表规则。</p>
+</blockquote>
+<p>这对性能会产生很大的影响，比如时间增加和内存增加。时间会增加是因为浏览器需要解析更多的原始字符串，内存成本增加是因为每个组件都会存储样式规则。浏览器没有办法知道同一个组件的两个实例是否共享相同的样式。</p>
+<blockquote>
+<p>原作者更新：Eric Bidelman在评论中指出，性能方面不一定会影响。浏览器可能在内部进行优化，这样它就不会在每次创建实例时解析样式标签。事实上，Blink（Chrome、Opera等）引擎已经对此进行了优化</p>
+</blockquote>
+<h2 id="Can-we-do-something-better"><a href="#Can-we-do-something-better" class="headerlink" title="Can we do something better?"></a>Can we do something better?</h2><p>其实，我们可以通过创建一个样式节点，然后在组件的每个实例中进行深度克隆，来防止样式规则的重新解析：</p>
+<pre><code class="highlight js"><span class="comment">// Create style node outside of WebComponent</span>
+<span class="keyword">const</span> style = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;style&#x27;</span>);
+
+style.<span class="property">innerHTML</span> = <span class="string">`</span>
+<span class="string">  p &#123; color: blue; &#125;</span>
+<span class="string">`</span>;
+
+<span class="keyword">class</span> <span class="title class_">FancyComponent</span> <span class="keyword">extends</span> <span class="title class_ inherited__">HTMLElement</span> &#123;
+
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">super</span>();
+
+    <span class="keyword">const</span> shadowRoot = <span class="variable language_">this</span>.<span class="title function_">attachShadow</span>(&#123; <span class="attr">mode</span>: <span class="string">&#x27;open&#x27;</span> &#125;);
+
+    shadowRoot.<span class="property">innerHTML</span> = <span class="string">`</span>
+<span class="string">      &lt;div&gt;</span>
+<span class="string">        &lt;p&gt;Hello World&lt;/p&gt;</span>
+<span class="string">      &lt;/div&gt;</span>
+<span class="string">    `</span>;
+
+    <span class="comment">// Let us try to optimize</span>
+    <span class="comment">// Deep cloning of style node</span>
+    <span class="keyword">const</span> clonedStyle = style.<span class="title function_">cloneNode</span>(<span class="literal">true</span>);
+
+    shadowRoot.<span class="title function_">appendChild</span>(clonedStyle);
+  &#125;
+&#125;</code></pre>
+
+<p>不过，这种方法虽然很容易，但是仍然有问题。</p>
+<ul>
+<li>首先，它不能真正的帮助我们在组件实例间共享样式。新的样式节点仍然会创建</li>
+<li>其次这个方法与 <strong>lit-html</strong> 和 <strong>hyperHTML</strong> 等声明式解决方案一起使用有点尴尬。</li>
+</ul>
+<h2 id="Enter-the-Constructible-Stylesheets"><a href="#Enter-the-Constructible-Stylesheets" class="headerlink" title="Enter the Constructible Stylesheets"></a>Enter the Constructible Stylesheets</h2><p>顾名思义，可构建的样式表允许在使用Shadow DOM时创建和共享样式。</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*H5R11T84I-Fd0JBzOur2AQ.png"></p>
+<pre><code class="highlight js"><span class="keyword">const</span> sheet = <span class="keyword">new</span> <span class="title class_">CSSStyleSheet</span>();
+
+<span class="comment">// Replace all styles synchronously for this style sheet</span>
+sheet.<span class="title function_">replaceSync</span>(<span class="string">&#x27;p &#123; color: green; &#125;&#x27;</span>);
+
+<span class="keyword">class</span> <span class="title class_">FancyComponent1</span> <span class="keyword">extends</span> <span class="title class_ inherited__">HTMLElement</span> &#123;
+
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">super</span>();
+
+    <span class="keyword">const</span> shadowRoot = <span class="variable language_">this</span>.<span class="title function_">attachShadow</span>(&#123; <span class="attr">mode</span>: <span class="string">&#x27;open&#x27;</span> &#125;);
+
+    <span class="comment">// Attaching the style sheet to the Shadow DOM of this component</span>
+    shadowRoot.<span class="property">adoptedStyleSheets</span> = [sheet];
+
+    shadowRoot.<span class="property">innerHTML</span> = <span class="string">`</span>
+<span class="string">      &lt;div&gt;</span>
+<span class="string">        &lt;p&gt;Hello World&lt;/p&gt;</span>
+<span class="string">      &lt;/div&gt;</span>
+<span class="string">    `</span>;
+
+  &#125;
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">FancyComponent2</span> <span class="keyword">extends</span> <span class="title class_ inherited__">HTMLElement</span> &#123;
+
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">super</span>();
+
+    <span class="keyword">const</span> shadowRoot = <span class="variable language_">this</span>.<span class="title function_">attachShadow</span>(&#123; <span class="attr">mode</span>: <span class="string">&#x27;open&#x27;</span> &#125;);
+
+    <span class="comment">// Same style sheet can also be used by another web component</span>
+    shadowRoot.<span class="property">adoptedStyleSheets</span> = [sheet];
+
+    <span class="comment">// You can even manipulate the style sheet with plain JS manipulations</span>
+    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> shadowRoot.<span class="property">adoptedStyleSheets</span> = [], <span class="number">2000</span>);
+
+    shadowRoot.<span class="property">innerHTML</span> = <span class="string">`</span>
+<span class="string">      &lt;div&gt;</span>
+<span class="string">        &lt;p&gt;Hello World&lt;/p&gt;</span>
+<span class="string">      &lt;/div&gt;</span>
+<span class="string">    `</span>;
+
+  &#125;
+&#125;</code></pre>
+
+<p>除了解决重复拷贝的问题，它还有一些特点：</p>
+<ul>
+<li>首先样式不仅仅被同一组件的实例共享，也会被多个不同组件所共享</li>
+<li>它还支持处理异步样式。例如，在你的CSS代码中使用 <code>url</code> 和 <code>@import</code></li>
+<li>最后，<code>adoptedStyleSheets</code> 是一个数组。这意味着你可以在我们以前不可能做到的方式来组成可复用的样式表。首先你可以把你的CSS规则分成小块，然后只应用需要的那部分。甚至你可以做下面这样的事情：</li>
+</ul>
+<pre><code class="highlight js">shadowRoot.<span class="property">adoptedStyleSheets</span> = [sheet];
+<span class="comment">// Remove stylesheets after two seconds</span>
+<span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> shadowRoot.<span class="property">adoptedStyleSheets</span> = [], <span class="number">2000</span>);</code></pre>
+
+<h2 id="Using-with-Webpack-and-SCSS"><a href="#Using-with-Webpack-and-SCSS" class="headerlink" title="Using with Webpack and SCSS"></a>Using with Webpack and SCSS</h2><p>SCSS作为一个CSS预处理器，Webpack作为一个模块打包和构建工具，都是非常常见的配置。其中<br> <code>CSSStyleSheet.replace()</code> 和 <code>CSSStyleSheet.replaceSync()</code> 预期接收一个原始字符串形式的CSS规则。我们可以使用一个简单的loader chain，包括sass-loader和raw-loader，如下：</p>
+<pre><code class="highlight js"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;
+
+  <span class="attr">entry</span>: &#123; <span class="comment">/* config */</span> &#125;,
+
+  <span class="attr">output</span>: &#123; <span class="comment">/* config */</span> &#125;,
+
+  <span class="attr">module</span>: &#123;
+    <span class="attr">rules</span>: [
+      <span class="comment">// Regular css files</span>
+      &#123;
+        <span class="attr">test</span>: <span class="regexp">/\.css$/</span>,
+        <span class="attr">loader</span>: [<span class="string">&#x27;style-loader&#x27;</span>, <span class="string">&#x27;css-loader&#x27;</span>]
+      &#125;,
+
+      <span class="comment">// Transforming SCSS file into CSS string</span>
+      &#123;
+        <span class="attr">test</span>: <span class="regexp">/\.scss$/</span>,
+        <span class="attr">use</span>: [
+          <span class="string">&#x27;raw-loader&#x27;</span>,
+          &#123;
+            <span class="attr">loader</span>: <span class="string">&#x27;sass-loader&#x27;</span>,
+            <span class="attr">options</span>: &#123;
+              <span class="attr">includePaths</span>: [path.<span class="title function_">resolve</span>(__dirname, <span class="string">&#x27;node_modules&#x27;</span>)]
+            &#125;
+          &#125;
+        ]
+      &#125;,
+    ]
+  &#125;,
+  <span class="attr">plugins</span>: [],
+&#125;;</code></pre>
+
+<p>在你的代码中可以导入SCSS文件：</p>
+<pre><code class="highlight js"><span class="comment">// Read SCSS file as a raw CSS text</span>
+<span class="keyword">import</span> styleText <span class="keyword">from</span> <span class="string">&#x27;./my-component.scss&#x27;</span>;
+
+<span class="keyword">const</span> sheet = <span class="keyword">new</span> <span class="title class_">CSSStyleSheet</span>();
+sheet.<span class="title function_">replaceSync</span>(styleText);</code></pre>
+
+<p>在Rollup.js中也可以进行类似的设置。此外，来自Polymer团队的新库<strong>LitElement</strong>已经在使用这种方法，并具有回退机制</p>
+<p>*注意：目前可构建的样式表是在Chromium系列的浏览器中实现。然而，通过合理的渐进式增强，为不支持的浏览器提供支持应该是容易的。</p>
+<h2 id="Under-the-hood-—-CSSOM"><a href="#Under-the-hood-—-CSSOM" class="headerlink" title="Under the hood — CSSOM"></a>Under the hood — CSSOM</h2><p>*如果你对其中细节不感兴趣，可以跳过这一节。</p>
+<p>如果HTML被转化为DOM，那么CSS则被转化为CSSOM。这些都是独立的数据结构。最终的渲染树是由这两个数据结构构建的。作为一个前端开发者，理解CSSOM的机制其实并不重要，因此它是一个不太知名的概念。</p>
+<p>粗略地说，一个<code>&lt;link type=&#39;text/css&#39; href=&#39;&#39;/&gt;</code>标签对应一个CSS样式表。它在CSSOM中由CSSStyleSheet接口表示。一个CSSStyleSheet由多个规则组成。每个规则由CSSRule接口表示。</p>
+<p>要访问document上的CSSStyleSheet对象，你可以使用 <code>document.styleSheets</code> 属性。实际上，如果你想创建一个CSSStyleSheet对象，你必须创建一个样式标签，然后将其添加到document中并使用sheet属性：</p>
+<pre><code class="highlight js"><span class="keyword">const</span> styleNode = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;style&#x27;</span>);
+<span class="comment">// It is important to add style node to the document</span>
+<span class="variable language_">document</span>.<span class="property">head</span>.<span class="title function_">appendChild</span>(styleNode);
+<span class="keyword">const</span> sheet = styleNode.<span class="property">sheet</span>;</code></pre>
+
+<p>然后，可构建的样式表启用了两个API — <code>CSSStyleSheet()</code>构造函数和<code>document.adoptedStyleSheets</code>。</p>
+<blockquote>
+<p>有了可构造的样式表，你可以使用CSSStyleSheet()构造函数来创建样式表</p>
+</blockquote>
+<p>在Shadow Roots和Documents上 <code>adoptedStyleSheets</code> 是可用的。它允许我们将一个CSSStyleSheet定义的样式应用到一个给定的DOM子树上。另需要注意，adoptedStyleSheets是一个不可变的数组，因此 <code>push</code> 或 <code>splice</code> 会不起作用。</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:2000/format:webp/1*xQyzox2_i0wMUZh6wJm_DA.png"></p>
+<p>就CSSRule而言，有许多CSSRule type都扩展了CSSRule interface。以下是MDN提供的一个所有规则的列表：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/API/CSSRule">CSSRule MDN</a></li>
+</ul>
+<p>CSS Object MOdel是很庞大的，而且一直都在不停的发展，你可以在下面找到详细的信息：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/API/CSS_Object_Model">CSS Object Model (CSSOM)</a></li>
+</ul>
+<p>另外，不要忘记新的 CSS Typed Object Model正在积极开发中，它肯定会对如何用JS编写CSS产生影响，你可以在下面的文章中找到更多关于它的内容：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.chrome.com/blog/cssom/">Working with the new CSS Typed Object Model</a></li>
+</ul>
+<h2 id="Side-notes"><a href="#Side-notes" class="headerlink" title="Side notes"></a>Side notes</h2><p>不管你是在Shadow DOM中如何处理style，你都应该牢记以下几项：</p>
+<ul>
+<li>您可以通过使用<code>@import</code>语句来在 Shadow DOM 中使用外部样式</li>
+<li>插槽可以通过全局CSS或容器组件的样式表进行设置</li>
+<li>CSS自定义属性可以跨越Shadow DOM边界使用和修改</li>
+</ul>
+<p>因此，这些自定义属性是从外部处理 ShadowDOM 样式的首选</p>
+<ul>
+<li>除了自定义属性外，还可以使用新的CSS选择器，如 <code>:host</code>、<code>:part</code>、<code>:theme</code>，进一步提供来自外部的样式定制</li>
+<li>在很大程度上，使用Shadow DOM进行样式封装是替代CSS-in-JS方法的很好选择</li>
+<li>虚拟组件(没有元素的组件，如Vue的<code>&lt;router-view /&gt;</code>或React的<code>&lt;Route /&gt;</code>)是不可能使用Web Components</li>
+<li>Web Components非常适合替代子组件，如输入框、面板、卡片、选择器等</li>
+</ul>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/06/10/%E3%80%90%E7%BF%BB%E3%80%91Why-Japanese-Websites-Look-So-Different/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#The-naive-way-%E2%80%94-Plain-lt-style-gt-tag"><span class="toc-text">The naive way — Plain &lt;style&gt; tag</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Can-we-do-something-better"><span class="toc-text">Can we do something better?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Enter-the-Constructible-Stylesheets"><span class="toc-text">Enter the Constructible Stylesheets</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Using-with-Webpack-and-SCSS"><span class="toc-text">Using with Webpack and SCSS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Under-the-hood-%E2%80%94-CSSOM"><span class="toc-text">Under the hood — CSSOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Side-notes"><span class="toc-text">Side notes</span></a></li></ol></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/06/17/%E3%80%90%E7%BF%BB%E3%80%91On%20Styling%20Web%20Components/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/06/17/【翻】On Styling Web Components/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
