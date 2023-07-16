@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】Resource optimization in Node.js | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/JavaScript/">
+                            JavaScript
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Node-js/">
+                            Node.js
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】Resource optimization in Node.js
+            
+            
+        </div>
+        <span class="post-date">
+            7月 15, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://medium.com/pipedrive-engineering/resource-optimization-in-node-js-c90c731f9df4">Resource optimization in Node.js</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>在这篇文章中，我们将探索Node.js最大优化的可能性，并了解资源共享的好处，反证每个请求都必须隔离的假设。加入我们，发掘Node.js的全部潜力，了解资源优化如何提高应用程序的性能和效率。</p>
+<p>我们都知道Node.js速度快，单线程，无阻塞，但我们在开发中是否充分利用了呢？大多数情况下的答案是”没有”</p>
+<p>因为它是单线程的，我们往往会忘记我们仍然有几个类似线程的执行方式！所以我们可以改进代码的执行方式，将线程获得的资源提供给其他线程使用，从而减少这些宝贵资源的负载。</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*4Y7nbW1YwR2kEX-2hq16vA.png"></p>
+<p>假设我们有一个端点调用一个API，并且该端点同时被许多客户端调用。因此，当第一个请求到达并需要调用该API时，第二个请求也到达并调用与第一个请求完全相同的API，为什么不共享它呢？</p>
+<p>开发人员经常有个错误的假设，认为在Node.js服务器上工作时，每个请求都必须与其他请求完全隔离，每个请求都需要在与其他请求隔离的情况下进行调用和数据库请求。</p>
+<p>事实并非如此。</p>
+<p>如果满足某些情况，请求可以共享同一个资源：</p>
+<ul>
+<li>首先这个请求不是客户特定数据，或者没有使用 authentication token （我们绝不能混合这些请求，这意味着我们需要知道谁提出了请求）。</li>
+<li>请求数据确保是完全相同。</li>
+<li>我们要确保如果发生错误，不会将信息泄露给其他客户端(导致GDPR问题)，可以通过记录原始错误并向所有客户端发送一个通用错误来避免。</li>
+<li>最后，它需要是一个频繁调用的请求，最好是需要一些时间来执行，这样资源共享对多个执行请求来说才有好处，否则好处几乎不会察觉</li>
+</ul>
+<p>关于请求流程，请查看下图，每一行代表一个请求，每个颜色条代表使用资源所花费的时间。因为每个请求都是完全独立的，我们并没有共享资源，而当应用程序进行数千个并发请求时这通常很重要，并且不容易解决。</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*OyXUNpB0IYVS9pT780KbIw.png"></p>
+<p>当我们拥有非常专门化的服务时，我们可能会有多个请求请求完全相同的资源，这是改进我们应用程序的机会。</p>
+<p>请看，一些调用被Promise替代了。这是因为同样的资源已经被获取，所以我们决定共享它而不是再次调用，从而减轻资源的负载。</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*vCkIw3uTwjUSTsoAj6V5iA.png"></p>
+<p>在Java等语言中，开发者使用同步方法来控制资源访问。而对于Node.js有个好处，由于Node.js的架构，不需要对 mutexes 或 semaphores 进行昂贵的系统调用，这使得Node.js的速度更快。</p>
+<p>当然，在这个例子中，我说的是服务的单个实例。在多个服务实例上进行此操作稍微复杂一下。尽管概念是相似的（我正在研究更高级的分布式模式）</p>
+<p>这个优化点的有趣之处不仅在于节省资源，实际上，它还能让你的应用程序变得更快。你可能会问。怎么可能？让我们假设一个操作耗时200ms，并且同一操作的任何后续请求都会重复使用该操作。这意味着，在这200ms内任何传入的请求都将重用该结果，即使它是在初始操作开始1ms后或200ms后开始的，因此重用操作平均耗时200ms&#x2F;2&#x3D;100ms。</p>
+<p>通过重复这些操作，你将平均节省一半的时间，这是一个极大的优化。</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*uA-88yStVJNi_bhp9SKX0A.png"></p>
+<p>除非你在类似 transaction 的操作范围内运行，或者在API调用时使用了特定的 用户token（在这种情况下，你不应该共享由此产生的数据），除此之外你可以毫无顾虑地共享大部分常见操作数据。</p>
+<p>那我们如何实现这个目标，Promise 就是答案</p>
+<p>当我们检测到对资源的调用已经开始时，我们不启动对它的另一个调用，而是返回一个Promise来表示其结果(or failure)。这样，就可以避免对API、数据库查询或任何需要调用的并发请求，从而降低资源负载。</p>
+<p>我们来实现一个简单的调用，它需要一些时间并返回一个结果。为此，我们要将几个值乘以200ms的延迟，这将代表我们的API调用或数据库查询：</p>
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; delay &#125; <span class="keyword">from</span> <span class="string">&#x27;ts-timeframe&#x27;</span>;
+
+<span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">simulatedCall</span>(<span class="params">a: <span class="built_in">number</span>, b: <span class="built_in">number</span></span>) &#123;
+  <span class="comment">// these 3 lines represent our call</span>
+  <span class="keyword">await</span> <span class="title function_">delay</span>(<span class="number">200</span>);
+  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`calculated <span class="subst">$&#123;a&#125;</span> * <span class="subst">$&#123;b&#125;</span>`</span>);
+  <span class="keyword">return</span> a * b;
+&#125;
+
+<span class="comment">// our data fetching function, could be an API call, db query, whatever slow promise is needed</span>
+<span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">costlyFunction</span>(<span class="params">a: <span class="built_in">number</span>, b: <span class="built_in">number</span></span>): <span class="title class_">Promise</span>&lt;<span class="built_in">number</span>&gt; &#123;
+  <span class="keyword">return</span> <span class="title function_">simulatedCall</span>(a, b);
+&#125;
+
+<span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">main</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> values = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>([
+    <span class="title function_">costlyFunction</span>(<span class="number">4</span>, <span class="number">5</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">4</span>, <span class="number">5</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">4</span>, <span class="number">5</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">50</span>, <span class="number">2</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">50</span>, <span class="number">2</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">50</span>, <span class="number">2</span>),
+  ]);
+
+  <span class="variable language_">console</span>.<span class="title function_">log</span>(values);
+&#125;
+
+<span class="title function_">main</span>();</code></pre>
+
+<p>当我们执行这段代码时，得到了预期的结果，没有任何意外。我们调用该函数6次，每次等待200ms</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*0X2mg3xU-XhG-W6YmR26YQ.png"></p>
+<p>现在，让我们改变这些代码，利用之前的模式来改进我们的应用程序。这次我们将使用 <code>OperationRegistry</code> 来管理我们的调用，更重要的是，我们将创建一个唯一的key来标识我们在注册表中的操作。</p>
+<p>完成后，我们会调用 <code>isExecuting</code> 函数查看它是否返回一个Promise。如果是，这意味着另一个执行正在进行中，我们只需返回等待结果的Promise。否则，我们执行调用，将结果传播给所有待执行的Promise，并返回我们的值，根据操作是否成功，可以通过 <code>triggerAwaitingResolves</code> 或 <code>triggerAwaitingRejects</code> 将结果传递给特定 Promise</p>
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; delay &#125; <span class="keyword">from</span> <span class="string">&#x27;ts-timeframe&#x27;</span>;
+<span class="keyword">import</span> &#123; <span class="title class_">OperationRegistry</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;reliable-caching&#x27;</span>;
+
+<span class="keyword">const</span> operationRegistry = <span class="keyword">new</span> <span class="title class_">OperationRegistry</span>(<span class="string">&#x27;costlyFunction&#x27;</span>);
+
+<span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">simulatedCall</span>(<span class="params">a: <span class="built_in">number</span>, b: <span class="built_in">number</span></span>) &#123;
+  <span class="comment">// these 3 lines represent our call</span>
+  <span class="keyword">await</span> <span class="title function_">delay</span>(<span class="number">200</span>);
+  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`calculated <span class="subst">$&#123;a&#125;</span> * <span class="subst">$&#123;b&#125;</span>`</span>);
+  <span class="keyword">return</span> a * b;
+&#125;
+
+<span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">costlyFunction</span>(<span class="params">a: <span class="built_in">number</span>, b: <span class="built_in">number</span></span>): <span class="title class_">Promise</span>&lt;<span class="built_in">number</span>&gt; &#123;
+  <span class="keyword">const</span> uniqueOperationKey = <span class="string">`<span class="subst">$&#123;a&#125;</span>:<span class="subst">$&#123;b&#125;</span>`</span>;
+  <span class="keyword">const</span> promiseForResult = operationRegistry.<span class="property">isExecuting</span>&lt;<span class="built_in">number</span>&gt;(uniqueOperationKey);
+
+  <span class="comment">// a promise means execution for the same key is ongoing, we just need to await for it</span>
+  <span class="keyword">if</span> (promiseForResult) &#123;
+    <span class="keyword">return</span> promiseForResult;
+  &#125;
+
+  <span class="keyword">try</span> &#123;
+    <span class="comment">// otherwise we call it</span>
+    <span class="keyword">const</span> value = <span class="keyword">await</span> <span class="title function_">simulatedCall</span>(a, b);
+
+    <span class="comment">// pass value to awaiting promises (in next event loop, to avoid delaying current execution)</span>
+    operationRegistry.<span class="title function_">triggerAwaitingResolves</span>(uniqueOperationKey, value);
+
+    <span class="comment">// return value to current execution</span>
+    <span class="keyword">return</span> value;
+  &#125; <span class="keyword">catch</span> (e) &#123;
+    <span class="comment">// pass error to awaiting rejects (in next event loop, to avoid delaying current execution)</span>
+    operationRegistry.<span class="title function_">triggerAwaitingRejects</span>(uniqueOperationKey, e);
+
+    <span class="comment">// throw exception to current execution</span>
+    <span class="keyword">throw</span> e;
+  &#125;
+&#125;
+
+<span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">main</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> values = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>([
+    <span class="title function_">costlyFunction</span>(<span class="number">4</span>, <span class="number">5</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">4</span>, <span class="number">5</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">4</span>, <span class="number">5</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">50</span>, <span class="number">2</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">50</span>, <span class="number">2</span>),
+    <span class="title function_">costlyFunction</span>(<span class="number">50</span>, <span class="number">2</span>),
+  ]);
+
+  <span class="variable language_">console</span>.<span class="title function_">log</span>(values);
+&#125;
+
+<span class="title function_">main</span>();</code></pre>
+
+<p>让我们看看当第二次执行这段代码时会发生什么：</p>
+<p><img src="https://miro.medium.com/v2/resize:fit:1400/format:webp/1*YRX9-tGj6Gwaciiudtj13Q.png"></p>
+<p>结果完全相同，但我们的函数只调用了2次，而不是之前的6次，每个key被调用一次。当然，只有当你多次执行相同的操作，或者因为操作耗时过长，或者因为操作频繁发生时，这种模式才是有益的。</p>
+<p>但是有一个问题：错误和结果是所有执行共享的，所以要非常注意不要污染共享的结果，否则可能会出现意想不到的错误。如果需要更改对象，不要忘记克隆它。</p>
+<p>Conclusions:</p>
+<ul>
+<li>虽然这并非易事，但对于并发应用程序来说，它能带来很大的好处，因为资源非常稀缺。此外，正如我们在本文中所解释的，这不仅可以释放这些资源，还可以提高应用程序的运行时间。</li>
+<li>这个改变会对频繁调用的操作产生巨大影响，更重要的是，它可以节省资源并提高系统稳定性。即使是微不足道的收益，也能帮助我们缩短P99的响应时间，这一点非常重要。</li>
+<li>如果在此基础上添加缓冲，效果更好！想象一下，如果不只是在单个实例上节省资源，而是在服务的所有实例之间节省这些资源，会有什么好处，因为这样就更有可能在多个实例中共享常用资源。</li>
+<li>这些小细节是区分优秀的微服务架构和一般的微服务架构的关键所在，因为CPU功率和内存并不能解决所有问题，而拥有优化的服务才是区分胜者和败者的关键所在。</li>
+</ul>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/07/01/%E3%80%90%E7%BF%BB%E3%80%91How-to-Use-ChatGPT-to-Learn-a-Language-And-Practice-It/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/07/15/%E3%80%90%E7%BF%BB%E3%80%91Resource-optimization-in-Node-js/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/07/15/【翻】Resource-optimization-in-Node-js/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
