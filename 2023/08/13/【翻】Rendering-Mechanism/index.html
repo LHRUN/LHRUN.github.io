@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】Rendering Mechanism | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Vue/">
+                            Vue
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】Rendering Mechanism
+            
+            
+        </div>
+        <span class="post-date">
+            8月 13, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://vuejs.org/guide/extras/rendering-mechanism.html">Rendering Mechanism</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>Vue 是如何将 template 转换为真实的DOM节点？又是如何高效地更新这些节点？接下来我们会通过研究Vue内部的渲染机制，来解释这些问题。</p>
+<h2 id="Virtual-DOM"><a href="#Virtual-DOM" class="headerlink" title="Virtual DOM"></a>Virtual DOM</h2><p>你也许听过”虚拟DOM”这个概念，Vue的渲染就是基于它实现的</p>
+<p>虚拟DOM（VDOM）是一个编程概念，他将用户所需的界面通过虚拟节点(对象结构)保存在内存中，并与真实的DOM节点同步。这个概念是由 React 首创，并被Vue在内的许多其他框架以不同的实现方式采用</p>
+<p>虚拟DOM更像是一种模式，而不是一种特定的技术，因此不存在某种标准的实现方式，我们可以通过一个简单的例子来说明：</p>
+<pre><code class="highlight js"><span class="keyword">const</span> vnode = &#123;
+  <span class="attr">type</span>: <span class="string">&#x27;div&#x27;</span>,
+  <span class="attr">props</span>: &#123;
+    <span class="attr">id</span>: <span class="string">&#x27;hello&#x27;</span>
+  &#125;,
+  <span class="attr">children</span>: [
+    <span class="comment">/* more vnodes */</span>
+  ]
+&#125;</code></pre>
+
+<p>在上面这个例子中，vnode 是一个纯 JavaScript 对象，表示一个 <code>&lt;div&gt;</code>元素。它包含了我们创建真实DOM所需的所有信息。它还包含了更多的子节点，这就使它成为了虚拟DOM树的根节点。</p>
+<p>然后一个运行时的渲染器(runtime renderer)遍历这个虚拟DOM树，并使其构建为一个真实的DOM树，这一过程称为挂载(mount)。</p>
+<p>如果我们有两个虚拟DOM树，渲染器也可以对这个树进行遍历和对比，找出不同之处。然后将这些不同之处的更改应用到真实DOM上。这个过程称为 patch，也可以称为”diffing”或者”reconciliation”</p>
+<p>虚拟DOM的主要优势在于，可以让开发人员以声明的方式，创建、检查和组合所需的用户界面结构，而真实DOM的操作就留给渲染器去实现</p>
+<h2 id="Render-Pipeline"><a href="#Render-Pipeline" class="headerlink" title="Render Pipeline"></a>Render Pipeline</h2><p>从高层次来看，挂载Vue组件时会发生以下几件事：</p>
+<ol>
+<li><p><strong>Compile</strong>：Vue 模版会被编译成渲染函数：渲染函数会返回虚拟DOM树，这一步可以是在构建之前完成，也可以在运行时渲染器即时完成的。</p>
+</li>
+<li><p><strong>Mount</strong>：运行时渲染器会调用渲染函数，然后遍历返回的虚拟DOM树，并以此创建真实DOM节点。这一步是在响应式副作用中执行，因此它会跟踪所有使用过的响应式依赖项。</p>
+</li>
+<li><p><strong>Patch</strong>：当挂载期间使用过的依赖数据发生变化时，副作用会重新运行。这时，会创建一个新的并且经过更新的虚拟DOM树。然后运行时渲染器会遍历新的DOM树，并与旧的DOM树进行对比，并将必要的更新应用到真实DOM上。</p>
+</li>
+</ol>
+<p><img src="https://cn.vuejs.org/assets/render-pipeline.03805016.png"></p>
+<h2 id="Templates-vs-Render-Functions"><a href="#Templates-vs-Render-Functions" class="headerlink" title="Templates vs. Render Functions"></a>Templates vs. Render Functions</h2><p>Vue模版会被编译成虚拟DOM渲染函数。另外Vue也提供了一些API可以跳过模版编译阶段直接编写渲染函数。当你在处理高度动态的逻辑时，直接编写渲染函数比模版更加灵活，因为你可以使用javascript的全部功能来处理 vnodes</p>
+<p>那为什么Vue默认推荐使用模版呢？有几个原因：</p>
+<ol>
+<li><p>模版更接近真实的HTML。这样就更容易的复用现有的HTML代码段，并有更好的可读性，更能方便地使用CSS样式，并且设计师更容易理解和修改。</p>
+</li>
+<li><p>模版的语法更加确定，因此更容易进行静态分析。这就可以让Vue的模版编译器在编译时有更多的优化，以提高虚拟DOM的性能(这个我们会在下面讨论)。</p>
+</li>
+</ol>
+<p>在实践中，模版足以满足应用中的大多用例。渲染函数通常只需要处理高度动态渲染逻辑的可重用组件。如果想了解更多渲染函数的使用，可以去 <a target="_blank" rel="noopener" href="https://vuejs.org/guide/extras/render-function.html"><strong>Render Functions &amp; JSX</strong></a> 中继续阅读</p>
+<h2 id="Compiler-Informed-Virtual-DOM"><a href="#Compiler-Informed-Virtual-DOM" class="headerlink" title="Compiler-Informed Virtual DOM"></a>Compiler-Informed Virtual DOM</h2><p>React 中的虚拟DOM和大多数虚拟DOM实现都是单纯的运行时实现：reconciliation 算法无法预知传入的虚拟DOM树，所以它必须完全遍历，并对比每个vnode的props，以确保正确性。另外 ，即使DOM树的其中一部分从未改变，每次重新渲染时也会为它们创建新的vnode，从而造成不必要的内存压力。这也是虚拟DOM最为人诟病的地方之一：粗暴的更新过程牺牲了效率，却换来了代码的声明性和正确性</p>
+<p>但其实不必如此。在Vue中，框架同时控制了编译器和运行时。这可以让我们实现许多编译时的优化，只有编译时和渲染时紧密耦合才能利用这些优化。编译器可以静态分析模版，并在生成的代码中留下提示，这样运行时就可能通过这些提示走捷径。同时，我们仍然保留了用户在某些边界情况想要使用底层渲染函数的能力。我们将这种混合实现称为带编译时信息的虚拟 DOM (Compiler-Informed Virtual DOM)</p>
+<p>在下面，我们将讨论Vue编译器为提高虚拟DOM运行时性能而进行的几项主要优化。</p>
+<h3 id="Static-Hoisting"><a href="#Static-Hoisting" class="headerlink" title="Static Hoisting"></a>Static Hoisting</h3><p>在模版中经常会出现不包含任何动态绑定的部分：</p>
+<pre><code class="highlight js">&lt;div&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>foo<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span> &lt;!-- hoisted --&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>bar<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span> &lt;!-- hoisted --&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; dynamic &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+&lt;/div&gt;
+
+<span class="comment">// ==&gt; after compile</span>
+
+<span class="keyword">import</span> &#123; createElementVNode <span class="keyword">as</span> _createElementVNode, createCommentVNode <span class="keyword">as</span> _createCommentVNode, toDisplayString <span class="keyword">as</span> _toDisplayString, openBlock <span class="keyword">as</span> _openBlock, createElementBlock <span class="keyword">as</span> _createElementBlock &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span>
+
+<span class="keyword">const</span> _hoisted_1 = <span class="comment">/*#__PURE__*/</span><span class="title function_">_createElementVNode</span>(<span class="string">&quot;div&quot;</span>, <span class="literal">null</span>, <span class="string">&quot;foo&quot;</span>, -<span class="number">1</span> <span class="comment">/* HOISTED */</span>)
+<span class="keyword">const</span> _hoisted_2 = <span class="comment">/*#__PURE__*/</span><span class="title function_">_createElementVNode</span>(<span class="string">&quot;div&quot;</span>, <span class="literal">null</span>, <span class="string">&quot;bar&quot;</span>, -<span class="number">1</span> <span class="comment">/* HOISTED */</span>)
+
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params">_ctx, _cache, $props, $setup, $data, $options</span>) &#123;
+  <span class="keyword">return</span> (<span class="title function_">_openBlock</span>(), <span class="title function_">_createElementBlock</span>(<span class="string">&quot;div&quot;</span>, <span class="literal">null</span>, [
+    _hoisted_1,
+    <span class="title function_">_createCommentVNode</span>(<span class="string">&quot; hoisted &quot;</span>),
+    _hoisted_2,
+    <span class="title function_">_createCommentVNode</span>(<span class="string">&quot; hoisted &quot;</span>),
+    <span class="title function_">_createElementVNode</span>(<span class="string">&quot;div&quot;</span>, <span class="literal">null</span>, <span class="title function_">_toDisplayString</span>(_ctx.<span class="property">dynamic</span>), <span class="number">1</span> <span class="comment">/* TEXT */</span>)
+  ]))
+&#125;</code></pre>
+
+<p><code>foo</code> 和 <code>bar</code>的<code>div</code>元素是静态的，因此在每次重新渲染时重新创建vnode并进行diffing处理是没必要的。Vue编译器会自动将静态部分从渲染函数中移出到外面，并在每次渲染时重复使用相同的vnode。当渲染器发现旧的vnode和新的vnode是同一个时，它还可以完全跳过它们的diffing处理</p>
+<p>此外，如果有足够多的连续静态元素，它们将组合成一个”静态vnode”，其中包含这些节点的纯HTML字符串。然后这些vnode可以直接通过<code>innerHTML</code>来加载。在初始挂载时，它们也会缓存相应的DOM节点，如果同一内容在应用的其他地方重复使用后，就会通过本地的<code>cloneNode()</code>创建新的DOM节点，这样做会非常高效。</p>
+<h3 id="Patch-Flags"><a href="#Patch-Flags" class="headerlink" title="Patch Flags"></a>Patch Flags</h3><p>对于动态绑定的单个元素，我们也可以在编译时从中推断出很多信息：</p>
+<pre><code class="highlight js">&lt;!-- <span class="keyword">class</span> <span class="title class_">binding</span> only --&gt;
+<span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">:class</span>=<span class="string">&quot;&#123; active &#125;&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+
+&lt;!-- id and value bindings only --&gt;
+<span class="language-xml"><span class="tag">&lt;<span class="name">input</span> <span class="attr">:id</span>=<span class="string">&quot;id&quot;</span> <span class="attr">:value</span>=<span class="string">&quot;value&quot;</span>&gt;</span></span>
+<span class="language-xml"></span>
+<span class="language-xml"><span class="comment">&lt;!-- text children only --&gt;</span></span>
+<span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; dynamic &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+<span class="language-xml"></span>
+<span class="language-xml">// ==&gt; after compile</span>
+<span class="language-xml"></span>
+<span class="language-xml">import &#123; normalizeClass as _normalizeClass, createElementVNode as _createElementVNode, toDisplayString as _toDisplayString, Fragment as _Fragment, openBlock as _openBlock, createElementBlock as _createElementBlock &#125; from &quot;vue&quot;</span>
+<span class="language-xml"></span>
+<span class="language-xml">export function render(_ctx, _cache, $props, $setup, $data, $options) &#123;</span>
+<span class="language-xml">  return (_openBlock(), _createElementBlock(_Fragment, null, [</span>
+<span class="language-xml">    _createElementVNode(&quot;div&quot;, &#123;</span>
+<span class="language-xml">      class: _normalizeClass(&#123; active: _ctx.active &#125;)</span>
+<span class="language-xml">    &#125;, null, 2 /* CLASS */),</span>
+<span class="language-xml">    _createElementVNode(&quot;input&quot;, &#123;</span>
+<span class="language-xml">      id: _ctx.id,</span>
+<span class="language-xml">      value: _ctx.value</span>
+<span class="language-xml">    &#125;, null, 8 /* PROPS */, [&quot;id&quot;, &quot;value&quot;]),</span>
+<span class="language-xml">    _createElementVNode(&quot;div&quot;, null, _toDisplayString(_ctx.dynamic), 1 /* TEXT */)</span>
+<span class="language-xml">  ], 64 /* STABLE_FRAGMENT */))</span>
+<span class="language-xml">&#125;</span>
+<span class="language-xml"></span></code></pre>
+
+<p>在为这些元素生成渲染函数代码时，Vue会在vnode创建调用中直接编码每个元素所需的更新类型：</p>
+<pre><code class="highlight js"><span class="title function_">createElementVNode</span>(<span class="string">&quot;div&quot;</span>, &#123;
+  <span class="attr">class</span>: <span class="title function_">_normalizeClass</span>(&#123; <span class="attr">active</span>: _ctx.<span class="property">active</span> &#125;)
+&#125;, <span class="literal">null</span>, <span class="number">2</span> <span class="comment">/* CLASS */</span>)</code></pre>
+
+<p>最后一个参数2是patch flag。一个元素可以有多个flag，这些flag会合并成一个数字。然后，运行时渲染器可以通过位运算检查这些flag，用于确定是否需要执行某些更新操作：</p>
+<pre><code class="highlight js"><span class="keyword">if</span> (vnode.<span class="property">patchFlag</span> &amp; <span class="title class_">PatchFlags</span>.<span class="property">CLASS</span> <span class="comment">/* 2 */</span>) &#123;
+  <span class="comment">// update the element&#x27;s class</span>
+&#125;</code></pre>
+
+<p>位运算检查速度极快。有了patch flags，Vue就能通过最少的更新操作来更新具有动态绑定的元素</p>
+<p>Vue还会给vnode的子节点类型进行编码。例如，具有多个根节点的模版被表示为一个片段。在大多数情况下，我们可以确定这些根节点的顺序永远不会改变，所以可以将这个信息通过标记提供给运行时</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> (<span class="title function_">_openBlock</span>(), <span class="title function_">_createElementBlock</span>(_Fragment, <span class="literal">null</span>, [
+    <span class="comment">/* children */</span>
+  ], <span class="number">64</span> <span class="comment">/* STABLE_FRAGMENT */</span>))
+&#125;
+</code></pre>
+
+<p>所以，运行时可以完全跳过根片段的子序列顺序的协调过程</p>
+<h3 id="Tree-Flattening"><a href="#Tree-Flattening" class="headerlink" title="Tree Flattening"></a>Tree Flattening</h3><p>再看一下上一个示例中生成的代码，你会发现返回的虚拟DOM树的根是通过一个特殊的 <code>createElementBlock()</code>调用创建的：</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">render</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> (<span class="title function_">_openBlock</span>(), <span class="title function_">_createElementBlock</span>(_Fragment, <span class="literal">null</span>, [
+    <span class="comment">/* children */</span>
+  ], <span class="number">64</span> <span class="comment">/* STABLE_FRAGMENT */</span>))
+&#125;</code></pre>
+
+<p>从概念上看，“block”是模版中具有稳定内部结构的一部分。在这个示例中，整个模版只有一个block，因为它不包含任何结构指令，如<code>v-if</code>和<code>v-for</code></p>
+<p>每个block都会追踪任何有patch flags的后代节点(不只是直接子节点)。例如：</p>
+<pre><code class="highlight js">&lt;div&gt; &lt;!-- root block --&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>         &lt;!-- not tracked --&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">:id</span>=<span class="string">&quot;id&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>   &lt;!-- tracked --&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>                  <span class="comment">&lt;!-- not tracked --&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; bar &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span> <span class="comment">&lt;!-- tracked --&gt;</span></span>
+<span class="language-xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+&lt;/div&gt;</code></pre>
+
+<p>这个结果是一个只包含动态子节点的扁平化数组：</p>
+<pre><code class="highlight js">div (block root)
+- div <span class="keyword">with</span> :id binding
+- div <span class="keyword">with</span> &#123;&#123; bar &#125;&#125; binding</code></pre>
+
+<p>当组件需要重新渲染时，它只需要遍历这个扁平化的树而不是整棵树。这就所谓的 Tree Flattening，它大大减少了虚拟DOM协调过程中需要遍历的节点数量。模版中的任何静态部分都会高效略过。</p>
+<p><code>v-if</code>和<code>v-for</code>会创建新的block节点：</p>
+<pre><code class="highlight js">&lt;div&gt; &lt;!-- root block --&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">v-if</span>&gt;</span> <span class="comment">&lt;!-- if block --&gt;</span></span>
+<span class="language-xml">      ...</span>
+<span class="language-xml">    <span class="tag">&lt;<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+<span class="language-xml"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></code></pre>
+
+<p>子block会在父block的动态后代数组中进行追踪。这就为父block保留了一个稳定的结构。</p>
+<h2 id="Impact-on-SSR-Hydration"><a href="#Impact-on-SSR-Hydration" class="headerlink" title="Impact on SSR Hydration"></a>Impact on SSR Hydration</h2><p>patch flags 和 tree flattening 也会提高Vue的 <a target="_blank" rel="noopener" href="https://vuejs.org/guide/scaling-up/ssr.html#client-hydration">SSR Hydration</a> 性能：</p>
+<ul>
+<li>单个元素的 hydration 可以根据 vnode 的 path flag 走更快的捷径。</li>
+<li>只有block节点和其动态子节点在进行 hydration 时需要进行遍历，从而在模板级别实现部分 hydration。</li>
+</ul>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/08/08/%E3%80%90%E7%BF%BB%E3%80%91AI%E2%80%99s-black-swans-Unforeseen-consequences-looming/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Virtual-DOM"><span class="toc-text">Virtual DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Render-Pipeline"><span class="toc-text">Render Pipeline</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Templates-vs-Render-Functions"><span class="toc-text">Templates vs. Render Functions</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Compiler-Informed-Virtual-DOM"><span class="toc-text">Compiler-Informed Virtual DOM</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Static-Hoisting"><span class="toc-text">Static Hoisting</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Patch-Flags"><span class="toc-text">Patch Flags</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Tree-Flattening"><span class="toc-text">Tree Flattening</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Impact-on-SSR-Hydration"><span class="toc-text">Impact on SSR Hydration</span></a></li></ol></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/08/13/%E3%80%90%E7%BF%BB%E3%80%91Rendering-Mechanism/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/08/13/【翻】Rendering-Mechanism/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
