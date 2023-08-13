@@ -126,14 +126,14 @@
             
                 
                     <span class="post-tag">
-                        <a href="/tags/Translate/">
-                            Translate
+                        <a href="/tags/pnpm/">
+                            pnpm
                         </a>
                     </span>    
                 
                     <span class="post-tag">
-                        <a href="/tags/pnpm/">
-                            pnpm
+                        <a href="/tags/Translate/">
+                            Translate
                         </a>
                     </span>    
                            
@@ -165,7 +165,7 @@
 <p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://pnpm.io/how-peers-are-resolved">How peers are resolved</a></p>
 </blockquote>
 <h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>pnpm最大的一个特点是，在一个项目中，一个特定版本的package总是有一组依赖关系。不过，这个规则有一个例外–有peer dependencies的packages</p>
-<p>在dependency graph中，peer dependencies是从更高级别的依赖中解析的，因为它们与它们的父依赖项共享相同的版本。这意味着如果<a href="mailto:&#x66;&#111;&#x6f;&#64;&#49;&#46;&#x30;&#x2e;&#x30;">&#x66;&#111;&#x6f;&#64;&#49;&#46;&#x30;&#x2e;&#x30;</a>有两个peer依赖项(bar@^1 和 baz@^1)，那么在同一个项目中它可能会有多个不同的依赖项集合</p>
+<p>在dependency graph中，peer dependencies是从更高级别的依赖中解析的，因为它们与它们的父依赖项共享相同的版本。这意味着如果<a href="mailto:&#x66;&#111;&#x6f;&#64;&#x31;&#46;&#x30;&#x2e;&#48;">&#x66;&#111;&#x6f;&#64;&#x31;&#46;&#x30;&#x2e;&#48;</a>有两个peer依赖项(bar@^1 和 baz@^1)，那么在同一个项目中它可能会有多个不同的依赖项集合</p>
 <pre><code class="highlight text">- foo-parent-1
   - bar@1.0.0
   - baz@1.0.0
@@ -175,7 +175,7 @@
   - baz@1.1.0
   - foo@1.0.0</code></pre>
 
-<p>在上面这个例子中，<a href="mailto:&#x66;&#x6f;&#111;&#64;&#x31;&#46;&#x30;&#46;&#48;">&#x66;&#x6f;&#111;&#64;&#x31;&#46;&#x30;&#46;&#48;</a>是在foo-parent-1和foo-parent-2安装的。这两个packages中都有bar和baz，但是他们依赖不同版本的baz。因此，<a href="mailto:&#102;&#111;&#111;&#64;&#49;&#46;&#x30;&#46;&#x30;">&#102;&#111;&#111;&#64;&#49;&#46;&#x30;&#46;&#x30;</a>有两个不同的依赖集：一个是<a href="mailto:&#98;&#97;&#122;&#x40;&#49;&#46;&#48;&#x2e;&#48;">&#98;&#97;&#122;&#x40;&#49;&#46;&#48;&#x2e;&#48;</a>，另一个是<a href="mailto:&#98;&#x61;&#x7a;&#64;&#x31;&#x2e;&#49;&#46;&#48;">&#98;&#x61;&#x7a;&#64;&#x31;&#x2e;&#49;&#46;&#48;</a>。为了支持这些用例，pnpm必须hand link <a href="mailto:&#x66;&#x6f;&#x6f;&#x40;&#x31;&#46;&#x30;&#x2e;&#x30;">&#x66;&#x6f;&#x6f;&#x40;&#x31;&#46;&#x30;&#x2e;&#x30;</a>，次数和不同的依赖集一样多。</p>
+<p>在上面这个例子中，<a href="mailto:&#102;&#x6f;&#111;&#64;&#49;&#46;&#x30;&#46;&#48;">&#102;&#x6f;&#111;&#64;&#49;&#46;&#x30;&#46;&#48;</a>是在foo-parent-1和foo-parent-2安装的。这两个packages中都有bar和baz，但是他们依赖不同版本的baz。因此，<a href="mailto:&#102;&#111;&#x6f;&#x40;&#x31;&#x2e;&#x30;&#x2e;&#48;">&#102;&#111;&#x6f;&#x40;&#x31;&#x2e;&#x30;&#x2e;&#48;</a>有两个不同的依赖集：一个是<a href="mailto:&#98;&#x61;&#122;&#x40;&#x31;&#46;&#x30;&#x2e;&#x30;">&#98;&#x61;&#122;&#x40;&#x31;&#46;&#x30;&#x2e;&#x30;</a>，另一个是<a href="mailto:&#98;&#x61;&#122;&#x40;&#49;&#x2e;&#49;&#x2e;&#48;">&#98;&#x61;&#122;&#x40;&#49;&#x2e;&#49;&#x2e;&#48;</a>。为了支持这些用例，pnpm必须hand link <a href="mailto:&#102;&#111;&#x6f;&#x40;&#x31;&#x2e;&#48;&#x2e;&#x30;">&#102;&#111;&#x6f;&#x40;&#x31;&#x2e;&#48;&#x2e;&#x30;</a>，次数和不同的依赖集一样多。</p>
 <p>通常，如果一个package没有peer依赖项，它会与其依赖项的symlinks一起hard linked到node_modules文件夹中，就像：</p>
 <pre><code class="highlight text">node_modules
 └── .pnpm
@@ -212,7 +212,7 @@
 
 <p>我们要么创建symlinks到<code>foo@1.0.0_bar@1.0.0+baz@1.0.0</code>中的foo，要么创建symlinks到<code>foo@1.0.0_bar@1.0.0+baz@1.1.0</code>中的foo。因此，Node.js模块解析可以找到正确的peers依赖项。</p>
 <p>如果一个package没有peer依赖项，但是有依赖于已在图中解析的同级依赖项的依赖项，那么这个transitive package可以以不同的依赖项集出现在项目中。例如，存在一个版本为<code>a@1.0.0</code>的包，它只有一个依赖项<code>b@1.0.0</code>。<code>b@1.0.0</code>有一个同级依赖项<code>c@^1</code>。<code>a@1.0.0</code>永远不会解析<code>b@1.0.0</code>的同级依赖项，所以它也会依赖于<code>b@1.0.0</code>的同级依赖项。</p>
-<p>下面是这个结构在<code>node_modules</code>中的样子，在这个例子中，<a href="mailto:&#x61;&#x40;&#x31;&#x2e;&#x30;&#46;&#48;">&#x61;&#x40;&#x31;&#x2e;&#x30;&#46;&#48;</a>需要在项目的<code>node_modules</code>中出现两次，一次和<code>c@1.0.0</code>，另一次和<code>c@1.1.0</code>解决。</p>
+<p>下面是这个结构在<code>node_modules</code>中的样子，在这个例子中，<a href="mailto:&#97;&#64;&#x31;&#46;&#48;&#x2e;&#x30;">&#97;&#64;&#x31;&#46;&#48;&#x2e;&#x30;</a>需要在项目的<code>node_modules</code>中出现两次，一次和<code>c@1.0.0</code>，另一次和<code>c@1.1.0</code>解决。</p>
 <pre><code class="highlight text">node_modules
 └── .pnpm
     ├── a@1.0.0_c@1.0.0
