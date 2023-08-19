@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】Reactivity in Depth | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Vue/">
+                            Vue
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】Reactivity in Depth
+            
+            
+        </div>
+        <span class="post-date">
+            8月 18, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://vuejs.org/guide/extras/reactivity-in-depth.html">Reactivity in Depth</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>Vue 最与众不同的功能之一就是其难以察觉的响应式系统。Vue的组件状态都是由javascript对象组成。当你修改它们时，视图就会更新。这就使状态管理变得简单直观，但如果能了解它是如何工作的也可以避免一些常见的问题。在本节中，我们会深入探讨Vue响应式系统的一些底层细节。</p>
+<h2 id="What-is-Reactivity"><a href="#What-is-Reactivity" class="headerlink" title="What is Reactivity?"></a>What is Reactivity?</h2><p>近来，这个术语在编程的讨论中出现频率很高，但当人们说这个词时是什么意思呢？响应式本质上是一种编程范式，它允许我们以声明的方式处理变化。一个经常拿来展示的例子就是Excel表格</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>1</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>3</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p>这里的单元格A2是通过公式 A0 + A1 定义的(你可以点击A2查看或编辑公式)，所以得出结果为3。没有问题，但如果更新A0或者A1，你会发现A2也会自动更新。</p>
+<p>当然javascript通常不是这样工作。如果我们用javascript写一个相似的逻辑：</p>
+<pre><code class="highlight js"><span class="keyword">let</span> <span class="variable constant_">A0</span> = <span class="number">1</span>
+<span class="keyword">let</span> <span class="variable constant_">A1</span> = <span class="number">2</span>
+<span class="keyword">let</span> <span class="variable constant_">A2</span> = <span class="variable constant_">A0</span> + <span class="variable constant_">A1</span>
+
+<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable constant_">A2</span>) <span class="comment">// 3</span>
+
+<span class="variable constant_">A0</span> = <span class="number">2</span>
+<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable constant_">A2</span>) <span class="comment">// Still 3</span></code></pre>
+
+<p>当我们改变A0时，A2不会自动改变。</p>
+<p>那么，该如何用javascript实现这一功能呢？首先，为了重新运行更新A2的代码，我们可以用一个函数来封装它：</p>
+<pre><code class="highlight js"><span class="keyword">let</span> <span class="variable constant_">A2</span>
+
+<span class="keyword">function</span> <span class="title function_">update</span>(<span class="params"></span>) &#123;
+  <span class="variable constant_">A2</span> = <span class="variable constant_">A0</span> + <span class="variable constant_">A1</span>
+&#125;</code></pre>
+
+<p>然后，我们需要定义几个术语：</p>
+<ul>
+<li>首先<code>update()</code>函数会产生副作用，简称“effect”，因为它会修改程序的状态。</li>
+<li><code>A0</code>和<code>A1</code>是 effect 的依赖项，因为它们的值是用于执行effect。可以说，effect是其依赖项的订阅者</li>
+</ul>
+<p>我们需要一个魔法函数，可以在<code>A0</code>或<code>A1</code>发生变化时调用<code>update()</code></p>
+<pre><code class="highlight js"><span class="title function_">whenDepsChange</span>(update)</code></pre>
+
+<p>这个<code>whenDepsChange()</code>函数有以下任务：</p>
+<ol>
+<li>追踪变量何时被读取。比如，在计算表达式<code>A0 + A1</code>时，<code>A0</code>和<code>A1</code>都会被读取。</li>
+<li>如果一个变量在当前运行的effect中被读取，则该effect就为该变量的订阅者。比如，由于<code>A0</code>和<code>A1</code>在<code>update()</code>执行时被读取，因此<code>update()</code>在第一次调用后就成为了<code>A0</code>和<code>A1</code>的订阅者</li>
+<li>当变量发生变化时进行检测。比如，当<code>A0</code>被修改为一个新值时，通知其所有订阅了的effect重新执行。</li>
+</ol>
+<h2 id="How-Reactivity-Works-in-Vue"><a href="#How-Reactivity-Works-in-Vue" class="headerlink" title="How Reactivity Works in Vue"></a>How Reactivity Works in Vue</h2><p>我们无法像示例中那样追踪局部变量的读写。在原生的javascript中没有这样的机制。但我们可以做到追踪对象属性的读写。</p>
+<p>在javascript中有两种拦截属性访问的方法：<code>getter</code>&#x2F;<code>setters</code>和<code>proxies</code>。由于浏览器支持的限制，Vue2中只能使用<code>getter</code>&#x2F;<code>setters</code>。在Vue3中，<code>proxy</code>用于响应式对象，<code>getter</code>&#x2F;<code>setter</code>用于<code>refs</code>。下面是一些说明它们如何工作的伪代码：</p>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">reactive</span>(<span class="params">obj</span>) &#123;
+  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Proxy</span>(obj, &#123;
+    <span class="title function_">get</span>(<span class="params">target, key</span>) &#123;
+      <span class="title function_">track</span>(target, key)
+      <span class="keyword">return</span> target[key]
+    &#125;,
+    <span class="title function_">set</span>(<span class="params">target, key, value</span>) &#123;
+      target[key] = value
+      <span class="title function_">trigger</span>(target, key)
+    &#125;
+  &#125;)
+&#125;
+
+<span class="keyword">function</span> <span class="title function_">ref</span>(<span class="params">value</span>) &#123;
+  <span class="keyword">const</span> refObject = &#123;
+    <span class="keyword">get</span> <span class="title function_">value</span>() &#123;
+      <span class="title function_">track</span>(refObject, <span class="string">&#x27;value&#x27;</span>)
+      <span class="keyword">return</span> value
+    &#125;,
+    <span class="keyword">set</span> <span class="title function_">value</span>(<span class="params">newValue</span>) &#123;
+      value = newValue
+      <span class="title function_">trigger</span>(refObject, <span class="string">&#x27;value&#x27;</span>)
+    &#125;
+  &#125;
+  <span class="keyword">return</span> refObject
+&#125;</code></pre>
+
+<blockquote>
+<p>TIP: 这里和下面的代码片段是为了以最简单的形式解释核心概念，因此省略了许多细节，也忽略了边界情况。</p>
+</blockquote>
+<p>以上就解释了我在基础部分讨论过的响应式对象的一些局限性：</p>
+<ul>
+<li>当你将一个响应式对象的属性赋值或解构到一个本地变量时，该变量的访问和赋值就不是响应式的了，因为它不再触发源对象上的<code>get</code>&#x2F;<code>set</code>的代理。请注意，这种断开只影响变量绑定，如果变量指向一个非原始值，那么该对象的更改仍是响应式的。</li>
+<li>使用<code>proxy</code>返回的响应式对象，虽然与原始对象无异，但如果我们使用 <code>===</code> 操作符将其对比式，还是能够比较出不同</li>
+</ul>
+<p>在<code>track()</code>中，我们会检查当前是否有正在运行的effect。如果有，我们会查找到一个存储所有追踪了该属性的订阅的Set，并将其添加到Set中：</p>
+<pre><code class="highlight js"><span class="comment">// This will be set right before an effect is about</span>
+<span class="comment">// to be run. We&#x27;ll deal with this later.</span>
+<span class="keyword">let</span> activeEffect
+
+<span class="keyword">function</span> <span class="title function_">track</span>(<span class="params">target, key</span>) &#123;
+  <span class="keyword">if</span> (activeEffect) &#123;
+    <span class="keyword">const</span> effects = <span class="title function_">getSubscribersForProperty</span>(target, key)
+    effects.<span class="title function_">add</span>(activeEffect)
+  &#125;
+&#125;</code></pre>
+
+<p>effect订阅会以这种数据结构<code>WeakMap&lt;target, Map&lt;key, Set&lt;effect&gt;&gt;</code>存储在全局。如果某个属性没有找到effect Set，说明是首次追踪，则会创建一个effect Set。简而言之，这就是<code>getSubscribersForProperty()</code>函数的作用。为简单起见，我们跳过其细节。</p>
+<p>在<code>trigger()</code>中，我们再次查找该属性的effect订阅。但这次我们会执行它们：</p>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">trigger</span>(<span class="params">target, key</span>) &#123;
+  <span class="keyword">const</span> effects = <span class="title function_">getSubscribersForProperty</span>(target, key)
+  effects.<span class="title function_">forEach</span>(<span class="function">(<span class="params">effect</span>) =&gt;</span> <span class="title function_">effect</span>())
+&#125;</code></pre>
+
+<p>现在我们回到<code>whenDepsChange()</code>函数中：</p>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">whenDepsChange</span>(<span class="params">update</span>) &#123;
+  <span class="keyword">const</span> <span class="title function_">effect</span> = (<span class="params"></span>) =&gt; &#123;
+    activeEffect = effect
+    <span class="title function_">update</span>()
+    activeEffect = <span class="literal">null</span>
+  &#125;
+  <span class="title function_">effect</span>()
+&#125;</code></pre>
+
+<p>它把原始的<code>update</code>函数封装在一个effect中，然后该effect会在实际更新之前将自己设置为activeEffect。这样就能在更新过程中调用<code>track()</code>来定位当前的active effect。</p>
+<p>在这里，我们已经创建了一个可以自动追踪其依赖关系的effect，并在依赖关系发生变化时重新运行。我们称之为响应式副作用。</p>
+<p>Vue提供一个可以创建响应式副作用的API：<code>watchEffect()</code>。事实上，你可能已经注意到它的工作原理与示例中的<code>whenDepsChange()</code>非常相似。现在，我们可以使用实际的Vue API运行最初的示例：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; ref, watchEffect &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="keyword">const</span> <span class="variable constant_">A0</span> = <span class="title function_">ref</span>(<span class="number">0</span>)
+<span class="keyword">const</span> <span class="variable constant_">A1</span> = <span class="title function_">ref</span>(<span class="number">1</span>)
+<span class="keyword">const</span> <span class="variable constant_">A2</span> = <span class="title function_">ref</span>()
+
+<span class="title function_">watchEffect</span>(<span class="function">() =&gt;</span> &#123;
+  <span class="comment">// tracks A0 and A1</span>
+  <span class="variable constant_">A2</span>.<span class="property">value</span> = <span class="variable constant_">A0</span>.<span class="property">value</span> + <span class="variable constant_">A1</span>.<span class="property">value</span>
+&#125;)
+
+<span class="comment">// triggers the effect</span>
+<span class="variable constant_">A0</span>.<span class="property">value</span> = <span class="number">2</span></code></pre>
+
+<p>使用响应式副作用来改变ref并不是最有趣的用例，事实上，使用计算属性会使它更具有声明性：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; ref, computed &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="keyword">const</span> <span class="variable constant_">A0</span> = <span class="title function_">ref</span>(<span class="number">0</span>)
+<span class="keyword">const</span> <span class="variable constant_">A1</span> = <span class="title function_">ref</span>(<span class="number">1</span>)
+<span class="keyword">const</span> <span class="variable constant_">A2</span> = <span class="title function_">computed</span>(<span class="function">() =&gt;</span> <span class="variable constant_">A0</span>.<span class="property">value</span> + <span class="variable constant_">A1</span>.<span class="property">value</span>)
+
+<span class="variable constant_">A0</span>.<span class="property">value</span> = <span class="number">2</span></code></pre>
+
+<p>在内部，computed会通过响应式副作用来管理失效和重新计算的过程。</p>
+<p>所以，最有用且常见的响应式示例是什么呢？就是更新DOM！我们可以执行一个简单的响应式渲染例子：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; ref, watchEffect &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="keyword">const</span> count = <span class="title function_">ref</span>(<span class="number">0</span>)
+
+<span class="title function_">watchEffect</span>(<span class="function">() =&gt;</span> &#123;
+  <span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">innerHTML</span> = <span class="string">`count is: <span class="subst">$&#123;count.value&#125;</span>`</span>
+&#125;)
+
+<span class="comment">// updates the DOM</span>
+count.<span class="property">value</span>++</code></pre>
+
+<p>事实上，这与Vue保持状态和DOM同步的方式非常接近，每个组件实例都会创建一个响应式副作用来渲染和更新DOM。当然Vue组件使用了比innerHTML更高效的方式来更新DOM。这会在渲染机制一节中讨论。</p>
+<h2 id="Runtime-vs-Compile-time-Reactivity"><a href="#Runtime-vs-Compile-time-Reactivity" class="headerlink" title="Runtime vs. Compile-time Reactivity"></a>Runtime vs. Compile-time Reactivity</h2><p>Vue的响应式系统主要基于运行时：跟踪和触发都是代码直接在浏览器运行时进行的。运行时的优点是无需构建步骤即可运行，而且边界情况较少。另一方面，这也使它受到javascript语法的制约，导致需要 refs这样的值容器</p>
+<p>像一些框架，如Svelte，选择在编译阶段实现响应式来克服这些限制，它通过分析和转换代码来模拟响应式。编译阶段允许框架改变javascript本身的语义，比如，隐式注入代码来执行依赖性分析，并在访问本地定义的变量时触发。这样做的缺点是，这种转换需要一个构建步骤，而改变javascript语义本质上就是创造一种看起来像javascript但编译成另一种语言的语言。</p>
+<p>Vue团队曾通过了一项名为 <a target="_blank" rel="noopener" href="https://vuejs.org/guide/extras/reactivity-transform.html">Reactivity Transform</a> 的实验性功能探索过这个方向，但我们最后还是因为<a target="_blank" rel="noopener" href="https://github.com/vuejs/rfcs/discussions/369#discussioncomment-5059028">这个原因</a>，认为他不适合这个项目。</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/08/13/%E3%80%90%E7%BF%BB%E3%80%91Rendering-Mechanism/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#What-is-Reactivity"><span class="toc-text">What is Reactivity?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#How-Reactivity-Works-in-Vue"><span class="toc-text">How Reactivity Works in Vue</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Runtime-vs-Compile-time-Reactivity"><span class="toc-text">Runtime vs. Compile-time Reactivity</span></a></li></ol></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/08/18/%E3%80%90%E7%BF%BB%E3%80%91Reactivity-in-Depth/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/08/18/【翻】Reactivity-in-Depth/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
