@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】Render Functions &amp; JSX | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Vue/">
+                            Vue
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】Render Functions &amp; JSX
+            
+            
+        </div>
+        <span class="post-date">
+            8月 31, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://vuejs.org/guide/extras/render-function.html">Render Functions &amp; JSX</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>Vue 推荐大多数情况下使用模板来构建应用。不过，在某些情况下，我们需要使用JavaScript的全部编程能力。这时，我们就需要使用渲染函数。</p>
+<h2 id="Basic-Usage"><a href="#Basic-Usage" class="headerlink" title="Basic Usage"></a>Basic Usage</h2><h3 id="Creating-Vnodes"><a href="#Creating-Vnodes" class="headerlink" title="Creating Vnodes"></a>Creating Vnodes</h3><p>Vue提供了<code>h()</code>函数用于创建vnode</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; h &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="keyword">const</span> vnode = <span class="title function_">h</span>(
+  <span class="string">&#x27;div&#x27;</span>, <span class="comment">// type</span>
+  &#123; <span class="attr">id</span>: <span class="string">&#x27;foo&#x27;</span>, <span class="attr">class</span>: <span class="string">&#x27;bar&#x27;</span> &#125;, <span class="comment">// props</span>
+  [
+    <span class="comment">/* children */</span>
+  ]
+)</code></pre>
+
+<p><code>h()</code>是 <strong>hyperscript</strong> 的缩写，意思是”生成HTML（超文本标记语言）的JavaScript”。这个名字来自于许多虚拟DOM实现时的共同约定。一个描述性更强的名称可以为<code>createVnode()</code>，但当你需要在渲染函数中多次调用时，一个更简短的名称会有所帮助。</p>
+<p>这个<code>h()</code>函数设计的非常灵活</p>
+<pre><code class="highlight js"><span class="comment">// all arguments except the type are optional</span>
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>)
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="attr">id</span>: <span class="string">&#x27;foo&#x27;</span> &#125;)
+
+<span class="comment">// both attributes and properties can be used in props</span>
+<span class="comment">// Vue automatically picks the right way to assign it</span>
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="attr">class</span>: <span class="string">&#x27;bar&#x27;</span>, <span class="attr">innerHTML</span>: <span class="string">&#x27;hello&#x27;</span> &#125;)
+
+<span class="comment">// props modifiers such as `.prop` and `.attr` can be added</span>
+<span class="comment">// with `.` and `^` prefixes respectively</span>
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="string">&#x27;.name&#x27;</span>: <span class="string">&#x27;some-name&#x27;</span>, <span class="string">&#x27;^width&#x27;</span>: <span class="string">&#x27;100&#x27;</span> &#125;)
+
+<span class="comment">// class and style have the same object / array</span>
+<span class="comment">// value support that they have in templates</span>
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="attr">class</span>: [foo, &#123; bar &#125;], <span class="attr">style</span>: &#123; <span class="attr">color</span>: <span class="string">&#x27;red&#x27;</span> &#125; &#125;)
+
+<span class="comment">// event listeners should be passed as onXxx</span>
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="attr">onClick</span>: <span class="function">() =&gt;</span> &#123;&#125; &#125;)
+
+<span class="comment">// children can be a string</span>
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="attr">id</span>: <span class="string">&#x27;foo&#x27;</span> &#125;, <span class="string">&#x27;hello&#x27;</span>)
+
+<span class="comment">// props can be omitted when there are no props</span>
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, <span class="string">&#x27;hello&#x27;</span>)
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, [<span class="title function_">h</span>(<span class="string">&#x27;span&#x27;</span>, <span class="string">&#x27;hello&#x27;</span>)])
+
+<span class="comment">// children array can contain mixed vnodes and strings</span>
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, [<span class="string">&#x27;hello&#x27;</span>, <span class="title function_">h</span>(<span class="string">&#x27;span&#x27;</span>, <span class="string">&#x27;hello&#x27;</span>)])</code></pre>
+
+<p>生成的vnode结构如下：</p>
+<pre><code class="highlight js"><span class="keyword">const</span> vnode = <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="attr">id</span>: <span class="string">&#x27;foo&#x27;</span> &#125;, [])
+
+vnode.<span class="property">type</span> <span class="comment">// &#x27;div&#x27;</span>
+vnode.<span class="property">props</span> <span class="comment">// &#123; id: &#x27;foo&#x27; &#125;</span>
+vnode.<span class="property">children</span> <span class="comment">// []</span>
+vnode.<span class="property">key</span> <span class="comment">// null</span></code></pre>
+
+<blockquote>
+<p>Note<br>完整的VNode结构还包含许多其他内部属性，当强烈建议避免依赖以上所列的以外其他属性。这样可以避免在内部属性发生变化时出现意外中断。</p>
+</blockquote>
+<h3 id="Declaring-Render-Functions"><a href="#Declaring-Render-Functions" class="headerlink" title="Declaring Render Functions"></a>Declaring Render Functions</h3><p>在通过 Composition API 使用模版时，<code>setup()</code>的返回值是用于向模版暴露数据。但在使用渲染函数时，我们可以直接返回渲染函数：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; ref, h &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">default</span> &#123;
+  <span class="attr">props</span>: &#123;
+    <span class="comment">/* ... */</span>
+  &#125;,
+  <span class="title function_">setup</span>(<span class="params">props</span>) &#123;
+    <span class="keyword">const</span> count = <span class="title function_">ref</span>(<span class="number">1</span>)
+
+    <span class="comment">// return the render function</span>
+    <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, props.<span class="property">msg</span> + count.<span class="property">value</span>)
+  &#125;
+&#125;</code></pre>
+
+<p>因为渲染函数是在<code>setup()</code>内部声明的，所以它自然可以访问其同一作用域下声明的props和任意的响应数据。</p>
+<p>除了返回单个vnode外，还可以返回字符串或者数组：</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">default</span> &#123;
+  <span class="title function_">setup</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="string">&#x27;hello world!&#x27;</span>
+  &#125;
+&#125;</code></pre>
+
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; h &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">default</span> &#123;
+  <span class="title function_">setup</span>(<span class="params"></span>) &#123;
+    <span class="comment">// use an array to return multiple root nodes</span>
+    <span class="keyword">return</span> <span class="function">() =&gt;</span> [
+      <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>),
+      <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>),
+      <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>)
+    ]
+  &#125;
+&#125;</code></pre>
+
+<blockquote>
+<p>TIP<br>确保返回的是一个函数，而不是直接返回值！因为每个组件的<code>setup()</code>只会调用一次，而返回的渲染函数会被调用多次。</p>
+</blockquote>
+<p>如果渲染函数不需要任何实例状态，你也可以直接声明一个函数：</p>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">Hello</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> <span class="string">&#x27;hello world!&#x27;</span>
+&#125;</code></pre>
+
+<p>没错，这是一个有效的Vue组件！有关此语法的更多详情，可以查看 <a target="_blank" rel="noopener" href="https://vuejs.org/guide/extras/render-function.html#functional-components">Functional Components</a></p>
+<h3 id="Vnodes-Must-Be-Unique"><a href="#Vnodes-Must-Be-Unique" class="headerlink" title="Vnodes Must Be Unique"></a>Vnodes Must Be Unique</h3><p>组件树中的所有vnode必须是唯一的。下面的渲染函数就意味着是无效的：</p>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">render</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> p = <span class="title function_">h</span>(<span class="string">&#x27;p&#x27;</span>, <span class="string">&#x27;hi&#x27;</span>)
+  <span class="keyword">return</span> <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, [
+    <span class="comment">// Yikes - duplicate vnodes!</span>
+    p,
+    p
+  ])
+&#125;</code></pre>
+
+<p>如果你真的想多次复制相同的元素&#x2F;组件，可以使用工厂函数来实现。比如，下面的渲染函数就是渲染了20个相同内容的有效方法：</p>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">render</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> <span class="title function_">h</span>(
+    <span class="string">&#x27;div&#x27;</span>,
+    <span class="title class_">Array</span>.<span class="title function_">from</span>(&#123; <span class="attr">length</span>: <span class="number">20</span> &#125;).<span class="title function_">map</span>(<span class="function">() =&gt;</span> &#123;
+      <span class="keyword">return</span> <span class="title function_">h</span>(<span class="string">&#x27;p&#x27;</span>, <span class="string">&#x27;hi&#x27;</span>)
+    &#125;)
+  )
+&#125;</code></pre>
+
+<h2 id="JSX-x2F-TSX​"><a href="#JSX-x2F-TSX​" class="headerlink" title="JSX &#x2F; TSX​"></a>JSX &#x2F; TSX​</h2><p><a target="_blank" rel="noopener" href="https://facebook.github.io/jsx/">JSX</a>是JavaScript的XML扩展，可以让我们写出以下代码：</p>
+<pre><code class="highlight jsx"><span class="keyword">const</span> vnode = <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>hello<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></code></pre>
+
+<p>在JSX表达式中，使用花括号嵌入动态值：</p>
+<pre><code class="highlight jsx"><span class="keyword">const</span> vnode = <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&#123;dynamicId&#125;</span>&gt;</span>hello, &#123;userName&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></code></pre>
+
+<p><strong>create-vue</strong>和Vue CLI都有在脚手架配置项中进行了JSX支持。如果你要手动配置JSX，请参阅<a target="_blank" rel="noopener" href="https://github.com/vuejs/babel-plugin-jsx">@vue&#x2F;babel-plugin-jsx</a>文档了解详情。</p>
+<p>虽然JSX最初是由React引入的，但它实际上并没有定义运行时语义，可以编译成各种不同的输出。如果你以前使用过JSX，需注意Vue的JSX转换和React的JSX转换是不同的，所以你不能在Vue应用中使用React的JSX转换，具体与React JSX的一些明显区别包括：</p>
+<ul>
+<li>你可以使用<code>class</code>和<code>for</code>等HTML属性作为props，无需使用<code>className</code>或者<code>htmlFor</code>。</li>
+<li>将子元素传递给组件(即插槽)的工作方式有所不同。</li>
+</ul>
+<p>Vue的类型定义还为TSX的使用提供了类型推断。使用TSX时，确保在tsconfig.json中指定<code>&quot;jsx&quot;: &quot;preserve&quot;</code>，以便在TypeScript保留JSX语法，供Vue JSX转换处理。</p>
+<h3 id="JSX-Type-Inference"><a href="#JSX-Type-Inference" class="headerlink" title="JSX Type Inference"></a>JSX Type Inference</h3><p>与transform一样，Vue的JSX也需要不同的类型定义。目前，Vue会自动全局注册Vue的JSX类型。这意味着，当Vue的类型可用时，TSX就能开箱即用。</p>
+<p>Vue的全局JSX类型可能会与其他同样需要JSX类型推导的库发生冲突，特别是React。从3.3版本开始，Vue支持通过TypeScript的jsxImportSource选项指定JSX命名空间。我们计划在3.4版本中移除默认的全局JSX命名空间注册。</p>
+<p>对于TSX用户，建议在升级到3.3之后在 tsconfig.json 中将 jsxImportSource 选项设置为 “vue”，或者在每个文件中使用 <code>/* @jsxImportSource vue */</code>。这样，你现在就可以选择加入新行为，并在 3.4 发布时无缝升级。</p>
+<p>如果有代码依赖于全局JSX命名空间，你可以通过显式引用 vue&#x2F;jsx（它会注册全局 JSX 命名空间）来保留完全相同的 3.4 之前的全局行为</p>
+<h2 id="Render-Function-Recipes"><a href="#Render-Function-Recipes" class="headerlink" title="Render Function Recipes"></a>Render Function Recipes</h2><p>下面我们会提供一些用等价的渲染函数&#x2F;JSX实现模版功能的常用方法。</p>
+<h3 id="v-if"><a href="#v-if" class="headerlink" title="v-if"></a>v-if</h3><p>template:</p>
+<pre><code class="highlight html"><span class="tag">&lt;<span class="name">div</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">div</span> <span class="attr">v-if</span>=<span class="string">&quot;ok&quot;</span>&gt;</span>yes<span class="tag">&lt;/<span class="name">div</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">span</span> <span class="attr">v-else</span>&gt;</span>no<span class="tag">&lt;/<span class="name">span</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">div</span>&gt;</span></code></pre>
+
+<p>等价 渲染函数&#x2F;JSX:</p>
+<pre><code class="highlight js"><span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, [ok.<span class="property">value</span> ? <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, <span class="string">&#x27;yes&#x27;</span>) : <span class="title function_">h</span>(<span class="string">&#x27;span&#x27;</span>, <span class="string">&#x27;no&#x27;</span>)])</code></pre>
+
+<pre><code class="highlight jsx">&lt;div&gt;&#123;ok.<span class="property">value</span> ? <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>yes<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span> : <span class="language-xml"><span class="tag">&lt;<span class="name">span</span>&gt;</span>no<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span>&#125;&lt;/div&gt;</code></pre>
+
+<h3 id="v-for"><a href="#v-for" class="headerlink" title="v-for"></a>v-for</h3><p>template:</p>
+<pre><code class="highlight html"><span class="tag">&lt;<span class="name">ul</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">li</span> <span class="attr">v-for</span>=<span class="string">&quot;&#123; id, text &#125; in items&quot;</span> <span class="attr">:key</span>=<span class="string">&quot;id&quot;</span>&gt;</span>
+    &#123;&#123; text &#125;&#125;
+  <span class="tag">&lt;/<span class="name">li</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">ul</span>&gt;</span></code></pre>
+
+<p>等价 渲染函数&#x2F;JSX:</p>
+<pre><code class="highlight js"><span class="title function_">h</span>(
+  <span class="string">&#x27;ul&#x27;</span>,
+  <span class="comment">// assuming `items` is a ref with array value</span>
+  items.<span class="property">value</span>.<span class="title function_">map</span>(<span class="function">(<span class="params">&#123; id, text &#125;</span>) =&gt;</span> &#123;
+    <span class="keyword">return</span> <span class="title function_">h</span>(<span class="string">&#x27;li&#x27;</span>, &#123; <span class="attr">key</span>: id &#125;, text)
+  &#125;)
+)</code></pre>
+
+<pre><code class="highlight jsx">&lt;ul&gt;
+  &#123;items.<span class="property">value</span>.<span class="title function_">map</span>(<span class="function">(<span class="params">&#123; id, text &#125;</span>) =&gt;</span> &#123;
+    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">li</span> <span class="attr">key</span>=<span class="string">&#123;id&#125;</span>&gt;</span>&#123;text&#125;<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span>
+  &#125;)&#125;
+&lt;/ul&gt;</code></pre>
+
+<h3 id="v-on"><a href="#v-on" class="headerlink" title="v-on"></a>v-on</h3><p>props名称以<code>on</code>开头且后面跟大写字母的被视为事件监听器。比如，<code>onClick</code>相当于模版的<code>@click</code>。</p>
+<pre><code class="highlight js"><span class="title function_">h</span>(
+  <span class="string">&#x27;button&#x27;</span>,
+  &#123;
+    <span class="title function_">onClick</span>(<span class="params">event</span>) &#123;
+      <span class="comment">/* ... */</span>
+    &#125;
+  &#125;,
+  <span class="string">&#x27;click me&#x27;</span>
+)</code></pre>
+
+<pre><code class="highlight jsx">&lt;button
+  onClick=&#123;<span class="function">(<span class="params">event</span>) =&gt;</span> &#123;
+    <span class="comment">/* ... */</span>
+  &#125;&#125;
+&gt;
+  click me
+&lt;/button&gt;</code></pre>
+
+<h3 id="Event-Modifiers"><a href="#Event-Modifiers" class="headerlink" title="Event Modifiers"></a>Event Modifiers</h3><p>对于<code>.passive</code>，<code>.capture</code>和<code>.once</code>事件修饰符，可以驼峰写法在事件名称后面进行连接。</p>
+<p>例如：</p>
+<pre><code class="highlight js"><span class="title function_">h</span>(<span class="string">&#x27;input&#x27;</span>, &#123;
+  <span class="title function_">onClickCapture</span>(<span class="params"></span>) &#123;
+    <span class="comment">/* listener in capture mode */</span>
+  &#125;,
+  <span class="title function_">onKeyupOnce</span>(<span class="params"></span>) &#123;
+    <span class="comment">/* triggers only once */</span>
+  &#125;,
+  <span class="title function_">onMouseoverOnceCapture</span>(<span class="params"></span>) &#123;
+    <span class="comment">/* once + capture */</span>
+  &#125;
+&#125;)</code></pre>
+
+<pre><code class="highlight jsx">&lt;input
+  onClickCapture=&#123;<span class="function">() =&gt;</span> &#123;&#125;&#125;
+  onKeyupOnce=&#123;<span class="function">() =&gt;</span> &#123;&#125;&#125;
+  onMouseoverOnceCapture=&#123;<span class="function">() =&gt;</span> &#123;&#125;&#125;
+/&gt;</code></pre>
+
+<p>然后其余的事件和按键修饰符，可以使用<code>withModifiers</code>协助使用：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; withModifiers &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, &#123;
+  <span class="attr">onClick</span>: <span class="title function_">withModifiers</span>(<span class="function">() =&gt;</span> &#123;&#125;, [<span class="string">&#x27;self&#x27;</span>])
+&#125;)</code></pre>
+
+<pre><code class="highlight jsx">&lt;div onClick=&#123;<span class="title function_">withModifiers</span>(<span class="function">() =&gt;</span> &#123;&#125;, [<span class="string">&#x27;self&#x27;</span>])&#125; /&gt;</code></pre>
+
+<h3 id="Components"><a href="#Components" class="headerlink" title="Components"></a>Components</h3><p>要为组件创建vnode，传递给<code>h()</code>的第一个参数应该是组件定义。这就意味着使用渲染函数时，无需注册组件，只是直接使用导入的组件即可：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> <span class="title class_">Foo</span> <span class="keyword">from</span> <span class="string">&#x27;./Foo.vue&#x27;</span>
+<span class="keyword">import</span> <span class="title class_">Bar</span> <span class="keyword">from</span> <span class="string">&#x27;./Bar.jsx&#x27;</span>
+
+<span class="keyword">function</span> <span class="title function_">render</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, [<span class="title function_">h</span>(<span class="title class_">Foo</span>), <span class="title function_">h</span>(<span class="title class_">Bar</span>)])
+&#125;</code></pre>
+
+<pre><code class="highlight jsx"><span class="keyword">function</span> <span class="title function_">render</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">Foo</span> /&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">Bar</span> /&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+  )
+&#125;</code></pre>
+
+<p>正如我们看到的，只要是有效的Vue组件，h函数就能处理任何文件格式导入的组件。</p>
+<p>动态组件在渲染组件中可直接使用：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> <span class="title class_">Foo</span> <span class="keyword">from</span> <span class="string">&#x27;./Foo.vue&#x27;</span>
+<span class="keyword">import</span> <span class="title class_">Bar</span> <span class="keyword">from</span> <span class="string">&#x27;./Bar.jsx&#x27;</span>
+
+<span class="keyword">function</span> <span class="title function_">render</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> ok.<span class="property">value</span> ? <span class="title function_">h</span>(<span class="title class_">Foo</span>) : <span class="title function_">h</span>(<span class="title class_">Bar</span>)
+&#125;</code></pre>
+
+<pre><code class="highlight jsx"><span class="keyword">function</span> <span class="title function_">render</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> ok.<span class="property">value</span> ? <span class="language-xml"><span class="tag">&lt;<span class="name">Foo</span> /&gt;</span></span> : <span class="language-xml"><span class="tag">&lt;<span class="name">Bar</span> /&gt;</span></span>
+&#125;</code></pre>
+
+<p>如果组件是用名称注册的，无法直接导入(例如，有库进行的全局注册)，这种情况可以使用<code>resolveComponent</code>来解析该组件。</p>
+<h3 id="Rendering-Slots"><a href="#Rendering-Slots" class="headerlink" title="Rendering Slots"></a>Rendering Slots</h3><p>在渲染函数中，可以通过<code>setup()</code>的上下文访问slot。然后slots对象上的每一个slot都是一个函数，会返回一个vnodes数组：</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">default</span> &#123;
+  <span class="attr">props</span>: [<span class="string">&#x27;message&#x27;</span>],
+  <span class="title function_">setup</span>(<span class="params">props, &#123; slots &#125;</span>) &#123;
+    <span class="keyword">return</span> <span class="function">() =&gt;</span> [
+      <span class="comment">// default slot:</span>
+      <span class="comment">// &lt;div&gt;&lt;slot /&gt;&lt;/div&gt;</span>
+      <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, slots.<span class="title function_">default</span>()),
+
+      <span class="comment">// named slot:</span>
+      <span class="comment">// &lt;div&gt;&lt;slot name=&quot;footer&quot; :text=&quot;message&quot; /&gt;&lt;/div&gt;</span>
+      <span class="title function_">h</span>(
+        <span class="string">&#x27;div&#x27;</span>,
+        slots.<span class="title function_">footer</span>(&#123;
+          <span class="attr">text</span>: props.<span class="property">message</span>
+        &#125;)
+      )
+    ]
+  &#125;
+&#125;</code></pre>
+
+<p>JSX：</p>
+<pre><code class="highlight js"><span class="comment">// default</span>
+&lt;div&gt;&#123;slots.<span class="title function_">default</span>()&#125;&lt;/div&gt;
+
+<span class="comment">// named</span>
+<span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;slots.footer(&#123; text: props.message &#125;)&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></code></pre>
+
+<h3 id="Passing-Slots"><a href="#Passing-Slots" class="headerlink" title="Passing Slots"></a>Passing Slots</h3><p>将子元素传递给组件和子元素传递给元素的方式有些不同。我们不需要传递数组，而是传递slot函数或者slot函数对象。slot函数可以返回与普通渲染函数的返回值一样的内容，并且在子组件访问时，这些内容将始终会转换为一个vnodes数组。</p>
+<pre><code class="highlight js"><span class="comment">// 单个默认插槽</span>
+<span class="title function_">h</span>(<span class="title class_">MyComponent</span>, <span class="function">() =&gt;</span> <span class="string">&#x27;hello&#x27;</span>)
+
+<span class="comment">// 具名插槽</span>
+<span class="comment">// 注意 `null` 是必需的</span>
+<span class="comment">// 以避免 slot 对象被当成 prop 处理</span>
+<span class="title function_">h</span>(<span class="title class_">MyComponent</span>, <span class="literal">null</span>, &#123;
+    <span class="attr">default</span>: <span class="function">() =&gt;</span> <span class="string">&#x27;default slot&#x27;</span>,
+    <span class="attr">foo</span>: <span class="function">() =&gt;</span> <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, <span class="string">&#x27;foo&#x27;</span>),
+    <span class="attr">bar</span>: <span class="function">() =&gt;</span> [<span class="title function_">h</span>(<span class="string">&#x27;span&#x27;</span>, <span class="string">&#x27;one&#x27;</span>), <span class="title function_">h</span>(<span class="string">&#x27;span&#x27;</span>, <span class="string">&#x27;two&#x27;</span>)]
+&#125;)</code></pre>
+
+<p>等价的JSX：</p>
+<pre><code class="highlight jsx"><span class="comment">// default</span>
+&lt;<span class="title class_">MyComponent</span>&gt;&#123;<span class="function">() =&gt;</span> <span class="string">&#x27;hello&#x27;</span>&#125;&lt;/<span class="title class_">MyComponent</span>&gt;
+
+<span class="comment">// named</span>
+<span class="language-xml"><span class="tag">&lt;<span class="name">MyComponent</span>&gt;</span>&#123;&#123;</span>
+<span class="language-xml">  default: () =&gt; &#x27;default slot&#x27;,</span>
+<span class="language-xml">  foo: () =&gt; <span class="tag">&lt;<span class="name">div</span>&gt;</span>foo<span class="tag">&lt;/<span class="name">div</span>&gt;</span>,</span>
+<span class="language-xml">  bar: () =&gt; [<span class="tag">&lt;<span class="name">span</span>&gt;</span>one<span class="tag">&lt;/<span class="name">span</span>&gt;</span>, <span class="tag">&lt;<span class="name">span</span>&gt;</span>two<span class="tag">&lt;/<span class="name">span</span>&gt;</span>]</span>
+<span class="language-xml">&#125;&#125;<span class="tag">&lt;/<span class="name">MyComponent</span>&gt;</span></span></code></pre>
+
+<p>将slot作为函数传递给子组件，可以让子组件懒散地调用slot。这样，子组件而不是父组件就能跟踪slot的依赖关系，从而实现更准确、更有效的更新。</p>
+<h3 id="Built-in-Components"><a href="#Built-in-Components" class="headerlink" title="Built-in Components"></a>Built-in Components</h3><p>内置组件如<code>&lt;KeepAlive&gt;</code>, <code>&lt;Transition&gt;</code>, <code>&lt;TransitionGroup&gt;</code>, <code>&lt;Teleport&gt;</code> 和 <code>&lt;Suspense&gt;</code>必须导入才能在渲染函数中使用</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; h, <span class="title class_">KeepAlive</span>, <span class="title class_">Teleport</span>, <span class="title class_">Transition</span>, <span class="title class_">TransitionGroup</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">default</span> &#123;
+  setup () &#123;
+    <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="title function_">h</span>(<span class="title class_">Transition</span>, &#123; <span class="attr">mode</span>: <span class="string">&#x27;out-in&#x27;</span> &#125;, <span class="comment">/* ... */</span>)
+  &#125;
+&#125;</code></pre>
+
+<h3 id="v-model"><a href="#v-model" class="headerlink" title="v-model"></a>v-model</h3><p>在模版编译过程中，<code>v-model</code>指令会扩展为<code>modelValue</code>和<code>onUpdate:modelValue</code>两个props，在渲染函数中就必须自己提供这些props：</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">default</span> &#123;
+  <span class="attr">props</span>: [<span class="string">&#x27;modelValue&#x27;</span>],
+  <span class="attr">emits</span>: [<span class="string">&#x27;update:modelValue&#x27;</span>],
+  <span class="title function_">setup</span>(<span class="params">props, &#123; emit &#125;</span>) &#123;
+    <span class="keyword">return</span> <span class="function">() =&gt;</span>
+      <span class="title function_">h</span>(<span class="title class_">SomeComponent</span>, &#123;
+        <span class="attr">modelValue</span>: props.<span class="property">modelValue</span>,
+        <span class="string">&#x27;onUpdate:modelValue&#x27;</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> <span class="title function_">emit</span>(<span class="string">&#x27;update:modelValue&#x27;</span>, value)
+      &#125;)
+  &#125;
+&#125;</code></pre>
+
+<h3 id="Custom-Directives"><a href="#Custom-Directives" class="headerlink" title="Custom Directives"></a>Custom Directives</h3><p>自定义指令可以通过<code>withDirectives</code>应用到vnode：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; h, withDirectives &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="comment">// a custom directive</span>
+<span class="keyword">const</span> pin = &#123;
+  <span class="title function_">mounted</span>(<span class="params"></span>) &#123; <span class="comment">/* ... */</span> &#125;,
+  <span class="title function_">updated</span>(<span class="params"></span>) &#123; <span class="comment">/* ... */</span> &#125;
+&#125;
+
+<span class="comment">// &lt;div v-pin:top.animate=&quot;200&quot;&gt;&lt;/div&gt;</span>
+<span class="keyword">const</span> vnode = <span class="title function_">withDirectives</span>(<span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>), [
+  [pin, <span class="number">200</span>, <span class="string">&#x27;top&#x27;</span>, &#123; <span class="attr">animate</span>: <span class="literal">true</span> &#125;]
+])</code></pre>
+
+<p>如果指令是通过名字注册的，是无法直接导入的，需要使用<code>resolveDirective</code>对其进行解析。</p>
+<h3 id="Template-Refs"><a href="#Template-Refs" class="headerlink" title="Template Refs"></a>Template Refs</h3><p>在使用组合式API时，模版ref是通过<code>ref()</code>本身作为props传递给vnode创建的</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; h, ref &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">default</span> &#123;
+  <span class="title function_">setup</span>(<span class="params"></span>) &#123;
+    <span class="keyword">const</span> divEl = <span class="title function_">ref</span>()
+
+    <span class="comment">// &lt;div ref=&quot;divEl&quot;&gt;</span>
+    <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="title function_">h</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="attr">ref</span>: divEl &#125;)
+  &#125;
+&#125;</code></pre>
+
+<h2 id="Functional-Components"><a href="#Functional-Components" class="headerlink" title="Functional Components"></a>Functional Components</h2><p>函数组件是组件的另一种形式，自身没有任何状态。执行的内容就像纯函数，props输入，vnode输出。在渲染时不创建组件实例(即没有<code>this</code>)，也没有一些组件声明周期钩子。</p>
+<p>我们会通过一个普通函数来创建一个函数组件，而不是一个选项对象。该函数实际上就是组件的渲染函数。</p>
+<p>函数组件的签名与<code>setup()</code>hook相同：</p>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">MyComponent</span>(<span class="params">props, &#123; slots, emit, attrs &#125;</span>) &#123;
+  <span class="comment">// ...</span>
+&#125;</code></pre>
+
+<p>组件的大多数常规配置选项都不适用于函数组件。不过，可以通过添加属性来定义<code>props</code>和<code>emits</code>：</p>
+<pre><code class="highlight js"><span class="title class_">MyComponent</span>.<span class="property">props</span> = [<span class="string">&#x27;value&#x27;</span>]
+<span class="title class_">MyComponent</span>.<span class="property">emits</span> = [<span class="string">&#x27;click&#x27;</span>]</code></pre>
+
+<p>如果未指定props选项，那么传递给函数的props对象将包含所有属性，与attrs相同。除非指定来props选项，否则props名称不会规范为驼峰。</p>
+<p>对于没有明确props的函数组件，属性穿透的工作原理与普通组件大致相同。但是，对于没有明确指定props的函数组件，默认情况下将会从<code>attrs</code>继承<code>class</code>、<code>style</code>和<code>onXxx</code>事件侦听器。无论是哪种情况，都可以将<code>inheritAttrs</code>设为<code>false</code>以禁用属性继承：</p>
+<pre><code class="highlight js"><span class="title class_">MyComponent</span>.<span class="property">inheritAttrs</span> = <span class="literal">false</span></code></pre>
+
+<p>函数组件可以像普通组件一样注册和使用。如果将函数作为<code>h()</code>的第一个参数，它会被视为函数组件。</p>
+<h3 id="Typing-Functional-Components"><a href="#Typing-Functional-Components" class="headerlink" title="Typing Functional Components"></a>Typing Functional Components</h3><p>函数组件可根据其命名或匿名类型来进行标注类型。在SFC模板中使用时，Volar还支持对其进行类型检查。</p>
+<p>具名函数组件</p>
+<pre><code class="highlight tsx"><span class="keyword">import</span> <span class="keyword">type</span> &#123; <span class="title class_">SetupContext</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+<span class="keyword">type</span> <span class="title class_">FComponentProps</span> = &#123;
+  <span class="attr">message</span>: <span class="built_in">string</span>
+&#125;
+
+<span class="keyword">type</span> <span class="title class_">Events</span> = &#123;
+  <span class="title function_">sendMessage</span>(<span class="attr">message</span>: <span class="built_in">string</span>): <span class="built_in">void</span>
+&#125;
+
+<span class="keyword">function</span> <span class="title function_">FComponent</span>(<span class="params"></span>
+<span class="params">  props: FComponentProps,</span>
+<span class="params">  context: SetupContext&lt;Events&gt;</span>
+<span class="params"></span>) &#123;
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> context.emit(&#x27;sendMessage&#x27;, props.message)&#125;&gt;</span>
+<span class="language-xml">        &#123;props.message&#125; &#123;&#x27; &#x27;&#125;</span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>
+  )
+&#125;
+
+<span class="title class_">FComponent</span>.<span class="property">props</span> = &#123;
+  <span class="attr">message</span>: &#123;
+    <span class="attr">type</span>: <span class="title class_">String</span>,
+    <span class="attr">required</span>: <span class="literal">true</span>
+  &#125;
+&#125;
+
+<span class="title class_">FComponent</span>.<span class="property">emits</span> = &#123;
+  <span class="attr">sendMessage</span>: <span class="function">(<span class="params">value: <span class="built_in">unknown</span></span>) =&gt;</span> <span class="keyword">typeof</span> value === <span class="string">&#x27;string&#x27;</span>
+&#125;</code></pre>
+
+<p>匿名函数组件</p>
+<pre><code class="highlight tsx"><span class="keyword">import</span> <span class="keyword">type</span> &#123; <span class="title class_">FunctionalComponent</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span>
+
+<span class="keyword">type</span> <span class="title class_">FComponentProps</span> = &#123;
+  <span class="attr">message</span>: <span class="built_in">string</span>
+&#125;
+
+<span class="keyword">type</span> <span class="title class_">Events</span> = &#123;
+  <span class="title function_">sendMessage</span>(<span class="attr">message</span>: <span class="built_in">string</span>): <span class="built_in">void</span>
+&#125;
+
+<span class="keyword">const</span> <span class="title class_">FComponent</span>: <span class="title class_">FunctionalComponent</span>&lt;<span class="title class_">FComponentProps</span>, <span class="title class_">Events</span>&gt; = <span class="function">(<span class="params"></span></span>
+<span class="params"><span class="function">  props,</span></span>
+<span class="params"><span class="function">  context</span></span>
+<span class="params"><span class="function"></span>) =&gt;</span> &#123;
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> context.emit(&#x27;sendMessage&#x27;, props.message)&#125;&gt;</span>
+<span class="language-xml">        &#123;props.message&#125; &#123;&#x27; &#x27;&#125;</span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>
+  )
+&#125;
+
+<span class="title class_">FComponent</span>.<span class="property">props</span> = &#123;
+  <span class="attr">message</span>: &#123;
+    <span class="attr">type</span>: <span class="title class_">String</span>,
+    <span class="attr">required</span>: <span class="literal">true</span>
+  &#125;
+&#125;
+
+<span class="title class_">FComponent</span>.<span class="property">emits</span> = &#123;
+  <span class="attr">sendMessage</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> <span class="keyword">typeof</span> value === <span class="string">&#x27;string&#x27;</span>
+&#125;</code></pre>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/08/23/%E3%80%90%E7%BF%BB%E3%80%91Announcing-Vue-3-3/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Basic-Usage"><span class="toc-text">Basic Usage</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Creating-Vnodes"><span class="toc-text">Creating Vnodes</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Declaring-Render-Functions"><span class="toc-text">Declaring Render Functions</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Vnodes-Must-Be-Unique"><span class="toc-text">Vnodes Must Be Unique</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JSX-x2F-TSX%E2%80%8B"><span class="toc-text">JSX &#x2F; TSX​</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#JSX-Type-Inference"><span class="toc-text">JSX Type Inference</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Render-Function-Recipes"><span class="toc-text">Render Function Recipes</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#v-if"><span class="toc-text">v-if</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#v-for"><span class="toc-text">v-for</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#v-on"><span class="toc-text">v-on</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Event-Modifiers"><span class="toc-text">Event Modifiers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Components"><span class="toc-text">Components</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Rendering-Slots"><span class="toc-text">Rendering Slots</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Passing-Slots"><span class="toc-text">Passing Slots</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Built-in-Components"><span class="toc-text">Built-in Components</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#v-model"><span class="toc-text">v-model</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Custom-Directives"><span class="toc-text">Custom Directives</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Template-Refs"><span class="toc-text">Template Refs</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Functional-Components"><span class="toc-text">Functional Components</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Typing-Functional-Components"><span class="toc-text">Typing Functional Components</span></a></li></ol></li></ol></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/08/31/%E3%80%90%E7%BF%BB%E3%80%91Render-Functions-JSX/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/08/31/【翻】Render-Functions-JSX/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
