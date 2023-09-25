@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>【翻】Next.js 13 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/React/">
+                            React
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Translate/">
+                            Translate
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Next-js/">
+                            Next.js
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                【翻】Next.js 13
+            
+            
+        </div>
+        <span class="post-date">
+            9月 24, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <div class="h-line-primary"></div>
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <blockquote>
+<p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://nextjs.org/blog/next-13">Next.js 13</a></p>
+</blockquote>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>正如我们在 <a href="">Next.js Conf</a> 上宣布的那样，Next.js13(stable)为实现无限制的动态功能而奠定了基础：</p>
+<ul>
+<li>app Directory(beta): 更简单，更快速，客户端 JS 内容更少<ul>
+<li>Layouts</li>
+<li>React Server Components</li>
+<li>Streaming</li>
+</ul>
+</li>
+<li>Turbopack(alpha): 基于 Rust 的 Webpack 替代品可最高提升700倍的速度。</li>
+<li>New next&#x2F;image: 使用本地浏览器懒加载，速度更快。</li>
+<li>New @next&#x2F;font(beta): 自动托管字体，布局零偏移。</li>
+<li>Improved next&#x2F;link: 自动<code>&lt;a&gt;</code>链接，简化API。</li>
+</ul>
+<p>Next.js 和 page directory 已稳定并可用于生产。请运行</p>
+<pre><code class="highlight bash">npm i next@latest react@latest react-dom@latest eslint-config-next@latest</code></pre>
+
+<h2 id="New-app-Directory-Beta"><a href="#New-app-Directory-Beta" class="headerlink" title="New app Directory(Beta)"></a>New app Directory(Beta)</h2><p>今天，我们将改进 Next.js 中的路由和布局体验，并通过引入 app directory 和 React 的未来保持一致。这是在之前为征求社区反馈而发布的 Layouts RFC 之后的又一次改进。</p>
+<p>app directory 目前处于 beta 阶段，我们还不建议在生产中使用。你可以在Nextjs.13中使用 pages directory 和改进的 next&#x2F;image 和 next&#x2F;link 组件，并根据自己的进度选择 app directory。在未来，将继续支持 pages directory。</p>
+<p>app directory 包括以下支持：</p>
+<ul>
+<li>Layouts: 在路由之间轻松共享用户界面，同时保留状态并避免昂贵的重新渲染。</li>
+<li>Server Components: 将服务器优先作为动态应用的默认设置。</li>
+<li>Streaming: 在渲染时以用户界面为单位显示即时加载状态和数据流。</li>
+<li>Support for Data Fetching: async 服务器组件和扩展的 fetch API 可实现组件级数据获取。</li>
+</ul>
+<p><img src="https://nextjs.org/_next/image?url=/static/blog/layouts-rfc/app-folder.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6"></p>
+<h3 id="Layouts"><a href="#Layouts" class="headerlink" title="Layouts"></a>Layouts</h3><p>通过 <code>app/</code> 目录，可以轻松实现布局复杂的界面，在导航过程中保持状态，避免昂贵的重新渲染，并启用高级路由模式。此外，你还可以嵌套布局，并将 app 代码与路由（如组件、tests和styles）放在一起。</p>
+<p><img src="https://nextjs.org/_next/image?url=/static/blog/next-13/colocating-assets-in-the-app-directory.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6"></p>
+<p>在 <code>app/</code> 内创建路由只需要一个文件，即 page.js:</p>
+<pre><code class="highlight js"><span class="comment">// This file maps to the index route (/)</span>
+<span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Page</span>(<span class="params"></span>) &#123;
+  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>Hello, Next.js!<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span>;
+&#125;</code></pre>
+
+<p>你可以通过文件系统定义布局。布局在多个页面之间共享用户界面。在导航时，布局会保留状态，保持交互性，并且不会重新渲染。</p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">BlogLayout</span>(<span class="params">&#123; children &#125;</span>) &#123;
+  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">section</span>&gt;</span>&#123;children&#125;<span class="tag">&lt;/<span class="name">section</span>&gt;</span></span>;
+&#125;</code></pre>
+
+<h3 id="Server-Components"><a href="#Server-Components" class="headerlink" title="Server Components"></a>Server Components</h3><p><code>app/</code> 目录引入了对React新服务器组件架构的支持。服务器组件和客户端组件分别在服务器和客户端充分发挥它们各自的优势，使你能够单独使用单一的编程模型构建快速、高度交互式的应用程序，提供出色的开发者体验。</p>
+<p>在服务器组件中，我们为构建复杂的界面奠定了基础，同时减少了发送到客户端的JavaScript数量，从而加快了初始页面的加载速度。</p>
+<p>加载路由时，将会加载 Next.js 和 React runtime, 该 runtime 可缓存且大小可预测。runtime的大小不会随着应用的增长而增加。此外，runtime 是异步加载的，因此可以在客户端逐步增强服务器上的HTML</p>
+<h3 id="Streaming"><a href="#Streaming" class="headerlink" title="Streaming"></a>Streaming</h3><p><code>app/</code> 目录引入了逐步渲染和增量式流式传输用户界面单元到客户端的功能。</p>
+<p>利用 Next.js 中的服务器组件和嵌套布局，你可以立即呈现页面中不需要数据的部分，并为正在获取数据的页面显示加载状态。通过这个方法，用户无需等待整个页面加载完毕，就可以开始与页面进行交互。</p>
+<p><img src="https://nextjs.org/_next/image?url=/static/blog/next-13/streaming.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6"></p>
+<p>部署到Vercel后，使用<code>app/</code>目录的 Next.js 应用将默认在Node.js和Edge运行时使用流式响应，以提高性能。</p>
+<h3 id="Data-Fetching"><a href="#Data-Fetching" class="headerlink" title="Data Fetching"></a>Data Fetching</h3><p>React最近发布的 <a target="_blank" rel="noopener" href="https://github.com/acdlite/rfcs/blob/first-class-promises/text/0000-first-class-support-for-promises.md">Support for Promises RFC</a> 为在组件内获取数据和处理Promise引入了一种强大的新方法：</p>
+<pre><code class="highlight js"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">getData</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> res = <span class="keyword">await</span> <span class="title function_">fetch</span>(<span class="string">&#x27;https://api.example.com/...&#x27;</span>);
+  <span class="comment">// The return value is *not* serialized</span>
+  <span class="comment">// You can return Date, Map, Set, etc.</span>
+  <span class="keyword">return</span> res.<span class="title function_">json</span>();
+&#125;
+ 
+<span class="comment">// This is an async Server Component</span>
+<span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">Page</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> data = <span class="keyword">await</span> <span class="title function_">getData</span>();
+ 
+  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">main</span>&gt;</span>&#123;/* ... */&#125;<span class="tag">&lt;/<span class="name">main</span>&gt;</span></span>;
+&#125;</code></pre>
+
+<p>React 和 Next.js 中也扩展了本地 fetch API。它能够自动对 fetch requests 进行重复计算，并提供了一种灵活的方式在组件级获取、缓存和重新验证数据。这意味着SSG，SSR，ISR的所有优点现在都可以通过一个API获得：</p>
+<pre><code class="highlight js"><span class="comment">// This request should be cached until manually invalidated.</span>
+<span class="comment">// Similar to `getStaticProps`.</span>
+<span class="comment">// `force-cache` is the default and can be omitted.</span>
+<span class="title function_">fetch</span>(<span class="variable constant_">URL</span>, &#123; <span class="attr">cache</span>: <span class="string">&#x27;force-cache&#x27;</span> &#125;);
+ 
+<span class="comment">// This request should be refetched on every request.</span>
+<span class="comment">// Similar to `getServerSideProps`.</span>
+<span class="title function_">fetch</span>(<span class="variable constant_">URL</span>, &#123; <span class="attr">cache</span>: <span class="string">&#x27;no-store&#x27;</span> &#125;);
+ 
+<span class="comment">// This request should be cached with a lifetime of 10 seconds.</span>
+<span class="comment">// Similar to `getStaticProps` with the `revalidate` option.</span>
+<span class="title function_">fetch</span>(<span class="variable constant_">URL</span>, &#123; <span class="attr">next</span>: &#123; <span class="attr">revalidate</span>: <span class="number">10</span> &#125; &#125;);</code></pre>
+
+<p>在 app 目录中，你可以在layouts，pages，components中获取数据，包括支持从服务器获取流式响应。</p>
+<p>我们正在启用符合人体工学的方式来处理加载和错误状态，并在渲染用户界面时对其进行流式处理。在未来的版本中，我们还将改进和简化数据突变。</p>
+<p><img src="https://nextjs.org/_next/image?url=/static/blog/next-13/streaming.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6"></p>
+<p>我们很高兴能与开源社区、包维护者以及其他为 React 生态系统做出贡献的公司合作，共同打造 React 和 Next.js 的新时代。我们很高兴能在 <code>app/</code> 目录中加入两个重要的社区反馈，一是在组件内部集中数据获取的能力，二是向客户端发送更少的 JavaScript 。</p>
+<h2 id="Introducing-Turbopack-Alpha"><a href="#Introducing-Turbopack-Alpha" class="headerlink" title="Introducing Turbopack (Alpha)"></a>Introducing Turbopack (Alpha)</h2><p>Next.js 包含 Turbopack, 它是基于Rust的Webpack替代品</p>
+<p>Webpack已经被下载超过30亿次，虽然它一直是构建Web的重要组成部分，但是我们达到了基于JavaScript的工具所能达到的最高性能极限。</p>
+<p>在Next.js12中，我们开始向Rust驱动的工具过渡。首先是迁移了Babel，转译速度提高了17倍。然后，替换了Terser，压缩速度提高了6倍。是时候全部使用原生工具进行绑定了。</p>
+<p>在 Next.js13 中使用 Turbopack alpha 的结果是：</p>
+<ul>
+<li>更新速度比Webpack快700倍</li>
+<li>更新速度比Vite快10倍</li>
+<li>冷启动速度比Webpack快4倍</li>
+</ul>
+<p><img src="https://nextjs.org/_next/image?url=/static/blog/next-13/turbopack.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6"></p>
+<p>Turbopack 只捆绑开发中所需的最小资源，所以启动时间极短。在一个包含3000个modules的应用中，Turbopack只需1.8秒即可启动。Vite 需要11.4秒，Webpack需要16.5秒。</p>
+<p>Turbopack开箱即用，支持服务器组件、TypeScript、JSX、CSS等。在alpha阶段，<a target="_blank" rel="noopener" href="https://turbo.build/pack/docs/features">许多功能</a>尚不支持。我们希望听到你对使用 Turbopack 快速本地迭代过程的反馈</p>
+<blockquote>
+<p>Note: Next.js中的 Turbopack 目前只支持 <code>next dev</code>。查看<a target="_blank" rel="noopener" href="https://turbo.build/pack/docs/features">支持的功能</a>。我们还在努力通过 Turbopack 增加对 next build 的支持</p>
+</blockquote>
+<p>使用<code>next dev --turbo</code>在 Next.js13 中试用 Turbopack alpha。</p>
+<h2 id="next-x2F-image"><a href="#next-x2F-image" class="headerlink" title="next&#x2F;image"></a>next&#x2F;image</h2><p>Next.js13 引入了功能强大的新Image组件，让你可以轻松显示图像而无需改变布局，并按需优化文件以提高性能。</p>
+<p>在 Next.js 社区调查中，70%的受访者告诉我们，他们在生产中使用了 Next.js 的 Image 组件，并看到了 Core Web Vitals 的改进。在 Next.js13 中，我们将进一步改进 next&#x2F;image。</p>
+<p>新的 Image 组件：</p>
+<ul>
+<li>减少客户端 JavaScript</li>
+<li>更易于设计和配置</li>
+<li>默认情况下使用<code>alt</code>标记更易于访问</li>
+<li>与Web平台保持一致</li>
+<li>因为本地懒加载不需要 hydration，因此速度更快</li>
+</ul>
+<pre><code class="highlight js"><span class="keyword">import</span> <span class="title class_">Image</span> <span class="keyword">from</span> <span class="string">&#x27;next/image&#x27;</span>;
+<span class="keyword">import</span> avatar <span class="keyword">from</span> <span class="string">&#x27;./lee.png&#x27;</span>;
+ 
+<span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Home</span>(<span class="params"></span>) &#123;
+  <span class="comment">// &quot;alt&quot; is now required for improved accessibility</span>
+  <span class="comment">// optional: image files can be colocated inside the app/ directory</span>
+  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Image</span> <span class="attr">alt</span>=<span class="string">&quot;leeerob&quot;</span> <span class="attr">src</span>=<span class="string">&#123;avatar&#125;</span> <span class="attr">placeholder</span>=<span class="string">&quot;blur&quot;</span> /&gt;</span></span>;
+&#125;</code></pre>
+
+<h3 id="Upgrading-next-x2F-image-to-Next-js-13"><a href="#Upgrading-next-x2F-image-to-Next-js-13" class="headerlink" title="Upgrading next&#x2F;image to Next.js 13"></a>Upgrading next&#x2F;image to Next.js 13</h3><p>旧的 Image 组件已更名为 <code>next/legacy/image</code>。我们提供了一个codemod，它将自动把你现有的 next&#x2F;image 更新为 <code>next/legacy/image</code>。例如，当从根目录运行此命令时，将在 <code>./pages</code> 目录中运行 codemod:</p>
+<pre><code class="highlight bash">npx @next/codemod next-image-to-legacy-image ./pages</code></pre>
+
+<h2 id="next-x2F-font"><a href="#next-x2F-font" class="headerlink" title="@next&#x2F;font"></a>@next&#x2F;font</h2><p>Next.js 引入了全新的字体系统：</p>
+<ul>
+<li>自动优化你的字体，包括自定义字体</li>
+<li>移除外部网络请求，提高私密性和性能</li>
+<li>内置自动托管功能，可托管任何字体文件</li>
+<li>使用CSS <code>size-adjust</code> 属性自动实现零布局偏移</li>
+</ul>
+<p>新的字体系统可以让你方便的使用所有 Google 字体，同时兼顾性能和隐私。CSS和字体文件在构建时下载，并于其他静态资源一起自行托管。浏览器不会向 Google 发送任何请求。</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">Inter</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@next/font/google&#x27;</span>;
+ 
+<span class="keyword">const</span> inter = <span class="title class_">Inter</span>();
+ 
+<span class="language-xml"><span class="tag">&lt;<span class="name">html</span> <span class="attr">className</span>=<span class="string">&#123;inter.className&#125;</span>&gt;</span><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span>;</code></pre>
+
+<p>自定义字体也支持，包括支持字体文件的自动托管、缓存和预加载。</p>
+<pre><code class="highlight js"><span class="keyword">import</span> localFont <span class="keyword">from</span> <span class="string">&#x27;@next/font/local&#x27;</span>;
+ 
+<span class="keyword">const</span> myFont = <span class="title function_">localFont</span>(&#123; <span class="attr">src</span>: <span class="string">&#x27;./my-font.woff2&#x27;</span> &#125;);
+ 
+<span class="language-xml"><span class="tag">&lt;<span class="name">html</span> <span class="attr">className</span>=<span class="string">&#123;myFont.className&#125;</span>&gt;</span><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span>;</code></pre>
+
+<p>你可以自定义字体加载过程的每个部分，并且确保出色的性能和布局不变，包括 <code>font-display</code>，预加载，回退等。</p>
+<h2 id="next-x2F-link"><a href="#next-x2F-link" class="headerlink" title="next&#x2F;link"></a>next&#x2F;link</h2><p><code>next/link</code> 不再需要手动添加<code>&lt;a&gt;</code>作为子代。</p>
+<p>这个功能之前是在12.2中作为 expreimental option 添加的，现在是默认选项。在 Next.js13 中，<code>&lt;Link&gt;</code>总是渲染<code>&lt;a&gt;</code>，并允许你将props发送到底层标签上。例如：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> <span class="title class_">Link</span> <span class="keyword">from</span> <span class="string">&#x27;next/link&#x27;</span>
+ 
+<span class="comment">// Next.js 12: `&lt;a&gt;` has to be nested otherwise it&#x27;s excluded</span>
+&lt;<span class="title class_">Link</span> href=<span class="string">&quot;/about&quot;</span>&gt;
+  <span class="language-xml"><span class="tag">&lt;<span class="name">a</span>&gt;</span>About<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span>
+&lt;/<span class="title class_">Link</span>&gt;
+ 
+<span class="comment">// Next.js 13: `&lt;Link&gt;` always renders `&lt;a&gt;`</span>
+<span class="language-xml"><span class="tag">&lt;<span class="name">Link</span> <span class="attr">href</span>=<span class="string">&quot;/about&quot;</span>&gt;</span></span>
+<span class="language-xml">  About</span>
+<span class="language-xml"><span class="tag">&lt;/<span class="name">Link</span>&gt;</span></span></code></pre>
+
+<h3 id="Upgrading-next-x2F-link-to-Next-js-13"><a href="#Upgrading-next-x2F-link-to-Next-js-13" class="headerlink" title="Upgrading next&#x2F;link to Next.js 13"></a>Upgrading next&#x2F;link to Next.js 13</h3><p>将 links 升级到 Next.js13，我们提供了一个codemod，可以自动更新 codebase。比如在根目录运行此命令，将在<code>./pages</code>目录中运行codemod：</p>
+<pre><code class="highlight bash">npx @next/codemod new-link ./pages</code></pre>
+
+<h2 id="OG-Image-Generation"><a href="#OG-Image-Generation" class="headerlink" title="OG Image Generation"></a>OG Image Generation</h2><p>社交卡片，也可称为开放图图像，可以大大提高内容点击的参与率，一些实验显示转化率最高可提高40%。</p>
+<p>静态社交卡耗时、易出错且难维护。正因为如此，社交卡经常被忽略甚至跳过。在此之前，需要个性化和即时计算的动态社交卡既困难又昂贵。</p>
+<p>我们创建了一个新库 <code>@vercel/og</code>, 可与 Next.js 无缝协作，生成动态的社交卡片。</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">ImageResponse</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@vercel/og&#x27;</span>;
+ 
+<span class="keyword">export</span> <span class="keyword">const</span> config = &#123;
+  <span class="attr">runtime</span>: <span class="string">&#x27;experimental-edge&#x27;</span>,
+&#125;;
+ 
+<span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> (<span class="params"></span>) &#123;
+  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ImageResponse</span>(
+    (
+      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">style</span>=<span class="string">&#123;&#123;</span></span></span>
+<span class="tag"><span class="language-xml">          <span class="attr">display:</span> &#x27;<span class="attr">flex</span>&#x27;,</span></span>
+<span class="tag"><span class="language-xml">          <span class="attr">fontSize:</span> <span class="attr">128</span>,</span></span>
+<span class="tag"><span class="language-xml">          <span class="attr">background:</span> &#x27;<span class="attr">white</span>&#x27;,</span></span>
+<span class="tag"><span class="language-xml">          <span class="attr">width:</span> &#x27;<span class="attr">100</span>%&#x27;,</span></span>
+<span class="tag"><span class="language-xml">          <span class="attr">height:</span> &#x27;<span class="attr">100</span>%&#x27;,</span></span>
+<span class="tag"><span class="language-xml">        &#125;&#125;</span></span>
+<span class="tag"><span class="language-xml">      &gt;</span></span>
+<span class="language-xml">        Hello, World!</span>
+<span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+    ),
+  );
+&#125;</code></pre>
+
+<p>这个方法比现有解决方法快5倍。通过使用 Vercel Edge Functions、WebAssembly 和用于将 HTML 和 CSS 转换为图像的全新核心库，并利用 React 组件抽象。</p>
+<h2 id="Middleware-API-Updates"><a href="#Middleware-API-Updates" class="headerlink" title="Middleware API Updates"></a>Middleware API Updates</h2><p>在 Next.js12 中，我们引入了中间件，使 Next.js 路由具有充分的灵活性。然后我们听取了大家对初始 API 设计的反馈意见，并增加了一些新内容，以改善开发人员的体验，并添加了强大的新功能。</p>
+<p>现在你可以更轻松地在请求中设置 headers：</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">NextResponse</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;next/server&#x27;</span>;
+<span class="keyword">import</span> type &#123; <span class="title class_">NextRequest</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;next/server&#x27;</span>;
+ 
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">middleware</span>(<span class="params">request: NextRequest</span>) &#123;
+  <span class="comment">// Clone the request headers and set a new header `x-version`</span>
+  <span class="keyword">const</span> requestHeaders = <span class="keyword">new</span> <span class="title class_">Headers</span>(request.<span class="property">headers</span>);
+  requestHeaders.<span class="title function_">set</span>(<span class="string">&#x27;x-version&#x27;</span>, <span class="string">&#x27;13&#x27;</span>);
+ 
+  <span class="comment">// You can also set request headers in NextResponse.rewrite</span>
+  <span class="keyword">const</span> response = <span class="title class_">NextResponse</span>.<span class="title function_">next</span>(&#123;
+    <span class="attr">request</span>: &#123;
+      <span class="comment">// New request headers</span>
+      <span class="attr">headers</span>: requestHeaders,
+    &#125;,
+  &#125;);
+ 
+  <span class="comment">// Set a new response header `x-version`</span>
+  response.<span class="property">headers</span>.<span class="title function_">set</span>(<span class="string">&#x27;x-version&#x27;</span>, <span class="string">&#x27;13&#x27;</span>);
+  <span class="keyword">return</span> response;
+&#125;</code></pre>
+
+<p>现在，你还可以直接在中间件中提供响应，无需 <code>rewrite</code> 和 <code>redirect</code>。</p>
+<pre><code class="highlight js"><span class="keyword">import</span> &#123; <span class="title class_">NextRequest</span>, <span class="title class_">NextResponse</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;next/server&#x27;</span>;
+<span class="keyword">import</span> &#123; isAuthenticated &#125; <span class="keyword">from</span> <span class="string">&#x27;@lib/auth&#x27;</span>;
+ 
+<span class="comment">// Limit the middleware to paths starting with `/api/`</span>
+<span class="keyword">export</span> <span class="keyword">const</span> config = &#123;
+  <span class="attr">matcher</span>: <span class="string">&#x27;/api/:function*&#x27;</span>,
+&#125;;
+ 
+<span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">middleware</span>(<span class="params">request: NextRequest</span>) &#123;
+  <span class="comment">// Call our authentication function to check the request</span>
+  <span class="keyword">if</span> (!<span class="title function_">isAuthenticated</span>(request)) &#123;
+    <span class="comment">// Respond with JSON indicating an error message</span>
+    <span class="keyword">return</span> <span class="title class_">NextResponse</span>.<span class="title function_">json</span>(
+      &#123;
+        <span class="attr">success</span>: <span class="literal">false</span>,
+        <span class="attr">message</span>: <span class="string">&#x27;Auth failed&#x27;</span>,
+      &#125;,
+      &#123;
+        <span class="attr">status</span>: <span class="number">401</span>,
+      &#125;,
+    );
+  &#125;
+&#125;</code></pre>
+
+<p>从中间件发送响应目前需要使用 <code>next.config.js</code> 中的 <code>experimental.allowMiddlewareResponseBody</code> 配置项。</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/08/31/%E3%80%90%E7%BF%BB%E3%80%91Render-Functions-JSX/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#New-app-Directory-Beta"><span class="toc-text">New app Directory(Beta)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Layouts"><span class="toc-text">Layouts</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Server-Components"><span class="toc-text">Server Components</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Streaming"><span class="toc-text">Streaming</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Data-Fetching"><span class="toc-text">Data Fetching</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Introducing-Turbopack-Alpha"><span class="toc-text">Introducing Turbopack (Alpha)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-image"><span class="toc-text">next&#x2F;image</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Upgrading-next-x2F-image-to-Next-js-13"><span class="toc-text">Upgrading next&#x2F;image to Next.js 13</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-font"><span class="toc-text">@next&#x2F;font</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-link"><span class="toc-text">next&#x2F;link</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Upgrading-next-x2F-link-to-Next-js-13"><span class="toc-text">Upgrading next&#x2F;link to Next.js 13</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OG-Image-Generation"><span class="toc-text">OG Image Generation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Middleware-API-Updates"><span class="toc-text">Middleware API Updates</span></a></li></ol></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/09/24/【翻】Next-js-13/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
