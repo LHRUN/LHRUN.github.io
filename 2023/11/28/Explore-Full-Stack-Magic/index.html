@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>Explore Full Stack Magic：Next.js + Prisma + Next-auth + vercel/postgres | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Next-js/">
+                            Next.js
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Vercel/">
+                            Vercel
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Full-Stack/">
+                            Full Stack
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Prisma/">
+                            Prisma
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/PostgreSQL/">
+                            PostgreSQL
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                Explore Full Stack Magic：Next.js + Prisma + Next-auth + vercel/postgres
+            
+            
+        </div>
+        <span class="post-date">
+            11月 28, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img loading="lazy" src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/bubble_cover.png" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <p>Recently, I completed a new website project to collecting Github Profiles and Readme Components. Initially, I didn’t plan to develop it into a full-stack application, and features such as liking and collect were based on local storage. However, with the gradual iterations after the website’s release, I felt that adding full-stack support might be a necessary direction. Not only does it contribute to future project expansion, but it also enhances the overall user experience. So, in my spare time over the course of about a week, I transformed the project into a fully-fledged full-stack website. Here is the link to my project.</p>
+<ul>
+<li>Link: <a target="_blank" rel="noopener" href="https://bubble-awesome-profile.vercel.app/">https://bubble-awesome-profile.vercel.app</a></li>
+<li>Github: <a target="_blank" rel="noopener" href="https://github.com/LHRUN/bubble">https://github.com/LHRUN/bubble</a></li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/screenshot_profle.png"></p>
+<p>After completing the full-stack version of the website, I thought about documenting the process in an article. All the code for this article can be found in the project. In the upcoming posts, I will gradually share content about topics such as authentication, the use of Prisma and PostgreSQL, and ultimately guide you through the process of building a full-stack website.</p>
+<h2 id="Tech-Stack"><a href="#Tech-Stack" class="headerlink" title="Tech Stack"></a>Tech Stack</h2><ul>
+<li>full-stack framework <a target="_blank" rel="noopener" href="https://nextjs.org/">Next.js</a></li>
+<li>database tool <a target="_blank" rel="noopener" href="https://www.prisma.io/">Prisma</a></li>
+<li>database <a target="_blank" rel="noopener" href="https://www.postgresql.org/">PostgreSQL</a></li>
+<li>authenticate <a target="_blank" rel="noopener" href="https://next-auth.js.org/">NextAuth</a></li>
+<li>deployment platform <a target="_blank" rel="noopener" href="https://vercel.com/">Vercel</a></li>
+</ul>
+<h2 id="Initialization-Project"><a href="#Initialization-Project" class="headerlink" title="Initialization Project"></a>Initialization Project</h2><p>First, run the <code>npx create-next-app@latest</code> command in the terminal, and then follow the prompts for configuration.</p>
+<pre><code class="highlight bash">What is your project named? my-app
+Would you like to use TypeScript? No / Yes
+Would you like to use ESLint? No / Yes
+Would you like to use Tailwind CSS? No / Yes
+Would you like to use `src/` directory? No / Yes
+Would you like to use App Router? (recommended) No / Yes
+Would you like to customize the default import <span class="built_in">alias</span> (@/*)? No / Yes
+What import <span class="built_in">alias</span> would you like configured? @/*</code></pre>
+
+<p>After a successful run, navigate to the project directory and execute <code>npm run dev</code>.</p>
+<p>After successful startup, you can start building the base environment</p>
+<ol>
+<li>First, upload the project to GitHub by creating a repository and linking the remote address. Then, push the code.</li>
+<li>Go to the Vercel <a target="_blank" rel="noopener" href="https://vercel.com/">https://vercel.com/</a>, log in, and choose GitHub. When uploading the project, keep the default settings in “Configure Project” and click “Deploy” directly. Environment variables can be adjusted when needed. Wait automatic deployment to complete.</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/vercel_create_project.png"></p>
+<ol start="3">
+<li>After successful deployment, create the database. Select PostgreSQL in the Storage tab, enter a name and select a region and create it. Once created the database will be linked to your project.</li>
+<li>Local code pulling environment variables:</li>
+</ol>
+<ul>
+<li>Run <code>npm i -g vercel@latest</code> to install the Verlcel CLI.</li>
+<li>Run <code>verlcel link</code> to link your vercel project.</li>
+<li>Run <code>vercel env pull .env</code> to pull the latest environment variables.</li>
+</ul>
+<h2 id="Connecting-to-the-database"><a href="#Connecting-to-the-database" class="headerlink" title="Connecting to the database"></a>Connecting to the database</h2><p>Run <code>npm install prisma --save-dev</code> to install the Prisma CLI and create a <code>Prisma</code> folder, add the <code>schema.prisma</code> file to it, and then add a few models as follows:</p>
+<pre><code class="highlight prisma">generator client &#123;
+  provider = &quot;prisma-client-js&quot;
+&#125;
+
+datasource db &#123;
+  provider  = &quot;postgresql&quot;
+  url       = env(&quot;POSTGRES_PRISMA_URL&quot;) // uses connection pooling
+  directUrl = env(&quot;POSTGRES_URL_NON_POOLING&quot;) // uses a direct connection
+&#125;
+
+model Post &#123;
+  id        String     @default(cuid()) @id
+  title     String
+  content   String?
+  published Boolean @default(false)
+  author    User?   @relation(fields: [authorId], references: [id])
+  authorId  String?
+&#125;
+
+model User &#123;
+  id            String       @default(cuid()) @id
+  name          String?
+  email         String?   @unique
+  createdAt     DateTime  @default(now()) @map(name: &quot;created_at&quot;)
+  updatedAt     DateTime  @updatedAt @map(name: &quot;updated_at&quot;)
+  posts         Post[]
+  @@map(name: &quot;users&quot;)
+&#125;</code></pre>
+
+<p>Prisma is to define the table structure through the model, for example, the above is to build a Post table and a User table, and then these two tables through the posts in the User and the author in the Post to establish a one-to-many table relationship.</p>
+<p>Then run the <code>npx prisma db push</code> command to synchronize the defined data model to the remote database. You should then see the following prompt. This means that the table has been created successfully</p>
+<pre><code class="highlight plaintext">🚀  Your database is now in sync with your schema.</code></pre>
+
+<p>Then run <code>npx prisma studio</code> in <code>localhost:5555</code> to see your table structure, which is of course now all empty data.</p>
+<h2 id="Getting-database-data-into-a-views"><a href="#Getting-database-data-into-a-views" class="headerlink" title="Getting database data into a views"></a>Getting database data into a views</h2><p>To get the database data into the view, you first need to install <code>@prisma/client</code>, run the command <code>npm install @prisma/client</code>.</p>
+<p>Then run <code>npx prisma generate</code>, and note that you will need to run this command every time you change the Prisma Schema file thereafter. It will generate the TypeScript or JavaScript code corresponding to the table structure, the functions used to perform database queries, inserts, updates, and deletes, as well as the associated type definitions.</p>
+<p>Next, create a prisma.ts file in your project, which can usually be placed in the lib folder. Add the following code to that file:</p>
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; <span class="title class_">PrismaClient</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@prisma/client&#x27;</span>;
+
+<span class="keyword">let</span> <span class="attr">prisma</span>: <span class="title class_">PrismaClient</span>;
+
+<span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span>) &#123;
+  prisma = <span class="keyword">new</span> <span class="title class_">PrismaClient</span>();
+&#125; <span class="keyword">else</span> &#123;
+  <span class="keyword">if</span> (!<span class="variable language_">global</span>.<span class="property">prisma</span>) &#123;
+    <span class="variable language_">global</span>.<span class="property">prisma</span> = <span class="keyword">new</span> <span class="title class_">PrismaClient</span>();
+  &#125;
+  prisma = <span class="variable language_">global</span>.<span class="property">prisma</span>;
+&#125;
+
+<span class="keyword">export</span> <span class="keyword">default</span> prisma;</code></pre>
+
+<p>This code is used to configure and export a Prisma instance. In a production environment, a new PrismaClient instance is created for each request, while in a development environment, it reuses the global instance to prevent running out of data connections. This setup improves performance and reduces resource usage.</p>
+<p>Then PrismaClient has four basic APIs for create, delete, update, and read, For details, see <a target="_blank" rel="noopener" href="https://www.prisma.io/docs/concepts/components/prisma-client/crud">CRUD</a></p>
+<pre><code class="highlight ts"><span class="keyword">const</span> user = <span class="keyword">await</span> prisma.<span class="property">user</span>.<span class="title function_">create</span>(&#123;
+  <span class="attr">data</span>: &#123;
+    <span class="attr">email</span>: <span class="string">&#x27;elsa@prisma.io&#x27;</span>,
+    <span class="attr">name</span>: <span class="string">&#x27;Elsa Prisma&#x27;</span>,
+  &#125;,
+&#125;)
+
+<span class="keyword">const</span> user = <span class="keyword">await</span> prisma.<span class="property">user</span>.<span class="title function_">findUnique</span>(&#123;
+  <span class="attr">where</span>: &#123;
+    <span class="attr">email</span>: <span class="string">&#x27;elsa@prisma.io&#x27;</span>,
+  &#125;,
+&#125;)
+
+<span class="keyword">const</span> updateUser = <span class="keyword">await</span> prisma.<span class="property">user</span>.<span class="title function_">update</span>(&#123;
+  <span class="attr">where</span>: &#123;
+    <span class="attr">email</span>: <span class="string">&#x27;elsa@prisma.io&#x27;</span>,
+  &#125;,
+  <span class="attr">data</span>: &#123;
+    <span class="attr">name</span>: <span class="string">&#x27;Elsa&#x27;</span>,
+  &#125;,
+&#125;)
+
+<span class="keyword">const</span> deleteUser = <span class="keyword">await</span> prisma.<span class="property">user</span>.<span class="title function_">delete</span>(&#123;
+  <span class="attr">where</span>: &#123;
+    <span class="attr">email</span>: <span class="string">&#x27;elsa@prisma.io&#x27;</span>,
+  &#125;,
+&#125;)</code></pre>
+
+<p>For example, if you want to find a post</p>
+<pre><code class="highlight ts"><span class="keyword">export</span> <span class="keyword">const</span> <span class="attr">getServerSideProps</span>: <span class="title class_">GetServerSideProps</span> = <span class="keyword">async</span> (&#123; params &#125;) =&gt; &#123;
+  <span class="keyword">const</span> post = <span class="keyword">await</span> prisma.<span class="property">post</span>.<span class="title function_">findUnique</span>(&#123;
+    <span class="attr">where</span>: &#123;
+      <span class="attr">id</span>: <span class="title class_">String</span>(params?.<span class="property">id</span>),
+    &#125;,
+    <span class="attr">include</span>: &#123;
+      <span class="attr">author</span>: &#123;
+        <span class="attr">select</span>: &#123; <span class="attr">name</span>: <span class="literal">true</span> &#125;,
+      &#125;,
+    &#125;,
+  &#125;);
+  <span class="keyword">return</span> &#123;
+    <span class="attr">props</span>: post,
+  &#125;;
+&#125;;</code></pre>
+
+<h2 id="NextAuth-Authentication"><a href="#NextAuth-Authentication" class="headerlink" title="NextAuth Authentication"></a>NextAuth Authentication</h2><p>First install the two dependencies <code>next-auth</code>, <code>@next-auth/prisma-adapter</code>.</p>
+<pre><code class="highlight bash">npm install next-auth @next-auth/prisma-adapter</code></pre>
+
+<p>Then change the user-related model</p>
+<pre><code class="highlight prisma">model User &#123;
+  id              String         @id @default(uuid())
+  name            String
+  email           String?        @unique
+  emailVerified   DateTime?      @map(&quot;email_verified&quot;)
+  image           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  posts         Post[]
+
+  @@map(&quot;users&quot;)
+&#125;
+
+model Account &#123;
+  id                String   @id @default(cuid())
+  userId            String   @map(&quot;user_id&quot;)
+  type              String?
+  provider          String
+  providerAccountId String   @map(&quot;provider_account_id&quot;)
+  token_type        String?
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  scope             String?
+  id_token          String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map(&quot;accounts&quot;)
+&#125;
+
+model Session &#123;
+  id           String   @id @default(cuid())
+  userId       String?  @map(&quot;user_id&quot;)
+  sessionToken String   @unique @map(&quot;session_token&quot;) @db.Text
+  accessToken  String?  @map(&quot;access_token&quot;) @db.Text
+  expires      DateTime
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map(&quot;sessions&quot;)
+&#125;
+
+model VerificationRequest &#123;
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, token])
+&#125;</code></pre>
+
+<p>Then, using GitHub as an example, you need to create an OAuth App. follow these steps:</p>
+<ol>
+<li>Login to your GitHub account and click Settings.</li>
+<li>At the bottom of the Settings page, find Developer Settings and switch to OAuth Apps.</li>
+<li>Click “Register a new application” and fill in the name and domain name. In a local development environment, the Homepage URL can be <code>http://localhost:3000</code> and the Authorization callback URL can be <code>http://localhost:3000/api/auth/callback/github</code>.</li>
+</ol>
+<p>After successful creation, copy the generated Client ID and Client Secret and add them to the <code>.env</code> file in your project:</p>
+<pre><code class="highlight dotenv">GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+SECRET= // Required for production environments, content can be customized</code></pre>
+
+<p>This way, your project will be able to do GitHub OAuth authentication with these keys. Also make sure that the <code>.env</code> file is not exposed, you can add it now to the <code>.gitignore</code></p>
+<p>Then you need to add the following code to your root component</p>
+<pre><code class="highlight tsx"><span class="keyword">import</span> &#123; <span class="title class_">SessionProvider</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;next-auth/react&#x27;</span>;
+
+<span class="keyword">const</span> <span class="title function_">Home</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">SessionProvider</span>&gt;</span></span>
+<span class="language-xml">      ...</span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">SessionProvider</span>&gt;</span></span>
+  );
+&#125;;
+
+<span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">Home</span>;</code></pre>
+
+<p>Then, create a specific route <code>api/auth/[... .nextauth].ts</code> for NextAuth to use and add the following code</p>
+<pre><code class="highlight ts"><span class="comment">// api/auth/[...nextauth].ts</span>
+
+<span class="keyword">import</span> &#123; <span class="title class_">NextAuth</span>， <span class="title class_">NextAuthOptions</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;next-auth&#x27;</span>;
+<span class="keyword">import</span> &#123; <span class="title class_">PrismaAdapter</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@next-auth/prisma-adapter&#x27;</span>;
+<span class="keyword">import</span> <span class="title class_">GitHubProvider</span> <span class="keyword">from</span> <span class="string">&#x27;next-auth/providers/github&#x27;</span>;
+<span class="keyword">import</span> prisma <span class="keyword">from</span> <span class="string">&#x27;@/lib/prisma&#x27;</span>;
+
+<span class="keyword">const</span> <span class="attr">authOptions</span>: <span class="title class_">NextAuthOptions</span> = &#123;
+  <span class="attr">providers</span>: [
+    <span class="title class_">GitHubProvider</span>(&#123;
+      <span class="attr">clientId</span>: process.<span class="property">env</span>.<span class="property">GITHUB_CLIENT_ID</span> <span class="keyword">as</span> <span class="built_in">string</span>,
+      <span class="attr">clientSecret</span>: process.<span class="property">env</span>.<span class="property">GITHUB_CLIENT_SECRET</span> <span class="keyword">as</span> <span class="built_in">string</span>,
+      <span class="attr">httpOptions</span>: &#123;
+        <span class="attr">timeout</span>: <span class="number">10000</span>, <span class="comment">// wait for response time, because the local environment often login timeout, so change this configuration</span>
+      &#125;
+    &#125;)
+  ],
+  <span class="attr">adapter</span>: <span class="title class_">PrismaAdapter</span>(prisma),
+  <span class="attr">secret</span>: process.<span class="property">env</span>.<span class="property">SECRET</span>, <span class="comment">// required for production environments</span>
+  <span class="attr">callbacks</span>: &#123;
+    <span class="comment">// triggered by getSession and useSession calls</span>
+    <span class="comment">// documents https://next-auth.js.org/configuration/callbacks</span>
+    <span class="keyword">async</span> <span class="title function_">session</span>(<span class="params">&#123; session, user &#125;</span>) &#123;
+      <span class="keyword">if</span> (user.<span class="property">id</span> &amp;&amp; session?.<span class="property">user</span>) &#123;
+        session.<span class="property">user</span>.<span class="property">userId</span> = user.<span class="property">id</span>;
+      &#125;
+      <span class="keyword">return</span> session;
+    &#125;
+  &#125;
+&#125;;
+
+<span class="keyword">const</span> handler = <span class="title class_">NextAuth</span>(authOptions);
+
+<span class="keyword">export</span> &#123; handler <span class="keyword">as</span> <span class="variable constant_">GET</span>, handler <span class="keyword">as</span> <span class="variable constant_">POST</span> &#125;;</code></pre>
+
+<p>Then add the following code where you want to click login and it will normally take you to the github authorization page.</p>
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; signIn &#125; <span class="keyword">from</span> <span class="string">&#x27;next-auth/react&#x27;</span>;
+
+<span class="keyword">const</span> <span class="title function_">clickSignIn</span> = (<span class="params"></span>) =&gt; &#123;
+  <span class="title function_">signIn</span>(<span class="string">&#x27;github&#x27;</span>)
+&#125;</code></pre>
+
+<p>Getting user session data can be done via the following APIs</p>
+<ul>
+<li>Client：<code>useSession</code>, <code>getSession</code></li>
+<li>Server: <code>getServerSession</code></li>
+</ul>
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; useSession &#125; <span class="keyword">from</span> <span class="string">&#x27;next-auth/react&#x27;</span>;
+
+<span class="keyword">function</span> <span class="title function_">MyComponent</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> &#123; <span class="attr">data</span>: session &#125; = <span class="title function_">useSession</span>();
+
+  <span class="keyword">if</span> (session) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Logged in as:&#x27;</span>, session.<span class="property">user</span>);
+  &#125;
+
+  <span class="comment">// ...</span>
+&#125;</code></pre>
+
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; getSession &#125; <span class="keyword">from</span> <span class="string">&#x27;next-auth/react&#x27;</span>;
+
+<span class="keyword">export</span> <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">getServerSideProps</span>(<span class="params">context</span>) &#123;
+  <span class="keyword">const</span> session = <span class="keyword">await</span> <span class="title function_">getSession</span>(context);
+
+  <span class="keyword">if</span> (session) &#123;
+    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Logged in as:&#x27;</span>, session.<span class="property">user</span>);
+  &#125;
+
+  <span class="keyword">return</span> &#123;
+    <span class="attr">props</span>: &#123;&#125;,
+  &#125;;
+&#125;</code></pre>
+
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; getServerSession &#125; <span class="keyword">from</span> <span class="string">&#x27;next-auth/react&#x27;</span>;
+
+<span class="keyword">export</span> <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">POST</span>(<span class="params">req: NextRequest</span>) &#123;
+  <span class="keyword">const</span> session = <span class="keyword">await</span> <span class="title function_">getServerSession</span>();
+  <span class="keyword">const</span> userId = session?.<span class="property">user</span>?.<span class="property">userId</span>;
+
+  <span class="comment">// validation session</span>
+  <span class="keyword">if</span> (!userId) &#123;
+    <span class="keyword">return</span> <span class="title function_">responseFail</span>(<span class="variable constant_">HTTP_CODE</span>.<span class="property">NOT_LOGGED</span>);
+  &#125;
+
+  <span class="comment">//...</span>
+&#125;</code></pre>
+
+
+<h2 id="Vercel-Deployment-Notes"><a href="#Vercel-Deployment-Notes" class="headerlink" title="Vercel Deployment Notes"></a>Vercel Deployment Notes</h2><ol>
+<li>The build command needs to be preceded by <code>prisma generate</code>, so the build command in package.json can be changed to</li>
+</ol>
+<pre><code class="highlight json"><span class="attr">&quot;scripts&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>
+ <span class="attr">&quot;build&quot;</span><span class="punctuation">:</span> <span class="string">&quot;prisma generate &amp;&amp; next build&quot;</span>
+<span class="punctuation">&#125;</span></code></pre>
+
+<ol start="2">
+<li>Since only one callback path is supported in the GitHub OAuth App, you need to create multiple OAuth Apps for different environments. set up environment variables on Vercel, and add the specific keys for each OAuth App to the environment variables. vercel supports multiple environment variable setups.</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/vercel_env_var.png"></p>
+<ol start="3">
+<li>Make sure to add the <code>.env</code> file to <code>.gitignore</code> and don’t expose it!</li>
+</ol>
+<h2 id="Problems-In-Dev"><a href="#Problems-In-Dev" class="headerlink" title="Problems In Dev"></a>Problems In Dev</h2><ol>
+<li><p>It is very easy to fail to login in, after many times of checking still can’t find the reason, for the time being, it will be categorized as a network error, if you fail to login in you can try to switch the wifi or switch your network, of course, this is mainly in the local development environment of the problem, the production environment is still very smooth. Related <a target="_blank" rel="noopener" href="https://github.com/nextauthjs/next-auth/issues/3920">issue</a></p>
+</li>
+<li><p>In Next.js 14, passing the <code>request</code> object to <code>getServerSession</code> will result in an error, so try writing it like I did, and then introducing the function wherever you need to use it.</p>
+</li>
+</ol>
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; getServerSession <span class="keyword">as</span> originalGetServerSession &#125; <span class="keyword">from</span> <span class="string">&#x27;next-auth/next&#x27;</span>;
+
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getServerSession</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">const</span> req = &#123;
+    <span class="attr">headers</span>: <span class="title class_">Object</span>.<span class="title function_">fromEntries</span>(<span class="title function_">headers</span>() <span class="keyword">as</span> <span class="title class_">Headers</span>),
+    <span class="attr">cookies</span>: <span class="title class_">Object</span>.<span class="title function_">fromEntries</span>(
+      <span class="title function_">cookies</span>()
+        .<span class="title function_">getAll</span>()
+        .<span class="title function_">map</span>(<span class="function">(<span class="params">c</span>) =&gt;</span> [c.<span class="property">name</span>, c.<span class="property">value</span>])
+    )
+  &#125; <span class="keyword">as</span> <span class="built_in">any</span>;
+  <span class="keyword">const</span> res = &#123; <span class="title function_">getHeader</span>(<span class="params"></span>) &#123;&#125;, <span class="title function_">setCookie</span>(<span class="params"></span>) &#123;&#125;, <span class="title function_">setHeader</span>(<span class="params"></span>) &#123;&#125; &#125; <span class="keyword">as</span> <span class="built_in">any</span>;
+
+  <span class="keyword">const</span> session = <span class="keyword">await</span> <span class="title function_">originalGetServerSession</span>(req, res, authOptions);
+  <span class="keyword">return</span> session;
+&#125;;</code></pre>
+
+<ol start="3">
+<li>When using authenticated login platforms such as GitHub, Google, etc., if the email is unique, it will cause the login to fail. This is due to the fact that the email is defined as a unique value in the model</li>
+<li>When I initially wrote the user-related model I kept getting type errors when following the example on the official website, so if that’s the case for you too, try the set of base models I wrote above</li>
+</ol>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>This article just roughly summarizes the process of building a full-stack website, in which there are some details not written, but you follow this process to build your website is no problem. Welcome to discuss and exchange questions. Thanks. 👻</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Tech-Stack"><span class="toc-text">Tech Stack</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Initialization-Project"><span class="toc-text">Initialization Project</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Connecting-to-the-database"><span class="toc-text">Connecting to the database</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Getting-database-data-into-a-views"><span class="toc-text">Getting database data into a views</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#NextAuth-Authentication"><span class="toc-text">NextAuth Authentication</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Vercel-Deployment-Notes"><span class="toc-text">Vercel Deployment Notes</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Problems-In-Dev"><span class="toc-text">Problems In Dev</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-text">Conclusion</span></a></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/11/28/Explore-Full-Stack-Magic/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/11/28/Explore-Full-Stack-Magic/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
