@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>Canvas Artistry： Mastering Selection, Dragging, and Scaling | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+(function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "jy4barl9vt");
+</script>
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Canvas/">
+                            Canvas
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                Canvas Artistry： Mastering Selection, Dragging, and Scaling
+            
+            
+        </div>
+        <span class="post-date">
+            11月 30, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img loading="lazy" src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas_art_1_cover.png" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>About half a year ago. I made a Canvas multifunctional drawing board with some of the following main features</p>
+<ul>
+<li>Freestyle drawing<ul>
+<li>Supports color changes and real-time adjustment of line width according to the drawing speed.</li>
+<li>Offers a multitude of effects such as fluorescent, multi-color, crayon, spray, bubbles and more.</li>
+</ul>
+</li>
+<li>Eraser.<ul>
+<li>Linear erase function with mouse movement.</li>
+</ul>
+</li>
+<li>Drawing text<ul>
+<li>By double clicking on the drawing board, the user can enter text and draw in the specified position.</li>
+</ul>
+</li>
+<li>Drawing board Drag &amp; Drop<ul>
+<li>Holding down the space bar allows the user to drag and drop the drawing board infinitely.</li>
+</ul>
+</li>
+<li>Select Mode<ul>
+<li>Once in selection mode, the user can box in elements by clicking on them, zoom or move them by holding down the handle, and delete selected elements with the Backspace key.</li>
+</ul>
+</li>
+<li>Layer<ul>
+<li>The content of the drawing board is displayed in the order of the layers, and users can add, delete and sort layers.</li>
+</ul>
+</li>
+<li>Provides undo and reverse undo features that allow users to clear the board or save the content as an image.</li>
+</ul>
+<p>Then recently I had some free time and decided to write a series of articles documenting my design ideas and code. If you are interested in this project, feel free to visit and also feel free to give the project a Star ⭐️.</p>
+<ul>
+<li>Github: <a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">https://github.com/LHRUN/paint-board</a></li>
+</ul>
+<p>In this article, I will introduce the Canvas drawing board in detail in the box to select elements of the realization of ideas and specific code, the effect is as follows.</p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas_art_1_preview.gif"></p>
+<h2 id="Ideas-For-Realization"><a href="#Ideas-For-Realization" class="headerlink" title="Ideas For Realization"></a>Ideas For Realization</h2><ol>
+<li>First make sure that key rectangle properties such as width, height, and rectangle position are recorded when the element is initialized and updated. This is the basis for implementing box-select features.</li>
+<li>On mouseover, it is necessary to determine whether the mouse is hovering over any element based on the current coordinates. This allows us to handle clicks appropriately. Also, the cursor should change on mouseover based on the type of element it is hovering over to provide more intuitive feedback to the user.</li>
+<li>In the case of selete elements, the rendering stage should render the select effect at the end based on the rectangle property of the select element, making sure that the select effect is at the top of the canvas.</li>
+<li>When a select element exists, the drag operation needs to determine whether to move the element or change its size based on the location of the drag.</li>
+<li>There are two types of element resizing, scaling that maintains proportionality (e.g., text) and scaling that does not (e.g., free drawing).</li>
+</ol>
+<h2 id="Record-Rectangle-Properties"><a href="#Record-Rectangle-Properties" class="headerlink" title="Record Rectangle Properties"></a>Record Rectangle Properties</h2><p>Because new coordinate points were being added all the time during the drawing process, I recorded the minimum and maximum xy coordinates in addition to the rectangle attribute to make it easier to calculate the width and height.</p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * Update the rectangle properties according to the new coordinate points</span>
+<span class="comment"> * <span class="doctag">@param</span> instance free drawing element</span>
+<span class="comment"> * <span class="doctag">@param</span> position current position</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">updateRect</span> = (<span class="params">instance: FreeDraw, position: MousePosition</span>) =&gt; &#123;
+  <span class="keyword">const</span> &#123; x, y &#125; = position
+  <span class="keyword">let</span> &#123; minX, maxX, minY, maxY &#125; = instance.<span class="property">rect</span>
+  <span class="keyword">if</span> (x &lt; minX) &#123;
+    minX = x
+  &#125;
+  <span class="keyword">if</span> (x &gt; maxX) &#123;
+    maxX = x
+  &#125;
+  <span class="keyword">if</span> (y &lt; minY) &#123;
+    minY = y
+  &#125;
+  <span class="keyword">if</span> (y &gt; maxY) &#123;
+    maxY = y
+  &#125;
+  <span class="keyword">const</span> rect = &#123;
+    minX,
+    maxX,
+    minY,
+    maxY,
+    <span class="attr">x</span>: minX,
+    <span class="attr">y</span>: minY,
+    <span class="attr">width</span>: maxX - minX,
+    <span class="attr">height</span>: maxY - minY
+  &#125;
+  instance.<span class="property">rect</span> = rect
+  <span class="keyword">return</span> rect
+&#125;</code></pre>
+
+<h2 id="Calculate-Mouse-Movement-Coordinates"><a href="#Calculate-Mouse-Movement-Coordinates" class="headerlink" title="Calculate Mouse Movement Coordinates"></a>Calculate Mouse Movement Coordinates</h2><ul>
+<li>As the mouse moves, we want to change the cursor so that the user can feel that the mouse has moved over the element. To realize this, we need to calculate whether the mouse coordinates are close to the drawing path to a certain distance.</li>
+<li>A drawing path consists of a series of coordinate points. We can connect each coordinate point to the previous one to form a line segment. We define that the mouse can be considered to be hovering over an element when any of the following conditions are met<ul>
+<li>The mouse coordinates are less than 10 pixels from the start of the line segment.</li>
+<li>The mouse coordinates are less than 10 pixels from the end of the line segment.</li>
+<li>The mouse coordinates are less than 10 pixels away from the line segment and the x and y coordinates are within the range of the two endpoints of the line segment.</li>
+<li><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas_art_1_mouse_position.png"><pre><code class="highlight js"><span class="comment">// Iterate over all coordinate points of the element</span>
+<span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; positions.<span class="property">length</span>; i++) &#123;
+  <span class="comment">// Distance from the starting point</span>
+  <span class="keyword">const</span> startDistance = <span class="title function_">getDistance</span>(movePos, positions[i - <span class="number">1</span>])
+  <span class="comment">// Distance to the end point</span>
+  <span class="keyword">const</span> endDistance = <span class="title function_">getDistance</span>(movePos, positions[i])
+  <span class="comment">// Distance from line segment</span>
+  <span class="keyword">const</span> lineDistance = <span class="title function_">getPositionToLineDistance</span>(
+    movePos,
+    positions[i - <span class="number">1</span>],
+    positions[i]
+  )
+  <span class="keyword">const</span> rangeX =
+    <span class="title class_">Math</span>.<span class="title function_">max</span>(positions[i - <span class="number">1</span>].<span class="property">x</span>, positions[i].<span class="property">x</span>) &gt;= movePos.<span class="property">x</span> &amp;&amp;
+    movePos.<span class="property">x</span> &gt;= <span class="title class_">Math</span>.<span class="title function_">min</span>(positions[i - <span class="number">1</span>].<span class="property">x</span>, positions[i].<span class="property">x</span>)
+  <span class="keyword">const</span> rangeY =
+    <span class="title class_">Math</span>.<span class="title function_">max</span>(positions[i - <span class="number">1</span>].<span class="property">y</span>, positions[i].<span class="property">y</span>) &gt;= movePos.<span class="property">y</span> &amp;&amp;
+    movePos.<span class="property">y</span> &gt;= <span class="title class_">Math</span>.<span class="title function_">min</span>(positions[i - <span class="number">1</span>].<span class="property">y</span>, positions[i].<span class="property">y</span>)
+
+  <span class="comment">// The current element can be recorded if one of three conditions is met</span>
+  <span class="keyword">if</span> (
+    startDistance &lt; <span class="number">10</span> ||
+    endDistance &lt; <span class="number">10</span> ||
+    (lineDistance &lt; <span class="number">10</span> &amp;&amp; rangeX &amp;&amp; rangeY)
+  ) &#123;
+    <span class="variable language_">this</span>.<span class="property">mouseHoverElementIndex</span> = eleIndex
+  &#125;
+&#125;
+<span class="comment">// ...</span>
+
+<span class="comment">/**</span>
+<span class="comment"> * Calculate the distance between two points</span>
+<span class="comment"> * <span class="doctag">@param</span> start starting point</span>
+<span class="comment"> * <span class="doctag">@param</span> end end point</span>
+<span class="comment"> * <span class="doctag">@returns</span> <span class="variable">distance</span></span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getDistance</span> = (<span class="params">start: MousePosition, end: MousePosition</span>) =&gt; &#123;
+  <span class="keyword">return</span> <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(<span class="title class_">Math</span>.<span class="title function_">pow</span>(start.<span class="property">x</span> - end.<span class="property">x</span>, <span class="number">2</span>) + <span class="title class_">Math</span>.<span class="title function_">pow</span>(start.<span class="property">y</span> - end.<span class="property">y</span>, <span class="number">2</span>))
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Get the distance of the mouse position from the line segment</span>
+<span class="comment"> * <span class="doctag">@param</span> pos mouse position</span>
+<span class="comment"> * <span class="doctag">@param</span> startPos starting point</span>
+<span class="comment"> * <span class="doctag">@param</span> endPos end point</span>
+<span class="comment"> * <span class="doctag">@returns</span> <span class="variable">distance</span></span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getPositionToLineDistance</span> = (<span class="params"></span>
+<span class="params">  pos: MousePosition,</span>
+<span class="params">  startPos: MousePosition,</span>
+<span class="params">  endPos: MousePosition</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="comment">/**</span>
+<span class="comment">   * 1. Calculate the straight line distance between three points</span>
+<span class="comment">   * 2. Calculate the half perimeter of a triangle</span>
+<span class="comment">   * 3. Finding area by Helen&#x27;s formula</span>
+<span class="comment">   * 4. Find the height of a triangle based on the area formula</span>
+<span class="comment">   */</span>
+  <span class="keyword">const</span> A = <span class="title class_">Math</span>.<span class="title function_">abs</span>(<span class="title function_">getDistance</span>(pos, startPos))
+  <span class="keyword">const</span> B = <span class="title class_">Math</span>.<span class="title function_">abs</span>(<span class="title function_">getDistance</span>(pos, endPos))
+  <span class="keyword">const</span> C = <span class="title class_">Math</span>.<span class="title function_">abs</span>(<span class="title function_">getDistance</span>(startPos, endPos))
+
+  <span class="keyword">const</span> P = (A + B + C) / <span class="number">2</span>
+  <span class="keyword">const</span> area = <span class="title class_">Math</span>.<span class="title function_">abs</span>(<span class="title class_">Math</span>.<span class="title function_">sqrt</span>(P * (P - A) * (P - B) * (P - C)))
+  <span class="keyword">const</span> distance = (<span class="number">2</span> * area) / C
+  <span class="keyword">return</span> distance
+&#125;</code></pre></li>
+</ul>
+</li>
+</ul>
+<h2 id="Click-To-Show-Box-Selection-Effect"><a href="#Click-To-Show-Box-Selection-Effect" class="headerlink" title="Click To Show Box Selection Effect"></a>Click To Show Box Selection Effect</h2><ul>
+<li>When the user clicks, we record this element as a select element if all three cases were met in the previous hover action.</li>
+<li>In the drawing board rendering stage, we render the boxed effect according to the rectangle property of the boxed element.<pre><code class="highlight js"><span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">select</span>.<span class="property">selectElementIndex</span> !== -<span class="number">1</span>) &#123;
+  <span class="comment">// Get the rectangle attribute of the selected element and draw the boxed effect.</span>
+  <span class="keyword">const</span> rect = <span class="variable language_">this</span>.<span class="property">select</span>.<span class="title function_">getCurSelectElement</span>().<span class="property">rect</span>
+  <span class="title function_">drawResizeRect</span>(<span class="variable language_">this</span>.<span class="property">context</span>, rect)
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Drawing Select Rectangles</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">drawResizeRect</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  rect: ElementRect</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">const</span> &#123; x, y, width, height &#125; = rect
+  context.<span class="title function_">save</span>()
+  context.<span class="property">strokeStyle</span> = <span class="string">&#x27;#65CC8A&#x27;</span>
+  context.<span class="title function_">setLineDash</span>([<span class="number">5</span>])
+  context.<span class="property">lineWidth</span> = <span class="number">2</span>
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+
+  <span class="comment">// Drawing Dashed Boxes</span>
+  <span class="title function_">drawRect</span>(context, x, y, width, height)
+
+  <span class="comment">// Drawing the four corner handles</span>
+  context.<span class="property">fillStyle</span> = <span class="string">&#x27;#65CC8A&#x27;</span>
+  <span class="title function_">drawRect</span>(context, x - <span class="number">10</span>, y - <span class="number">10</span>, <span class="number">10</span>, <span class="number">10</span>, <span class="literal">true</span>)
+  <span class="title function_">drawRect</span>(context, x + width, y - <span class="number">10</span>, <span class="number">10</span>, <span class="number">10</span>, <span class="literal">true</span>)
+  <span class="title function_">drawRect</span>(context, x - <span class="number">10</span>, y + height, <span class="number">10</span>, <span class="number">10</span>, <span class="literal">true</span>)
+  <span class="title function_">drawRect</span>(context, x + width, y + height, <span class="number">10</span>, <span class="number">10</span>, <span class="literal">true</span>)
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Drawing Rectangles</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">drawRect</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  x: number,</span>
+<span class="params">  y: number,</span>
+<span class="params">  width: number,</span>
+<span class="params">  height: number,</span>
+<span class="params">  fill = <span class="literal">false</span> <span class="comment">// Fill or not</span></span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">beginPath</span>()
+  context.<span class="title function_">rect</span>(x, y, width, height)
+  <span class="keyword">if</span> (fill) &#123;
+    context.<span class="title function_">fill</span>()
+  &#125; <span class="keyword">else</span> &#123;
+    context.<span class="title function_">stroke</span>()
+  &#125;
+&#125;</code></pre></li>
+</ul>
+<h2 id="Drag-And-Drop-Element"><a href="#Drag-And-Drop-Element" class="headerlink" title="Drag And Drop Element"></a>Drag And Drop Element</h2><p>Dragging and dropping elements is relatively simple and is achieved by calculating the distance the mouse moves. Iterate over each coordinate point in the drawing path and add the corresponding distance to it to complete the drag operation.</p>
+<pre><code class="highlight js"><span class="comment">// startMousePos is the coordinate of the last move.</span>
+<span class="keyword">const</span> disntanceX = x - <span class="variable language_">this</span>.<span class="property">startMousePos</span>.<span class="property">x</span>
+<span class="keyword">const</span> disntanceY = y - <span class="variable language_">this</span>.<span class="property">startMousePos</span>.<span class="property">y</span>
+
+<span class="comment">/**</span>
+<span class="comment"> * Update Position</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">distanceX</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">distanceY</span></span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">moveFreeDraw</span> = (<span class="params"></span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  distanceX: number,</span>
+<span class="params">  distanceY: number</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="title function_">initRect</span>(instance)
+  instance.<span class="property">positions</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">position</span>) =&gt;</span> &#123;
+    position.<span class="property">x</span> += distanceX
+    position.<span class="property">y</span> += distanceY
+    <span class="title function_">updateRect</span>(instance, position)
+  &#125;)
+&#125;</code></pre>
+
+<h2 id="Element-Zoom-doesn’t-keep-proportional"><a href="#Element-Zoom-doesn’t-keep-proportional" class="headerlink" title="Element Zoom (doesn’t keep proportional)"></a>Element Zoom (doesn’t keep proportional)</h2><ul>
+<li>I’ll analyze the element zoom by dragging and dropping the handle in the bottom right corner as an example</li>
+<li>First of all, element scaling is divided into horizontal scaling and vertical scaling.<ul>
+<li>Horizontal scaling &#x3D; (width of old rectangle + horizontal mouse movement) &#x2F; width of old rectangle</li>
+<li>Vertical Scaling &#x3D; (height of old rectangle + vertical mouse movement) &#x2F; height of old rectangle</li>
+</ul>
+</li>
+<li>Then iterate through all the coordinate points of the element to scale, which results in an offset scaling effect, as follows<ul>
+<li><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas_art_1_zoom1.png"></li>
+</ul>
+</li>
+<li>Then you need to calculate how far the drag handle is currently moving from the corner vertices, and then subtract this distance to get the correct zoom effect<ul>
+<li><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas_art_1_zoom2.png"></li>
+</ul>
+</li>
+<li>Of course the drag and drop calculations for the four corners are inconsistent, but the idea is the same</li>
+</ul>
+<pre><code class="highlight js"><span class="keyword">switch</span> (<span class="variable language_">this</span>.<span class="property">resizeType</span>) &#123;
+  <span class="comment">// disntanceX Mouse Horizontal Move Distance</span>
+  <span class="comment">// disntanceY Mouse Vertical Move Distance</span>
+  <span class="comment">// bottom right</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>:
+    <span class="title function_">resizeFreeDraw</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">FreeDraw</span>,
+      (rect.<span class="property">width</span> + disntanceX) / rect.<span class="property">width</span>,
+      (rect.<span class="property">height</span> + disntanceY) / rect.<span class="property">height</span>,
+      rect,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// bottom left</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>:
+    <span class="title function_">resizeFreeDraw</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">FreeDraw</span>,
+      (rect.<span class="property">width</span> - disntanceX) / rect.<span class="property">width</span>,
+      (rect.<span class="property">height</span> + disntanceY) / rect.<span class="property">height</span>,
+      rect,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// top left</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>:
+    <span class="title function_">resizeFreeDraw</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">FreeDraw</span>,
+      (rect.<span class="property">width</span> - disntanceX) / rect.<span class="property">width</span>,
+      (rect.<span class="property">height</span> - disntanceY) / rect.<span class="property">height</span>,
+      rect,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// top right</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>:
+    <span class="title function_">resizeFreeDraw</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">FreeDraw</span>,
+      (rect.<span class="property">width</span> + disntanceX) / rect.<span class="property">width</span>,
+      (rect.<span class="property">height</span> - disntanceY) / rect.<span class="property">height</span>,
+      rect,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="attr">default</span>:
+    <span class="keyword">break</span>
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Zoom Drawing</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">instance</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">scaleX</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">scaleY</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">rect</span></span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">resizeType</span></span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">resizeFreeDraw</span> = (<span class="params"></span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  scaleX: number,</span>
+<span class="params">  scaleY: number,</span>
+<span class="params">  rect: FreeDrawRect,</span>
+<span class="params">  resizeType: string</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="comment">// Initialize Rectangle</span>
+  <span class="title function_">initRect</span>(instance)
+  <span class="comment">// Iterate over all coordinates for scaling</span>
+  instance.<span class="property">positions</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">position</span>) =&gt;</span> &#123;
+    position.<span class="property">x</span> = position.<span class="property">x</span> * scaleX
+    position.<span class="property">y</span> = position.<span class="property">y</span> * scaleY
+    <span class="title function_">updateRect</span>(instance, position)
+  &#125;)
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: newX, <span class="attr">y</span>: newY, <span class="attr">width</span>: newWidth, <span class="attr">height</span>: newHeight &#125; = instance.<span class="property">rect</span>
+  <span class="keyword">let</span> offsetX = <span class="number">0</span>
+  <span class="keyword">let</span> offsetY = <span class="number">0</span>
+  <span class="comment">// Calculate the offset distance, this is to be calculated based on the diagonal vertices of the current zoom handle, so it is divided into 4 cases</span>
+  <span class="keyword">switch</span> (resizeType) &#123;
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>:
+      offsetX = newX - rect.<span class="property">x</span>
+      offsetY = newY - rect.<span class="property">y</span>
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>:
+      offsetX = newX + newWidth - (rect.<span class="property">x</span> + rect.<span class="property">width</span>)
+      offsetY = newY - rect.<span class="property">y</span>
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>:
+      offsetX = newX + newWidth - (rect.<span class="property">x</span> + rect.<span class="property">width</span>)
+      offsetY = newY + newHeight - (rect.<span class="property">y</span> + rect.<span class="property">height</span>)
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>:
+      offsetX = newX - rect.<span class="property">x</span>
+      offsetY = newY + newHeight - (rect.<span class="property">y</span> + rect.<span class="property">height</span>)
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+
+  <span class="title function_">initRect</span>(instance)
+
+  <span class="comment">// Subtract offset distance</span>
+  instance.<span class="property">positions</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">position</span>) =&gt;</span> &#123;
+    position.<span class="property">x</span> = position.<span class="property">x</span> - offsetX
+    position.<span class="property">y</span> = position.<span class="property">y</span> - offsetY
+    <span class="title function_">updateRect</span>(instance, position)
+  &#125;)
+&#125;</code></pre>
+
+<h2 id="Text-zoom-keep-proportional"><a href="#Text-zoom-keep-proportional" class="headerlink" title="Text zoom (keep proportional)"></a>Text zoom (keep proportional)</h2><ul>
+<li>For text zoom, the aspect ratio needs to be kept constant. This can be done by calculating the aspect ratio of the old and new rectangles:<ul>
+<li>When the new aspect ratio is smaller than the old one, keep the width unchanged and calculate the height as <code>Width / Old Aspect Ratio</code>.</li>
+<li>When the new aspect ratio is greater than the old one, keep the height unchanged and calculate the width as <code>height * old aspect ratio</code>.<pre><code class="highlight js"><span class="keyword">switch</span> (<span class="variable language_">this</span>.<span class="property">resizeType</span>) &#123;
+  <span class="comment">// ...</span>
+  <span class="comment">// bottom right</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>:
+    <span class="title function_">resizeTextElement</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">TextElement</span>,
+      resizeElement.<span class="property">rect</span>.<span class="property">width</span> + disntanceX,
+      resizeElement.<span class="property">rect</span>.<span class="property">height</span> + disntanceY,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// bottom left</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>:
+    <span class="title function_">resizeTextElement</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">TextElement</span>,
+      resizeElement.<span class="property">rect</span>.<span class="property">width</span> - disntanceX,
+      resizeElement.<span class="property">rect</span>.<span class="property">height</span> + disntanceY,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// top left</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>:
+    <span class="title function_">resizeTextElement</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">TextElement</span>,
+      resizeElement.<span class="property">rect</span>.<span class="property">width</span> - disntanceX,
+      resizeElement.<span class="property">rect</span>.<span class="property">height</span> - disntanceY,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="comment">// top right</span>
+  <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>:
+    <span class="title function_">resizeTextElement</span>(
+      resizeElement <span class="keyword">as</span> <span class="title class_">TextElement</span>,
+      resizeElement.<span class="property">rect</span>.<span class="property">width</span> + disntanceX,
+      resizeElement.<span class="property">rect</span>.<span class="property">height</span> - disntanceY,
+      <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>
+    )
+    <span class="keyword">break</span>
+  <span class="attr">default</span>:
+    <span class="keyword">break</span>
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Change text element size</span>
+<span class="comment"> * <span class="doctag">@param</span> ele text element</span>
+<span class="comment"> * <span class="doctag">@param</span> width Changed width</span>
+<span class="comment"> * <span class="doctag">@param</span> height Changed height</span>
+<span class="comment"> * <span class="doctag">@param</span> resizeType resize type</span>
+<span class="comment"> */</span>
+<span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">resizeTextElement</span> = (<span class="params"></span>
+<span class="params">  ele: TextElement,</span>
+<span class="params">  width: number,</span>
+<span class="params">  height: number,</span>
+<span class="params">  resizeType: string</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">const</span> oldRatio = ele.<span class="property">rect</span>.<span class="property">width</span> / ele.<span class="property">rect</span>.<span class="property">height</span>
+  <span class="keyword">const</span> newRatio = width / height
+  <span class="comment">// Follow the previous instructions to change the aspect ratio inconsistency</span>
+  <span class="keyword">if</span> (newRatio &lt; oldRatio) &#123;
+    height = width / oldRatio
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (newRatio &gt; oldRatio) &#123;
+    width = oldRatio * height
+  &#125;
+
+  <span class="comment">/**</span>
+<span class="comment">   * Because this zoom is scaled to the top left corner</span>
+<span class="comment">   * So in order to achieve that the current drag handle does not move, an offset operation is required</span>
+<span class="comment">   */</span>
+  <span class="keyword">switch</span> (resizeType) &#123;
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_RIGHT</span>:
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">BOTTOM_LEFT</span>:
+      ele.<span class="property">rect</span>.<span class="property">x</span> -= width - ele.<span class="property">rect</span>.<span class="property">width</span>
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_LEFT</span>:
+      ele.<span class="property">rect</span>.<span class="property">x</span> -= width - ele.<span class="property">rect</span>.<span class="property">width</span>
+      ele.<span class="property">rect</span>.<span class="property">y</span> -= height - ele.<span class="property">rect</span>.<span class="property">height</span>
+      <span class="keyword">break</span>
+    <span class="keyword">case</span> <span class="variable constant_">RESIZE_TYPE</span>.<span class="property">TOP_RIGHT</span>:
+      ele.<span class="property">rect</span>.<span class="property">y</span> -= height - ele.<span class="property">rect</span>.<span class="property">height</span>
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+  ele.<span class="property">rect</span>.<span class="property">height</span> = height
+  ele.<span class="property">rect</span>.<span class="property">width</span> = width
+  <span class="comment">// Font size modified by height</span>
+  ele.<span class="property">fontSize</span> = ele.<span class="property">rect</span>.<span class="property">height</span>
+&#125;</code></pre></li>
+</ul>
+</li>
+</ul>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>If you’re also writing related features, I hope this will help you, and if you find any problems or have a good solution, please feel free to discuss 👻</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/11/28/Explore-Full-Stack-Magic/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Ideas-For-Realization"><span class="toc-text">Ideas For Realization</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Record-Rectangle-Properties"><span class="toc-text">Record Rectangle Properties</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Calculate-Mouse-Movement-Coordinates"><span class="toc-text">Calculate Mouse Movement Coordinates</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Click-To-Show-Box-Selection-Effect"><span class="toc-text">Click To Show Box Selection Effect</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Drag-And-Drop-Element"><span class="toc-text">Drag And Drop Element</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Element-Zoom-doesn%E2%80%99t-keep-proportional"><span class="toc-text">Element Zoom (doesn’t keep proportional)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Text-zoom-keep-proportional"><span class="toc-text">Text zoom (keep proportional)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-text">Conclusion</span></a></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/11/30/Canvas-Artistry1/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/11/30/Canvas-Artistry1/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
