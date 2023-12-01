@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>Canvas Artistry：Drawing magic with multiple effects | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+(function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "jy4barl9vt");
+</script>
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Canvas/">
+                            Canvas
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                Canvas Artistry：Drawing magic with multiple effects
+            
+            
+        </div>
+        <span class="post-date">
+            12月 1, 2023
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img loading="lazy" src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas_art_1_cover.png" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>About half a year ago. I made a Canvas multifunctional drawing board with some of the following main features</p>
+<ul>
+<li>Freestyle drawing<ul>
+<li>Supports color changes and real-time adjustment of line width according to the drawing speed.</li>
+<li>Offers a multitude of effects such as fluorescent, multi-color, crayon, spray, bubbles and more.</li>
+</ul>
+</li>
+<li>Eraser.<ul>
+<li>Linear erase function with mouse movement.</li>
+</ul>
+</li>
+<li>Drawing text<ul>
+<li>By double clicking on the drawing board, the user can enter text and draw in the specified position.</li>
+</ul>
+</li>
+<li>Drawing board Drag &amp; Drop<ul>
+<li>Holding down the space bar allows the user to drag and drop the drawing board infinitely.</li>
+</ul>
+</li>
+<li>Select Mode<ul>
+<li>Once in selection mode, the user can box in elements by clicking on them, zoom or move them by holding down the handle, and delete selected elements with the Backspace key.</li>
+</ul>
+</li>
+<li>Layer<ul>
+<li>The content of the drawing board is displayed in the order of the layers, and users can add, delete and sort layers.</li>
+</ul>
+</li>
+<li>Provides undo and reverse undo features that allow users to clear the board or save the content as an image.</li>
+</ul>
+<p>Then recently I had some free time and decided to write a series of articles documenting my design ideas and code. This is my second post. If you are interested in this project, feel free to visit and also feel free to give the project a Star ⭐️.</p>
+<ul>
+<li>Github: <a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">https://github.com/LHRUN/paint-board</a></li>
+</ul>
+<p>In this article, I’ll detail the six drawing effects</p>
+<ol>
+<li>Basic single-color</li>
+<li>fluorescent</li>
+<li>multi-color</li>
+<li>sprayers</li>
+<li>crayons</li>
+<li>bubbles</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas-artistry2/paint_board_cover.png" alt="cover"></p>
+<h2 id="Basic-Single-Color"><a href="#Basic-Single-Color" class="headerlink" title="Basic Single Color"></a>Basic Single Color</h2><p>There are two key points to consider when implementing the basic functionality of the brush:</p>
+<ol>
+<li>Speed-aware line width adjustment: Dynamically calculates the current moving speed while the mouse is moving and adjusts the line width according to the speed. This design aims to narrow the line width when the mouse is moving fast and return to normal when it is moving slow to enhance the drawing effect.</li>
+<li>To avoid poor results when connecting points in a straight line, a Bezier curve is used for the connection. This curved connection helps to smooth the transition and enhance the beauty and accuracy of the drawn lines.</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas-artistry2/basic.png" alt="basic"></p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * Add new positon on mouseover</span>
+<span class="comment"> * <span class="doctag">@param</span> <span class="variable">position</span></span>
+<span class="comment"> */</span>
+<span class="title function_">addPosition</span>(<span class="params">position: MousePosition</span>) &#123;
+  <span class="variable language_">this</span>.<span class="property">positions</span>.<span class="title function_">push</span>(position)
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> &gt; <span class="number">1</span>) &#123;
+    <span class="comment">// Calculate movement speed</span>
+    <span class="keyword">const</span> mouseSpeed = <span class="variable language_">this</span>.<span class="title function_">_computedSpeed</span>(
+      <span class="variable language_">this</span>.<span class="property">positions</span>[<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">2</span>],
+      <span class="variable language_">this</span>.<span class="property">positions</span>[<span class="variable language_">this</span>.<span class="property">positions</span>.<span class="property">length</span> - <span class="number">1</span>]
+    )
+    <span class="comment">// // Calculate the current line width</span>
+    <span class="keyword">const</span> lineWidth = <span class="variable language_">this</span>.<span class="title function_">_computedLineWidth</span>(mouseSpeed)
+    <span class="variable language_">this</span>.<span class="property">lineWidths</span>.<span class="title function_">push</span>(lineWidth)
+  &#125;
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Calculate movement speed</span>
+<span class="comment"> * <span class="doctag">@param</span> start start position</span>
+<span class="comment"> * <span class="doctag">@param</span> end end position</span>
+<span class="comment"> */</span>
+<span class="title function_">_computedSpeed</span>(<span class="params">start: MousePosition, end: MousePosition</span>) &#123;
+  <span class="comment">// get distance</span>
+  <span class="keyword">const</span> moveDistance = <span class="title function_">getDistance</span>(start, end)
+
+  <span class="keyword">const</span> curTime = <span class="title class_">Date</span>.<span class="title function_">now</span>()
+  <span class="comment">// Get move interval</span>
+  <span class="keyword">const</span> moveTime = curTime - <span class="variable language_">this</span>.<span class="property">lastMoveTime</span>
+  <span class="comment">// calculation speed</span>
+  <span class="keyword">const</span> mouseSpeed = moveDistance / moveTime
+  <span class="comment">// Update last move time</span>
+  <span class="variable language_">this</span>.<span class="property">lastMoveTime</span> = curTime
+  <span class="keyword">return</span> mouseSpeed
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Calculate width</span>
+<span class="comment"> * <span class="doctag">@param</span> speed Mouse Move Speed</span>
+<span class="comment"> */</span>
+<span class="title function_">_computedLineWidth</span>(<span class="params">speed: number</span>) &#123;
+  <span class="keyword">let</span> lineWidth = <span class="number">0</span>
+  <span class="keyword">const</span> minWidth = <span class="variable language_">this</span>.<span class="property">minWidth</span>
+  <span class="keyword">const</span> maxWidth = <span class="variable language_">this</span>.<span class="property">maxWidth</span>
+  <span class="keyword">if</span> (speed &gt;= <span class="variable language_">this</span>.<span class="property">maxSpeed</span>) &#123;
+    lineWidth = minWidth
+  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (speed &lt;= <span class="variable language_">this</span>.<span class="property">minSpeed</span>) &#123;
+    lineWidth = maxWidth
+  &#125; <span class="keyword">else</span> &#123;
+    lineWidth = maxWidth - (speed / <span class="variable language_">this</span>.<span class="property">maxSpeed</span>) * maxWidth
+  &#125;
+
+  lineWidth = lineWidth * (<span class="number">1</span> / <span class="number">3</span>) + <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> * (<span class="number">2</span> / <span class="number">3</span>)
+  <span class="variable language_">this</span>.<span class="property">lastLineWidth</span> = lineWidth
+  <span class="keyword">return</span> lineWidth
+&#125;</code></pre>
+
+<p>Iterate over all coordinates when rendering</p>
+<pre><code class="highlight js"><span class="comment">/**</span>
+<span class="comment"> * free draw render</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas 2d render context</span>
+<span class="comment"> * <span class="doctag">@param</span> instance FreeDraw</span>
+<span class="comment"> */</span>
+<span class="keyword">function</span> <span class="title function_">freeDrawRender</span>(<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeLine</span>
+<span class="params"></span>) &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// Right now it&#x27;s just the basic brushes, but we&#x27;ll be adding different cases later.</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Basic</span>:
+      context.<span class="property">strokeStyle</span> = instance.<span class="property">colors</span>[<span class="number">0</span>]
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Basic</span>:
+        <span class="title function_">_drawBasic</span>(instance, i, context)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Drawing basic lines</span>
+<span class="comment"> * <span class="doctag">@param</span> instance FreeDraw instance</span>
+<span class="comment"> * <span class="doctag">@param</span> i current index</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas 2d render context</span>
+<span class="comment"> * <span class="doctag">@param</span> cb Some pre-draw processing, change some styles</span>
+<span class="comment"> * </span>
+<span class="comment"> * 1. If it&#x27;s the first two coordinates, just connect them via lineTo</span>
+<span class="comment"> * 2. If the coordinates are after the first two, the connection is made using a Bezier curve</span>
+<span class="comment"> *    For example, if there are three points a, b, and c, when we get to point c, we connect the middle point of the ab coordinate as the start point, the middle point of the bc coordinate as the end point, and point b as the control point.</span>
+<span class="comment"> */</span>
+<span class="keyword">function</span> <span class="title function_">_drawBasic</span>(<span class="params"></span>
+<span class="params">  instance: FreeLine,</span>
+<span class="params">  i: number,</span>
+<span class="params">  context: CanvasRenderingContext2D</span>
+<span class="params">  cb?: (</span>
+<span class="params">    instance: FreeDraw,</span>
+<span class="params">    i: number,</span>
+<span class="params">    context: CanvasRenderingContext2D</span>
+<span class="params">  ) =&gt; <span class="keyword">void</span></span>
+<span class="params"></span>) &#123;
+  <span class="keyword">const</span> &#123; positions, lineWidths &#125; = instance
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: centerX, <span class="attr">y</span>: centerY &#125; = positions[i - <span class="number">1</span>]
+  <span class="keyword">const</span> &#123; <span class="attr">x</span>: endX, <span class="attr">y</span>: endY &#125; = positions[i]
+  context.<span class="title function_">beginPath</span>()
+  <span class="keyword">if</span> (i == <span class="number">1</span>) &#123;
+    context.<span class="title function_">moveTo</span>(centerX, centerY)
+    context.<span class="title function_">lineTo</span>(endX, endY)
+  &#125; <span class="keyword">else</span> &#123;
+    <span class="keyword">const</span> &#123; <span class="attr">x</span>: startX, <span class="attr">y</span>: startY &#125; = positions[i - <span class="number">2</span>]
+    <span class="keyword">const</span> lastX = (startX + centerX) / <span class="number">2</span>
+    <span class="keyword">const</span> lastY = (startY + centerY) / <span class="number">2</span>
+    <span class="keyword">const</span> x = (centerX + endX) / <span class="number">2</span>
+    <span class="keyword">const</span> y = (centerY + endY) / <span class="number">2</span>
+    context.<span class="title function_">moveTo</span>(lastX, lastY)
+    context.<span class="title function_">quadraticCurveTo</span>(centerX, centerY, x, y)
+  &#125;
+
+  context.<span class="property">lineWidth</span> = lineWidths[i]
+  cb?.(instance, i, context)
+  context.<span class="title function_">stroke</span>()
+&#125;</code></pre>
+
+<h2 id="Fluorescent"><a href="#Fluorescent" class="headerlink" title="Fluorescent"></a>Fluorescent</h2><p>Fluorescent simply adds a shadow to the base style</p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas-artistry2/fluorescent.png" alt="fluorescent"></p>
+<pre><code class="highlight js"><span class="keyword">function</span> <span class="title function_">freeDrawRender</span>(<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeLine</span>
+<span class="params"></span>) &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// ...</span>
+    <span class="comment">// Fluorescent  Adds a shadow effect</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Shadow</span>:
+      context.<span class="property">shadowColor</span> = instance.<span class="property">colors</span>[<span class="number">0</span>]
+      context.<span class="property">strokeStyle</span> = instance.<span class="property">colors</span>[<span class="number">0</span>]
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="comment">// ...</span>
+      <span class="comment">// Fluorescent</span>
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Shadow</span>:
+        <span class="title function_">_drawBasic</span>(instance, i, context, <span class="function">(<span class="params">instance, i, context</span>) =&gt;</span> &#123;
+          context.<span class="property">shadowBlur</span> = instance.<span class="property">lineWidths</span>[i]
+        &#125;)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;</code></pre>
+
+<h2 id="Multi-Color"><a href="#Multi-Color" class="headerlink" title="Multi Color"></a>Multi Color</h2><p>Multi-color brushes require the use of <code>context.createPattern</code>, an api that allows you to create a specified template through the canvas, which can then be made to repeat the meta-image in the specified direction, for more information on how to use this see <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/createPattern">MDN</a></p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas-artistry2/multi.png" alt="multi"></p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">freeDrawRender</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  material: Material</span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// ...</span>
+    <span class="comment">// MultiColor</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">MultiColor</span>:
+      context.<span class="property">strokeStyle</span> = <span class="title function_">getMultiColorPattern</span>(instance.<span class="property">colors</span>)
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="comment">// ...</span>
+      <span class="comment">// MultiColor</span>
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">MultiColor</span>:
+        <span class="title function_">_drawBasic</span>(instance, i, context)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Get multi-color templates</span>
+<span class="comment"> * <span class="doctag">@param</span> colors multicolor array</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">getMultiColorPattern</span> = (<span class="params">colors: string[]</span>) =&gt; &#123;
+  <span class="keyword">const</span> canvas = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;canvas&#x27;</span>)
+  <span class="keyword">const</span> context = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasRenderingContext2D</span>
+  <span class="keyword">const</span> <span class="variable constant_">COLOR_WIDTH</span> = <span class="number">5</span> <span class="comment">// Width of each color</span>
+
+  canvas.<span class="property">width</span> = <span class="variable constant_">COLOR_WIDTH</span> * colors.<span class="property">length</span>
+  canvas.<span class="property">height</span> = <span class="number">20</span>
+  colors.<span class="title function_">forEach</span>(<span class="function">(<span class="params">color, i</span>) =&gt;</span> &#123;
+    context.<span class="property">fillStyle</span> = color
+    context.<span class="title function_">fillRect</span>(<span class="variable constant_">COLOR_WIDTH</span> * i, <span class="number">0</span>, <span class="variable constant_">COLOR_WIDTH</span>, <span class="number">20</span>)
+  &#125;)
+  <span class="keyword">return</span> context.<span class="title function_">createPattern</span>(canvas, <span class="string">&#x27;repeat&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasPattern</span>
+&#125;</code></pre>
+
+<h2 id="Spray"><a href="#Spray" class="headerlink" title="Spray"></a>Spray</h2><p>Spray is a snowflake-like effect that draws randomly on the path of mouse movement. Initially during the implementation, I found that if random snowflake points were recorded for each point and then cached down, it would lead to the problem of excessive memory usage. To solve this problem, I tried generating 5 different sets of data in advance and displaying them sequentially, which can effectively control the memory usage while achieving the random effect.</p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas-artistry2/spray.png" alt="spray"></p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">freeDrawRender</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  material: Material</span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// ...</span>
+    <span class="comment">// Spray</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Spray</span>:
+      context.<span class="property">fillStyle</span> = instance.<span class="property">colors</span>[<span class="number">0</span>]
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="comment">// ...</span>
+      <span class="comment">// Spray</span>
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Spray</span>:
+        <span class="title function_">_drawSpray</span>(instance, i, context)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * Spray</span>
+<span class="comment"> * <span class="doctag">@param</span> instance Spray instance</span>
+<span class="comment"> * <span class="doctag">@param</span> i current index</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas 2d</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">_drawSpray</span> = (<span class="params"></span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  i: number,</span>
+<span class="params">  context: CanvasRenderingContext2D</span>
+<span class="params"></span>) =&gt; &#123;
+  <span class="keyword">const</span> &#123; x, y &#125; = instance.<span class="property">positions</span>[i]
+  <span class="keyword">for</span> (<span class="keyword">let</span> j = <span class="number">0</span>; j &lt; <span class="number">50</span>; j++) &#123;
+    <span class="comment">/**</span>
+<span class="comment">     * sprayPoint is 5 sets of randomized spray data that I generated in advance.</span>
+<span class="comment">     * &#123;</span>
+<span class="comment">     *    angle</span>
+<span class="comment">     *    radius</span>
+<span class="comment">     *    alpha</span>
+<span class="comment">     * &#125;</span>
+<span class="comment">     */</span>
+    <span class="keyword">const</span> &#123; angle, radius, alpha &#125; = sprayPoint[i % <span class="number">5</span>][j]
+    context.<span class="property">globalAlpha</span> = alpha
+    <span class="keyword">const</span> distanceX = radius * <span class="title class_">Math</span>.<span class="title function_">cos</span>(angle)
+    <span class="keyword">const</span> distanceY = radius * <span class="title class_">Math</span>.<span class="title function_">sin</span>(angle)
+    <span class="comment">// Limit the width of the spray according to the width, because the spray is too small to look good, I&#x27;ll uniformly double the size of the</span>
+    <span class="keyword">if</span> (
+      distanceX &lt; instance.<span class="property">lineWidths</span>[i] * <span class="number">2</span> &amp;&amp;
+      distanceY &lt; instance.<span class="property">lineWidths</span>[i] * <span class="number">2</span> &amp;&amp;
+      distanceX &gt; -instance.<span class="property">lineWidths</span>[i] * <span class="number">2</span> &amp;&amp;
+      distanceY &gt; -instance.<span class="property">lineWidths</span>[i] * <span class="number">2</span>
+    ) &#123;
+      context.<span class="title function_">fillRect</span>(x + distanceX, y + distanceY, <span class="number">2</span>, <span class="number">2</span>)
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<h2 id="Crayon"><a href="#Crayon" class="headerlink" title="Crayon"></a>Crayon</h2><p>The crayon effect is also achieved using <code>context.createPattern</code>, first, with the current color as the base color, and then by overlaying a sheet of transparent crayon material pattern. This method is able to render the texture of the crayon by overlaying the material pattern while preserving the color of the brush.</p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas-artistry2/crayon.png" alt="crayon"></p>
+<pre><code class="highlight js"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">freeDrawRender</span> = (<span class="params"></span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  material: Material</span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">save</span>()
+  context.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+  context.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+  <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+    <span class="comment">// ...</span>
+    <span class="comment">// Crayon</span>
+    <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Crayon</span>:
+      context.<span class="property">strokeStyle</span> = <span class="title function_">getCrayonPattern</span>(
+        instance.<span class="property">colors</span>[<span class="number">0</span>],
+        material.<span class="property">crayon</span>
+      )
+      <span class="keyword">break</span>
+    <span class="attr">default</span>:
+      <span class="keyword">break</span>
+  &#125;
+
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; instance.<span class="property">positions</span>.<span class="property">length</span>; i++) &#123;
+    <span class="keyword">switch</span> (instance.<span class="property">style</span>) &#123;
+      <span class="comment">// ...</span>
+      <span class="comment">// Crayon</span>
+      <span class="keyword">case</span> <span class="title class_">FreeDrawStyle</span>.<span class="property">Crayon</span>:
+        <span class="title function_">_drawBasic</span>(instance, i, context)
+        <span class="keyword">break</span>
+      <span class="attr">default</span>:
+        <span class="keyword">break</span>
+    &#125;
+  &#125;
+  context.<span class="title function_">restore</span>()
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * get crayon template</span>
+<span class="comment"> * <span class="doctag">@param</span> color crayon color</span>
+<span class="comment"> * <span class="doctag">@param</span> crayon crayon material</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">getCrayonPattern</span> = (<span class="params">color: string, crayon: Material[<span class="string">&#x27;crayon&#x27;</span>]</span>) =&gt; &#123;
+  <span class="keyword">const</span> canvas = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;canvas&#x27;</span>)
+  <span class="keyword">const</span> context = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasRenderingContext2D</span>
+  canvas.<span class="property">width</span> = <span class="number">100</span>
+  canvas.<span class="property">height</span> = <span class="number">100</span>
+  context.<span class="property">fillStyle</span> = color
+  context.<span class="title function_">fillRect</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">100</span>, <span class="number">100</span>)
+  <span class="keyword">if</span> (crayon) &#123;
+    context.<span class="title function_">drawImage</span>(crayon, <span class="number">0</span>, <span class="number">0</span>, <span class="number">100</span>, <span class="number">100</span>)
+  &#125;
+  <span class="keyword">return</span> context.<span class="title function_">createPattern</span>(canvas, <span class="string">&#x27;repeat&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasPattern</span>
+&#125;</code></pre>
+
+<h2 id="Bubble"><a href="#Bubble" class="headerlink" title="Bubble"></a>Bubble</h2><ol>
+<li>Record the radius and opacity of the bubble on mouseover.</li>
+<li>When rendering, use <code>context.arc</code> for circle drawing to render the bubble effect.</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/canvas-artistry2/bubble.png" alt="bubble"></p>
+<pre><code class="highlight js"><span class="title function_">addPosition</span>(<span class="params">position: MousePosition</span>) &#123;
+  <span class="comment">// ...</span>
+  <span class="comment">// Record the radius and opacity of the bubble</span>
+  <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">style</span> === <span class="title class_">FreeDrawStyle</span>.<span class="property">Bubble</span> &amp;&amp; <span class="variable language_">this</span>.<span class="property">bubbles</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">bubbles</span>.<span class="title function_">push</span>(&#123;
+      <span class="comment">// getRandomInt Get random integer in range</span>
+      <span class="attr">radius</span>: <span class="title function_">getRandomInt</span>(<span class="variable language_">this</span>.<span class="property">minWidth</span> * <span class="number">2</span>, <span class="variable language_">this</span>.<span class="property">maxWidth</span> * <span class="number">2</span>),
+      <span class="comment">// opacity</span>
+      <span class="attr">opacity</span>: <span class="title class_">Math</span>.<span class="title function_">random</span>()
+    &#125;)
+  &#125;
+  <span class="comment">// ...</span>
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * draw bubble</span>
+<span class="comment"> * <span class="doctag">@param</span> instance bubble instance</span>
+<span class="comment"> * <span class="doctag">@param</span> i current index</span>
+<span class="comment"> * <span class="doctag">@param</span> context canvas 2D</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">_drawBubble</span> = (<span class="params"></span>
+<span class="params">  instance: FreeDraw,</span>
+<span class="params">  i: number,</span>
+<span class="params">  context: CanvasRenderingContext2D</span>
+<span class="params"></span>) =&gt; &#123;
+  context.<span class="title function_">beginPath</span>()
+  <span class="keyword">if</span> (instance.<span class="property">bubbles</span>) &#123;
+    <span class="keyword">const</span> &#123; x, y &#125; = instance.<span class="property">positions</span>[i]
+    context.<span class="property">globalAlpha</span> = instance.<span class="property">bubbles</span>[i].<span class="property">opacity</span>
+    context.<span class="title function_">arc</span>(x, y, instance.<span class="property">bubbles</span>[i].<span class="property">radius</span>, <span class="number">0</span>, <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">2</span>, <span class="literal">false</span>)
+    context.<span class="title function_">fill</span>()
+  &#125;
+&#125;</code></pre>
+
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>If you’re also writing related features, I hope this will help you, and if you find any problems or have a good solution, please feel free to discuss 👻</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/11/30/Canvas-Artistry1/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Basic-Single-Color"><span class="toc-text">Basic Single Color</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Fluorescent"><span class="toc-text">Fluorescent</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Multi-Color"><span class="toc-text">Multi Color</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spray"><span class="toc-text">Spray</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Crayon"><span class="toc-text">Crayon</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bubble"><span class="toc-text">Bubble</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-text">Conclusion</span></a></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2023/12/01/Canvas-Artistry2/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2023/12/01/Canvas-Artistry2/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
