@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>画板探秘系列：画板中的时光倒流术 | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+(function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "jy4barl9vt");
+</script>
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Canvas/">
+                            Canvas
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Fabric-js/">
+                            Fabric.js
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                画板探秘系列：画板中的时光倒流术
+            
+            
+        </div>
+        <span class="post-date">
+            1月 9, 2024
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img loading="lazy" src="https://raw.githubusercontent.com/LHRUN/file-store/main/paint-board/preview_device.png" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>经过一个多月的重构，我成功打造了一款功能强大的多端趣味画板。这个画板集成了多种创意画笔，可以让用户体验到全新的绘画效果。无论是在移动端还是PC端，都能享受到较好的交互体验和效果展示。并且此项目拥有许多网上流行的画板功能，包括但不限于前进后退、复制删除、上传下载、多画板和多图层等等。详细功能我就不一一罗列了，期待你的探索。</p>
+<p>Link: <a target="_blank" rel="noopener" href="https://songlh.top/paint-board/">https://songlh.top/paint-board/</a></p>
+<p>Github: <a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">https://github.com/LHRUN/paint-board</a></p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/paint-board/preview_device.png"></p>
+<p>在完成重构后，我计划撰写一系列文章，一方面是为了记录技术细节，这是我一直以来的习惯。另一方面则是为了推广一下，期望得到你的使用和反馈，当然如果能点个 Star 就是对我最大的支持。</p>
+<p>此篇文章是画板探秘系列的第一篇，我将会详细介绍关于撤销与反撤销的方案，示例皆以 Fabric.js 语法做示例，但思路是想通的。</p>
+<h2 id="方案一：画板级缓存"><a href="#方案一：画板级缓存" class="headerlink" title="方案一：画板级缓存"></a>方案一：画板级缓存</h2><p>第一个方案是画板级缓存，这个是最简单的。在这种方案下，无需关心具体修改了哪些元素，也无需对整个画布数据进行差异化处理。简单来说，每当需要改变效果时（比如新增、删除、修改元素），只需将当前的画板数据 push 到历史操作栈上，然后撤销与反撤销重新加载相应的数据即可。</p>
+<p>这种方案的优势在于简单直接，无需考虑细节，历史操作栈记录了每一步的变更。然而，需要注意的是，由于是整个画布数据的无差别缓存，内存占用会比较大。</p>
+<p>一般维护这种历史栈有两种比较流行的方案</p>
+<ol>
+<li>单一操作栈：</li>
+</ol>
+<ul>
+<li>使用一个操作栈来记录每一步的操作</li>
+<li>通过下标指定当前的状态，实现撤销与反撤销操作</li>
+<li>当进行新的操作时，将该操作推入栈中，并更新当前状态的下标</li>
+</ul>
+<ol start="2">
+<li>双栈维护：</li>
+</ol>
+<ul>
+<li>维护两个栈，一个是撤销栈，另一个是重做栈</li>
+<li>当用户执行新的操作时，将该操作推入撤销栈，并清空重做栈</li>
+<li>撤销操作时，从撤销栈中弹出最新的状态，并将其保存到重做栈</li>
+<li>重做操作时，从重做栈中弹出状态，并推入撤销栈</li>
+</ul>
+<p>以下是一个单一操作栈的简单示例：</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">History</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">stack</span> = []; <span class="comment">// 用来保存历史状态的数组</span>
+    <span class="variable language_">this</span>.<span class="property">currentIndex</span> = -<span class="number">1</span>; <span class="comment">// 指向当前状态的下标</span>
+  &#125;
+  
+  <span class="comment">// 添加当前状态到历史记录中</span>
+  <span class="title function_">saveState</span>(<span class="params">state</span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">currentIndex</span> &lt; <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="property">length</span> - <span class="number">1</span>) &#123;
+      <span class="variable language_">this</span>.<span class="property">stack</span> = <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">slice</span>(<span class="number">0</span>, <span class="variable language_">this</span>.<span class="property">currentIndex</span> + <span class="number">1</span>);
+    &#125;
+    <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">push</span>(state);
+    <span class="variable language_">this</span>.<span class="property">currentIndex</span>++;
+  &#125;
+  
+  <span class="comment">// 撤销，返回上一个状态</span>
+  <span class="title function_">undo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">currentIndex</span> &gt; <span class="number">0</span>) &#123;
+      <span class="variable language_">this</span>.<span class="property">currentIndex</span>--;
+      <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">stack</span>[<span class="variable language_">this</span>.<span class="property">currentIndex</span>];
+    &#125;
+    <span class="keyword">return</span> <span class="literal">null</span>;
+  &#125;
+  
+  <span class="comment">// 重做，返回下一个状态</span>
+  <span class="title function_">redo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">currentIndex</span> &lt; <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="property">length</span> - <span class="number">1</span>) &#123;
+      <span class="variable language_">this</span>.<span class="property">currentIndex</span>++;
+      <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">stack</span>[<span class="variable language_">this</span>.<span class="property">currentIndex</span>];
+    &#125;
+    <span class="keyword">return</span> <span class="literal">null</span>;
+  &#125;
+
+  <span class="comment">// 检查是否可以撤销</span>
+  <span class="title function_">canUndo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">currentIndex</span> &gt; <span class="number">0</span>;
+  &#125;
+
+  <span class="comment">// 检查是否可以重做</span>
+  <span class="title function_">canRedo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">currentIndex</span> &lt; <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="property">length</span> - <span class="number">1</span>;
+  &#125;
+  
+  <span class="comment">// 重置历史记录</span>
+  <span class="title function_">clear</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">stack</span> = [];
+    <span class="variable language_">this</span>.<span class="property">currentIndex</span> = -<span class="number">1</span>;
+  &#125;
+&#125;</code></pre>
+
+<h2 id="方案二：缓存当前操作命令"><a href="#方案二：缓存当前操作命令" class="headerlink" title="方案二：缓存当前操作命令"></a>方案二：缓存当前操作命令</h2><p>当采用画板级缓存时，由于占用较大的内存且存在大量重复数据，就引出了第二个方案，即只缓存当前操作命令。这种策略更为灵活和节省内存，通过记录每一步具体的操作，避免了存储整个画布状态的冗余数据。在复杂项目中，合理使用这个方案可以带来很棒的性能提升。</p>
+<p>比如</p>
+<ul>
+<li>新增元素时，存储一个 “add” 命令以及当前绘制的对象。撤销时，只需对当前元素进行删除。</li>
+<li>删除元素时，存储一个 “delete” 命令和被删除元素的标识。撤销时，恢复该被删除元素即可。</li>
+<li>修改元素时，存储一个 “modify” 命令和当前变化的元素数据。对于位置移动等简单操作，只需存储位置坐标的变化。对于缩放等复杂操作，存储当前的缩放比例等变化数据。撤销时，根据命令类型进行相应的操作恢复</li>
+</ul>
+<p>此方案在复杂项目中不仅减少了内存占用，还提高了灵活性，合理控制每一步操作。不过就是实现过程比较复杂，需要费较大的精力在 diff 算法上来判断状态的变化，确保数据的准确记录。</p>
+<p>以下只是一个简单的示例，与具体项目中的绘制逻辑关联性比较强。</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">Command</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params">execute, undo, value</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">execute</span> = execute; <span class="comment">// 执行命令</span>
+    <span class="variable language_">this</span>.<span class="property">undo</span> = undo;       <span class="comment">// 撤销命令</span>
+    <span class="variable language_">this</span>.<span class="property">value</span> = value;     <span class="comment">// 命令的参数，可以是当前绘制对象</span>
+  &#125;
+
+  <span class="comment">// 执行</span>
+  <span class="title function_">exec</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="title function_">execute</span>(<span class="variable language_">this</span>.<span class="property">value</span>);
+  &#125;
+
+  <span class="comment">// 撤销</span>
+  <span class="title function_">unexec</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="title function_">undo</span>(<span class="variable language_">this</span>.<span class="property">value</span>);
+  &#125;
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">History</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">commands</span> = []; <span class="comment">// 保存命令的堆栈</span>
+    <span class="variable language_">this</span>.<span class="property">index</span> = -<span class="number">1</span>;    <span class="comment">// 操作命令在堆栈中的位置指针</span>
+  &#125;
+  
+  <span class="comment">// 执行新命令并入栈</span>
+  <span class="title function_">execute</span>(<span class="params">command</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">commands</span>.<span class="title function_">slice</span>(<span class="number">0</span>, <span class="variable language_">this</span>.<span class="property">index</span>)
+    <span class="variable language_">this</span>.<span class="property">commands</span>.<span class="title function_">push</span>(command);
+    command.<span class="title function_">exec</span>();
+    <span class="variable language_">this</span>.<span class="property">index</span>++;
+  &#125;
+  
+  <span class="comment">// 撤销</span>
+  <span class="title function_">undo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">index</span> &lt; <span class="number">0</span>) <span class="keyword">return</span>;
+    <span class="keyword">const</span> command = <span class="variable language_">this</span>.<span class="property">commands</span>[<span class="variable language_">this</span>.<span class="property">index</span>];
+    <span class="keyword">if</span> (command) &#123;
+      command.<span class="title function_">unexec</span>();
+      <span class="variable language_">this</span>.<span class="property">index</span>--;
+    &#125;
+  &#125;
+  
+  <span class="comment">// 重做</span>
+  <span class="title function_">redo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">const</span> command = <span class="variable language_">this</span>.<span class="property">commands</span>[<span class="variable language_">this</span>.<span class="property">index</span> + <span class="number">1</span>];
+    <span class="keyword">if</span> (command) &#123;
+      command.<span class="title function_">exec</span>();
+      <span class="variable language_">this</span>.<span class="property">index</span>++;
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<h2 id="画板级缓存优化"><a href="#画板级缓存优化" class="headerlink" title="画板级缓存优化"></a>画板级缓存优化</h2><p>但是在处理复杂的绘制效果时，命令级缓存的计算就会变得很复杂，很难准确计算多个元素之间的差异。在这种情况下，我建议采用一个优化方案，对方案一的画板级缓存进行改进。画板级缓存的主要弊端在于其占用的内存较大，但通过对每次操作的画板缓存状态进行 diff 操作，只存储当前差异数据，这样内存占用会大大减少。至于差异比较操作，我推荐使用 <a target="_blank" rel="noopener" href="https://github.com/benjamine/jsondiffpatch">jsondiffpatch</a>，它能较的好处理两个对象的差异。</p>
+<p><code>jsondiffpatch</code> 有几个常用的 API</p>
+<ul>
+<li><code>jsondiffpatch.diff(left, right[, delta])</code><ul>
+<li>比较两个对象 <code>left</code> 和 <code>right</code> 的差异。可选参数 <code>delta</code> 是一个已知的差异，用于提高性能</li>
+</ul>
+</li>
+<li><code>jsondiffpatch.patch(obj, delta)</code><ul>
+<li>将给定的差异 <code>delta</code> 应用到对象 <code>obj</code> 上，返回更新后的对象</li>
+</ul>
+</li>
+<li><code>jsondiffpatch.unpatch(obj, delta)</code><ul>
+<li>从对象 <code>obj</code> 上移除给定的差异 <code>delta</code>，返回还原前的对象</li>
+</ul>
+</li>
+</ul>
+<p>以下是将 <code>jsondiffpatch</code> 应用到 <code>History</code> 中，我目前画板是采用的这个方案。</p>
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; diff, unpatch, patch, <span class="title class_">Delta</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;jsondiffpatch&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">History</span> &#123;
+  <span class="attr">diffs</span>: <span class="title class_">Array</span>&lt;<span class="title class_">Delta</span>&gt; = []
+  <span class="attr">canvasData</span>: <span class="title class_">Partial</span>&lt;<span class="title class_">IBoardData</span>&gt; = &#123;&#125;
+  index = <span class="number">0</span>
+
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="keyword">const</span> canvasJson = canvas.<span class="title function_">toDatalessJSON</span>()
+    <span class="variable language_">this</span>.<span class="property">canvasData</span> = canvasJson
+  &#125;
+
+  <span class="title function_">saveState</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">diffs</span> = <span class="variable language_">this</span>.<span class="property">diffs</span>.<span class="title function_">slice</span>(<span class="number">0</span>, <span class="variable language_">this</span>.<span class="property">index</span>)
+    <span class="keyword">const</span> canvasJson = canvas.<span class="title function_">toDatalessJSON</span>()
+    <span class="keyword">const</span> delta = <span class="title function_">diff</span>(canvasJson, <span class="variable language_">this</span>.<span class="property">canvasData</span>)
+    <span class="variable language_">this</span>.<span class="property">diffs</span>.<span class="title function_">push</span>(delta)
+    <span class="variable language_">this</span>.<span class="property">index</span>++
+    <span class="variable language_">this</span>.<span class="property">canvasData</span> = canvasJson
+  &#125;
+
+  <span class="title function_">undo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (canvas &amp;&amp; <span class="variable language_">this</span>.<span class="property">index</span> &gt; <span class="number">0</span>) &#123;
+      <span class="keyword">const</span> delta = <span class="variable language_">this</span>.<span class="property">diffs</span>[<span class="variable language_">this</span>.<span class="property">index</span> - <span class="number">1</span>]
+      <span class="variable language_">this</span>.<span class="property">index</span>--
+      <span class="keyword">const</span> canvasJson = <span class="title function_">patch</span>(<span class="variable language_">this</span>.<span class="property">canvasData</span>, delta)
+      canvas.<span class="title function_">loadFromJSON</span>(canvasJson, <span class="function">() =&gt;</span> &#123;
+        canvas.<span class="title function_">requestRenderAll</span>()
+        <span class="variable language_">this</span>.<span class="property">canvasData</span> = canvasJson
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="title function_">redo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">index</span> &lt; <span class="variable language_">this</span>.<span class="property">diffs</span>.<span class="property">length</span> &amp;&amp; canvas) &#123;
+      <span class="keyword">const</span> delta = <span class="variable language_">this</span>.<span class="property">diffs</span>[<span class="variable language_">this</span>.<span class="property">index</span>]
+      <span class="variable language_">this</span>.<span class="property">index</span>++
+      <span class="keyword">const</span> canvasJson = <span class="title function_">unpatch</span>(<span class="variable language_">this</span>.<span class="property">canvasData</span>, delta)
+      canvas.<span class="title function_">loadFromJSON</span>(canvasJson, <span class="function">() =&gt;</span> &#123;
+        canvas.<span class="title function_">requestRenderAll</span>()
+        <span class="variable language_">this</span>.<span class="property">canvasData</span> = canvasJson
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="title function_">clean</span>(<span class="params"></span>) &#123;
+    canvas.<span class="title function_">clear</span>()
+    <span class="variable language_">this</span>.<span class="property">index</span> = <span class="number">0</span>
+    <span class="variable language_">this</span>.<span class="property">diffs</span> = []
+    <span class="variable language_">this</span>.<span class="property">canvasData</span> = &#123;&#125;
+  &#125;
+&#125;</code></pre>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>感谢你的阅读。以上就是本文的全部内容，希望这篇文章对你有所帮助，欢迎点赞和收藏。如果有任何问题，欢迎在评论区进行讨论</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+                <div class="icon arrow-left"></div>
+                <div class="post-link">
+                    <a href="/2024/01/10/Exploring-the-Canvas-Series-The-Art-of-Time-Reversal-in-the-Canvas/">Prev</a>
+                </div>
+            
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2023/12/01/Canvas-Artistry2/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E7%94%BB%E6%9D%BF%E7%BA%A7%E7%BC%93%E5%AD%98"><span class="toc-text">方案一：画板级缓存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E7%BC%93%E5%AD%98%E5%BD%93%E5%89%8D%E6%93%8D%E4%BD%9C%E5%91%BD%E4%BB%A4"><span class="toc-text">方案二：缓存当前操作命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%BB%E6%9D%BF%E7%BA%A7%E7%BC%93%E5%AD%98%E4%BC%98%E5%8C%96"><span class="toc-text">画板级缓存优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2024/01/09/%E7%94%BB%E6%9D%BF%E6%8E%A2%E7%A7%98%E7%B3%BB%E5%88%97%EF%BC%9A%E7%94%BB%E6%9D%BF%E4%B8%AD%E7%9A%84%E6%97%B6%E5%85%89%E5%80%92%E6%B5%81%E6%9C%AF/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2024/01/09/画板探秘系列：画板中的时光倒流术/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>

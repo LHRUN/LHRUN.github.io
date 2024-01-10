@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="songlh">
+
+
+
+
+
+
+
+<title>Exploring the Canvas Series: The Art of Time Reversal in the Canvas | LH&#39;BLOG</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
+</style>
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/frame.js"></script>
+    
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+(function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "jy4barl9vt");
+</script>
+
+  <meta name="generator" content="Hexo 6.2.0"></head>
+  <body>
+    <div class="mask-border">
+    </div>
+
+    <div class="wrapper">
+
+      <div class="header">
+  <div class="flex-container">
+    <div class="header-inner">
+      <div class="site-brand-container">
+        <a href="/">
+          
+            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
+          
+        </a>
+      </div>
+      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
+        Menu
+      </div>
+      <nav class="site-nav">
+        <ul class="menu-list">
+          
+            
+              <li class="menu-item">
+                <a href="/">Home</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/categories/gallery/">Posts</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/tags/Translate/">Translate</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/archives/">Archive</a>
+              </li> 
+                   
+          
+            
+              <li class="menu-item">
+                <a href="/about/">About</a>
+              </li> 
+                   
+          
+          
+            <li class="menu-item search-btn">
+              <a href="#">Search</a>
+            </li>
+          
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main">
+        <div class="flex-container">
+          <article id="post">
+
+  
+    <div class="post-head">
+    <div class="post-info">
+        <div class="tag-list">
+            
+                
+                    <span class="post-tag">
+                        <a href="/tags/Canvas/">
+                            Canvas
+                        </a>
+                    </span>    
+                
+                    <span class="post-tag">
+                        <a href="/tags/Fabric-js/">
+                            Fabric.js
+                        </a>
+                    </span>    
+                           
+            
+        </div>
+        <div class="post-title">
+            
+            
+                Exploring the Canvas Series: The Art of Time Reversal in the Canvas
+            
+            
+        </div>
+        <span class="post-date">
+            1月 10, 2024
+        </span>
+    </div>
+    <div class="post-img">
+        
+            <img loading="lazy" src="https://raw.githubusercontent.com/LHRUN/file-store/main/paint-board/preview_device.png" alt="featured_image">
+              
+    </div>
+</div>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<div class="post-content">
+    <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>After more than a month of restructuring, I have successfully crafted a powerful multi-platform and entertaining drawing board. This drawing board integrates various creative brushes, providing users with a completely new painting experience. Whether on mobile or PC, users can enjoy a seamless interactive experience and impressive visual displays. Furthermore, this project incorporates many popular drawing board features found online, including but not limited to undo&#x2F;redo, copy&#x2F;delete, upload&#x2F;download, multiple boards, and multiple layers. I won’t list all the detailed functionalities here, but I look forward to your exploration.</p>
+<p>Link: <a target="_blank" rel="noopener" href="https://songlh.top/paint-board/">https://songlh.top/paint-board/</a></p>
+<p>Github: <a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">https://github.com/LHRUN/paint-board</a></p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/paint-board/preview_device.png"></p>
+<p>After completing the refactoring, I plan to write a series of articles. On one hand, it is to document technical details, a habit I have maintained over time. On the other hand, it is to promote the project, hoping to gain your usage and feedback. Of course, giving it a “Star” would be the greatest support for me.</p>
+<p>This article is the first installment of the “Exploring the Drawing Board” series, where I will delve into the details of the undo and redo functionality. Examples will be provided using Fabric.js syntax, but the concepts are applicable across various frameworks.</p>
+<h2 id="Solution-One-Canvas-level-Caching"><a href="#Solution-One-Canvas-level-Caching" class="headerlink" title="Solution One: Canvas-level Caching"></a>Solution One: Canvas-level Caching</h2><p>The first approach is canvas-level caching, which is the simplest. In this approach, there is no need to be concerned about the specific modifications made to elements, and there is no need to differentially process the entire canvas data. Simply put, whenever an effect needs to be changed (such as adding, deleting, or modifying elements), just push the current canvas data push the history operation stack, and then undo and redo by reloading the corresponding data.</p>
+<p>The advantage of this approach lies in its simplicity and straightforwardness; there is no need to consider details, as the history operation stack records every step of the changes. However, it is important to note that due to the indiscriminate caching of the entire canvas data, memory usage can be relatively high.</p>
+<p>There are generally two popular approaches to maintaining this kind of history stack:</p>
+<ol>
+<li>Single operation stack:</li>
+</ol>
+<ul>
+<li>Utilize a single operation stack to record each step of the operations.</li>
+<li>Use an index to specify the current state, facilitating undo and redo operations.</li>
+<li>When a new operation is performed, push it onto the stack and update the index of the current state.</li>
+</ul>
+<ol start="2">
+<li>Dual-stack maintenance:</li>
+</ol>
+<ul>
+<li>Maintain two stacks, one for undo operations and the other for redo operations.</li>
+<li>When a user performs a new operation, push it onto the undo stack and clear the redo stack.</li>
+<li>During an undo operation, pop the latest state from the undo stack and save it to the redo stack.</li>
+<li>During a redo operation, pop the state from the redo stack and push it onto the undo stack.</li>
+</ul>
+<p>Here is a simple example of a single operation stack:</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">History</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">stack</span> = []; <span class="comment">// An array used to hold the history state</span>
+    <span class="variable language_">this</span>.<span class="property">currentIndex</span> = -<span class="number">1</span>; <span class="comment">// A subscript pointing to the current state</span>
+  &#125;
+  
+  <span class="comment">// Adding the current state to the history</span>
+  <span class="title function_">saveState</span>(<span class="params">state</span>) &#123;
+    <span class="comment">// If there are currently states that have not been redone, remove all states after the current subscript.</span>
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">currentIndex</span> &lt; <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="property">length</span> - <span class="number">1</span>) &#123;
+      <span class="variable language_">this</span>.<span class="property">stack</span> = <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">slice</span>(<span class="number">0</span>, <span class="variable language_">this</span>.<span class="property">currentIndex</span> + <span class="number">1</span>);
+    &#125;
+    <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">push</span>(state);
+    <span class="variable language_">this</span>.<span class="property">currentIndex</span>++;
+  &#125;
+  
+  <span class="comment">// Undo, return to previous state</span>
+  <span class="title function_">undo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">currentIndex</span> &gt; <span class="number">0</span>) &#123;
+      <span class="variable language_">this</span>.<span class="property">currentIndex</span>--;
+      <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">stack</span>[<span class="variable language_">this</span>.<span class="property">currentIndex</span>];
+    &#125;
+    <span class="keyword">return</span> <span class="literal">null</span>;
+  &#125;
+  
+  <span class="comment">// Redo, return to next state</span>
+  <span class="title function_">redo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">currentIndex</span> &lt; <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="property">length</span> - <span class="number">1</span>) &#123;
+      <span class="variable language_">this</span>.<span class="property">currentIndex</span>++;
+      <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">stack</span>[<span class="variable language_">this</span>.<span class="property">currentIndex</span>];
+    &#125;
+    <span class="keyword">return</span> <span class="literal">null</span>;
+  &#125;
+
+  <span class="title function_">canUndo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">currentIndex</span> &gt; <span class="number">0</span>;
+  &#125;
+
+  <span class="title function_">canRedo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">currentIndex</span> &lt; <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="property">length</span> - <span class="number">1</span>;
+  &#125;
+  
+  <span class="title function_">clear</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">stack</span> = [];
+    <span class="variable language_">this</span>.<span class="property">currentIndex</span> = -<span class="number">1</span>;
+  &#125;
+&#125;</code></pre>
+
+<h2 id="Solution-Two-Cache-Current-Operation-Commands"><a href="#Solution-Two-Cache-Current-Operation-Commands" class="headerlink" title="Solution Two: Cache Current Operation Commands"></a>Solution Two: Cache Current Operation Commands</h2><p>When employing canvas-level caching, the large memory footprint and the presence of significant redundant data lead to the second approach – caching only the current operation commands. This strategy is more flexible and memory-efficient, as it records each specific operation step, avoiding the redundancy of storing the entire canvas state. In complex projects, judicious use of this approach can result in significant performance improvements.</p>
+<p>For example:</p>
+<ul>
+<li>When adding an element, store an “add” command along with the currently drawn object. To undo, simply delete the current element.</li>
+<li>When deleting an element, store a “delete” command and the identifier of the deleted element. To undo, restore the deleted element.</li>
+<li>When modifying an element, store a “modify” command and the current changed element data. For simple operations like position movement, only store changes in position coordinates. For complex operations like scaling, store changes in current scaling ratios and other relevant data. To undo, perform the corresponding operation based on the command type.</li>
+</ul>
+<p>This approach not only reduces memory usage in complex projects but also enhances flexibility by controlling each operation step effectively. However, the implementation process can be complex, requiring significant effort in the diff algorithm to accurately track state changes and ensure precise data recording.</p>
+<p>Here is a simple example, with a strong association with the drawing logic in a specific project:</p>
+<pre><code class="highlight js"><span class="keyword">class</span> <span class="title class_">Command</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params">execute, undo, value</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">execute</span> = execute; <span class="comment">// execute command</span>
+    <span class="variable language_">this</span>.<span class="property">undo</span> = undo;       <span class="comment">// undo command</span>
+    <span class="variable language_">this</span>.<span class="property">value</span> = value;     <span class="comment">// The parameter of the command, which can be the current drawing object</span>
+  &#125;
+
+  <span class="title function_">exec</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="title function_">execute</span>(<span class="variable language_">this</span>.<span class="property">value</span>);
+  &#125;
+
+  <span class="title function_">unexec</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="title function_">undo</span>(<span class="variable language_">this</span>.<span class="property">value</span>);
+  &#125;
+&#125;
+
+<span class="keyword">class</span> <span class="title class_">History</span> &#123;
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">commands</span> = []; <span class="comment">// Save command stack</span>
+    <span class="variable language_">this</span>.<span class="property">index</span> = -<span class="number">1</span>;    <span class="comment">// Pointer to the command&#x27;s location on the stack</span>
+  &#125;
+  
+  <span class="comment">// Execute a new command and put it on the stack</span>
+  <span class="title function_">execute</span>(<span class="params">command</span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">commands</span>.<span class="title function_">slice</span>(<span class="number">0</span>, <span class="variable language_">this</span>.<span class="property">index</span>)
+    <span class="variable language_">this</span>.<span class="property">commands</span>.<span class="title function_">push</span>(command);
+    command.<span class="title function_">exec</span>();
+    <span class="variable language_">this</span>.<span class="property">index</span>++;
+  &#125;
+  
+  <span class="title function_">undo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">index</span> &lt; <span class="number">0</span>) <span class="keyword">return</span>;
+    <span class="keyword">const</span> command = <span class="variable language_">this</span>.<span class="property">commands</span>[<span class="variable language_">this</span>.<span class="property">index</span>];
+    <span class="keyword">if</span> (command) &#123;
+      command.<span class="title function_">unexec</span>();
+      <span class="variable language_">this</span>.<span class="property">index</span>--;
+    &#125;
+  &#125;
+  
+  <span class="title function_">redo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">const</span> command = <span class="variable language_">this</span>.<span class="property">commands</span>[<span class="variable language_">this</span>.<span class="property">index</span> + <span class="number">1</span>];
+    <span class="keyword">if</span> (command) &#123;
+      command.<span class="title function_">exec</span>();
+      <span class="variable language_">this</span>.<span class="property">index</span>++;
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<h2 id="Canvas-level-Caching-Optimization"><a href="#Canvas-level-Caching-Optimization" class="headerlink" title="Canvas-level Caching Optimization"></a>Canvas-level Caching Optimization</h2><p>However, when dealing with complex drawing effects, the calculation of command-level caching can become intricate, making it challenging to accurately compute differences between multiple elements. In such situations, I recommend adopting an optimization strategy by refining the canvas-level caching from the first approach. The primary drawback of canvas-level caching is its significant memory consumption. However, by performing a diff operation on the canvas cache state after each operation and storing only the current differential data, the memory footprint can be significantly reduced.</p>
+<p>For the diff operation, I recommend using <a target="_blank" rel="noopener" href="https://github.com/benjamine/jsondiffpatch">jsondiffpatch</a></p>
+<p><code>jsondiffpatch</code> provides several commonly used APIs:</p>
+<ul>
+<li><code>jsondiffpatch.diff(left, right[, delta])</code><ul>
+<li>Compares the differences between two objects, <code>left</code> and <code>right</code>. The optional parameter <code>delta</code> is a known difference, enhancing performance.</li>
+</ul>
+</li>
+<li><code>jsondiffpatch.patch(obj, delta)</code><ul>
+<li>Applies the given difference <code>delta</code> to the object <code>obj</code>, returning the updated object.</li>
+</ul>
+</li>
+<li><code>jsondiffpatch.unpatch(obj, delta)</code><ul>
+<li>Removes the specified difference <code>delta</code> from the object <code>obj</code>, returning the object to its pre-patched state.</li>
+</ul>
+</li>
+</ul>
+<p>Below is an example of applying <code>jsondiffpatch</code> to a <code>History</code> class, which is the approach I am currently using in my drawing board project.</p>
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; diff, unpatch, patch, <span class="title class_">Delta</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;jsondiffpatch&#x27;</span>
+
+<span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">History</span> &#123;
+  <span class="attr">diffs</span>: <span class="title class_">Array</span>&lt;<span class="title class_">Delta</span>&gt; = []
+  <span class="attr">canvasData</span>: <span class="title class_">Partial</span>&lt;<span class="title class_">IBoardData</span>&gt; = &#123;&#125;
+  index = <span class="number">0</span>
+
+  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;
+    <span class="keyword">const</span> canvasJson = canvas.<span class="title function_">toDatalessJSON</span>()
+    <span class="variable language_">this</span>.<span class="property">canvasData</span> = canvasJson
+  &#125;
+
+  <span class="title function_">saveState</span>(<span class="params"></span>) &#123;
+    <span class="variable language_">this</span>.<span class="property">diffs</span> = <span class="variable language_">this</span>.<span class="property">diffs</span>.<span class="title function_">slice</span>(<span class="number">0</span>, <span class="variable language_">this</span>.<span class="property">index</span>)
+    <span class="keyword">const</span> canvasJson = canvas.<span class="title function_">toDatalessJSON</span>()
+    <span class="keyword">const</span> delta = <span class="title function_">diff</span>(canvasJson, <span class="variable language_">this</span>.<span class="property">canvasData</span>)
+    <span class="variable language_">this</span>.<span class="property">diffs</span>.<span class="title function_">push</span>(delta)
+    <span class="variable language_">this</span>.<span class="property">index</span>++
+    <span class="variable language_">this</span>.<span class="property">canvasData</span> = canvasJson
+  &#125;
+
+  <span class="title function_">undo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (canvas &amp;&amp; <span class="variable language_">this</span>.<span class="property">index</span> &gt; <span class="number">0</span>) &#123;
+      <span class="keyword">const</span> delta = <span class="variable language_">this</span>.<span class="property">diffs</span>[<span class="variable language_">this</span>.<span class="property">index</span> - <span class="number">1</span>]
+      <span class="variable language_">this</span>.<span class="property">index</span>--
+      <span class="keyword">const</span> canvasJson = <span class="title function_">patch</span>(<span class="variable language_">this</span>.<span class="property">canvasData</span>, delta)
+      canvas.<span class="title function_">loadFromJSON</span>(canvasJson, <span class="function">() =&gt;</span> &#123;
+        canvas.<span class="title function_">requestRenderAll</span>()
+        <span class="variable language_">this</span>.<span class="property">canvasData</span> = canvasJson
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="title function_">redo</span>(<span class="params"></span>) &#123;
+    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">index</span> &lt; <span class="variable language_">this</span>.<span class="property">diffs</span>.<span class="property">length</span> &amp;&amp; canvas) &#123;
+      <span class="keyword">const</span> delta = <span class="variable language_">this</span>.<span class="property">diffs</span>[<span class="variable language_">this</span>.<span class="property">index</span>]
+      <span class="variable language_">this</span>.<span class="property">index</span>++
+      <span class="keyword">const</span> canvasJson = <span class="title function_">unpatch</span>(<span class="variable language_">this</span>.<span class="property">canvasData</span>, delta)
+      canvas.<span class="title function_">loadFromJSON</span>(canvasJson, <span class="function">() =&gt;</span> &#123;
+        canvas.<span class="title function_">requestRenderAll</span>()
+        <span class="variable language_">this</span>.<span class="property">canvasData</span> = canvasJson
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="title function_">clean</span>(<span class="params"></span>) &#123;
+    canvas.<span class="title function_">clear</span>()
+    <span class="variable language_">this</span>.<span class="property">index</span> = <span class="number">0</span>
+    <span class="variable language_">this</span>.<span class="property">diffs</span> = []
+    <span class="variable language_">this</span>.<span class="property">canvasData</span> = &#123;&#125;
+  &#125;
+&#125;</code></pre>
+
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>Thank you for reading. This is the whole content of this article, I hope this article is helpful to you, welcome to like and favorite. If you have any questions, please feel free to discuss in the comment section!</p>
+
+</div> 
+
+<script>
+    window.onload = detectors();
+</script>
+    <div class="post-footer">
+    <div class="h-line-primary"></div>
+    <nav class="post-nav">
+        <div class="prev-item">
+           
+        </div>
+        <div class="next-item">
+            
+                <div class="icon arrow-right"></div>
+                <div class="post-link">
+                  <a href="/2024/01/09/%E7%94%BB%E6%9D%BF%E6%8E%A2%E7%A7%98%E7%B3%BB%E5%88%97%EF%BC%9A%E7%94%BB%E6%9D%BF%E4%B8%AD%E7%9A%84%E6%97%B6%E5%85%89%E5%80%92%E6%B5%81%E6%9C%AF/">Next</a>  
+                </div>  
+            
+        </div>
+    </nav>
+</div>
+
+    <!-- <div class="post-toc">
+  <div class="post-toc-wrap">
+    <div class="post-toc-title">目录</div>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Solution-One-Canvas-level-Caching"><span class="toc-text">Solution One: Canvas-level Caching</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Solution-Two-Cache-Current-Operation-Commands"><span class="toc-text">Solution Two: Cache Current Operation Commands</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Canvas-level-Caching-Optimization"><span class="toc-text">Canvas-level Caching Optimization</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-text">Conclusion</span></a></li></ol>
+  </div>
+</div>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-link')
+  tocLinks.forEach((el) => {
+    el.setAttribute('href', `#${el.innerText}`)
+  })
+</script>
+ -->
+    
+      <div class="post-comment">
+
+     
+
+    
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+            
+            var disqus_config = function () {
+                this.page.url = 'https://lhrun.github.io/2024/01/10/Exploring-the-Canvas-Series-The-Art-of-Time-Reversal-in-the-Canvas/';  // Replace PAGE_URL with your page's canonical URL variable
+                this.page.identifier = '2024/01/10/Exploring-the-Canvas-Series-The-Art-of-Time-Reversal-in-the-Canvas/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+                this.language = 'en'
+            };
+            
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://lhblog-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
+     
+    
+    
+
+</div>
+     
+  
+</article>
+        </div>
+      </div>
+      
+      <div class="footer">
+    <div class="flex-container">
+        <div class="footer-text">
+            
+            
+            
+                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+                
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    
+      <div class="search-popup">
+    <div class="search-popup-overlay">  
+    </div>
+    <div class="search-popup-window" >
+        <div class="search-header">
+            <div class="search-input-container">
+              <input autocomplete="off" autocapitalize="off" maxlength="80"
+                     placeholder="Search Anything" spellcheck="false"
+                     type="search" class="search-input">
+            </div>
+            <div class="search-close-btn">
+                <div class="icon close-btn"></div>
+            </div>
+        </div>
+        <div class="search-result-container">
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchConfig = {
+        path             : "/search.xml",
+        top_n_per_article: "1",
+        unescape         : "false",
+        trigger: "auto",
+        preload: "false"
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
+<script src="/js/search.js"></script>
+    
+    
+
+  </body>
+</html>
