@@ -540,6 +540,13 @@
   </url>
   
   <url>
+    <loc>https://lhrun.github.io/tags/React/</loc>
+    <lastmod>2024-03-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://lhrun.github.io/tags/Vue3/</loc>
     <lastmod>2024-03-31</lastmod>
     <changefreq>weekly</changefreq>
@@ -555,13 +562,6 @@
   
   <url>
     <loc>https://lhrun.github.io/tags/SSR/</loc>
-    <lastmod>2024-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://lhrun.github.io/tags/React/</loc>
     <lastmod>2024-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
