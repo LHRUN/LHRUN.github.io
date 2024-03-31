@@ -1,166 +1,175 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
-
-    <meta name="author" content="songlh">
-
-
-
-
-
-
-
-<title>微信小程序前端登录模块设计 | LH&#39;BLOG</title>
-
-
-
-    <link rel="icon" href="/favicon.png">
-
-
-
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
-</style>
-
-
-
-    <!-- stylesheets list from _config.yml -->
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微信小程序前端登录模块设计">
+<meta property="og:url" content="https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/index.html">
+<meta property="og:site_name" content="Leo&#39;blog">
+<meta property="og:description" content="微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/3b0b114c140247ebbc666b027dfbda66.png#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/f6cd710acc4d45a1a7d88042623ad4bc.png#pic_center">
+<meta property="article:published_time" content="2022-09-10T07:33:48.000Z">
+<meta property="article:modified_time" content="2024-03-30T15:56:18.562Z">
+<meta property="article:author" content="leo">
+<meta property="article:tag" content="微信小程序">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/3b0b114c140247ebbc666b027dfbda66.png#pic_center">
     
-    <link rel="stylesheet" href="/css/style.css">
     
-
-
-
-
-    <!-- scripts list from _config.yml -->
-    
-    <script src="/js/frame.js"></script>
-    
-
-
-
-
-
-
-
-
-<script type="text/javascript">
-(function(c,l,a,r,i,t,y){
-    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-})(window, document, "clarity", "script", "jy4barl9vt");
-</script>
-
-  <meta name="generator" content="Hexo 6.2.0"></head>
-  <body>
-    <div class="mask-border">
-    </div>
-
-    <div class="wrapper">
-
-      <div class="header">
-  <div class="flex-container">
-    <div class="header-inner">
-      <div class="site-brand-container">
-        <a href="/">
-          
-            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
-          
-        </a>
-      </div>
-      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
-        Menu
-      </div>
-      <nav class="site-nav">
-        <ul class="menu-list">
-          
-            
-              <li class="menu-item">
-                <a href="/">Home</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/categories/gallery/">Posts</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/tags/Translate/">Translate</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/archives/">Archive</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/about/">About</a>
-              </li> 
-                   
-          
-          
-            <li class="menu-item search-btn">
-              <a href="#">Search</a>
-            </li>
-          
-        </ul>
-      </nav>
-    </div>
-  </div>
-</div>
-
-
-      <div class="main">
-        <div class="flex-container">
-          <article id="post">
-
-  
-    <div class="post-head">
-    <div class="post-info">
-        <div class="tag-list">
-            
-                
-                    <span class="post-tag">
-                        <a href="/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/">
-                            微信小程序
-                        </a>
-                    </span>    
-                           
-            
-        </div>
-        <div class="post-title">
-            
-            
-                微信小程序前端登录模块设计
-            
-            
-        </div>
-        <span class="post-date">
-            9月 10, 2022
-        </span>
-    </div>
-    <div class="post-img">
+      
         
-            <img loading="lazy" src="https://s1.ax1x.com/2022/09/11/vXAlBq.jpg" alt="featured_image">
-              
-    </div>
-</div>
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
-<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
+          <link rel="shortcut icon" href="/images/IMG_1444.JPG">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/IMG_1444.JPG" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/IMG_1444.JPG">
+        
+      
+    
+    <!-- title -->
+    <title>微信小程序前端登录模块设计</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
-<div class="post-content">
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "jy4barl9vt");
+  </script>
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/09/21/%E5%9F%BA%E4%BA%8Ecanvas%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%A4%9A%E5%8A%9F%E8%83%BD%E7%94%BB%E6%9D%BF/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/09/06/Hexo%E6%90%AD%E5%BB%BA%E5%9F%BA%E6%93%8D%E9%85%8D%E7%BD%AE/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&text=微信小程序前端登录模块设计"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&is_video=false&description=微信小程序前端登录模块设计"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=微信小程序前端登录模块设计&body=Check out this article: https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&name=微信小程序前端登录模块设计&description=微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&t=微信小程序前端登录模块设计"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%99%BB%E5%BD%95%E6%B5%81%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">基本登录流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E5%B0%81%E8%A3%85"><span class="toc-number">3.</span> <span class="toc-text">逻辑封装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%B1%82"><span class="toc-number">4.</span> <span class="toc-text">业务层</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        微信小程序前端登录模块设计
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">leo</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-09-10T07:33:48.000Z" class="dt-published" itemprop="datePublished">2022-09-10</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/" rel="tag">微信小程序</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
     <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案</p>
 <h2 id="基本登录流程"><a href="#基本登录流程" class="headerlink" title="基本登录流程"></a>基本登录流程</h2><ol>
 <li>获取微信登录凭证，通过<code>wx.login</code>获取，这个api会返回一个带有时效性的code</li>
@@ -344,131 +353,145 @@
 <li>还有一些不是太通用的业务组件就不叙述了…</li>
 </ol>
 
-</div> 
+  </div>
+</article>
 
-<script>
-    window.onload = detectors();
-</script>
-    <div class="post-footer">
-    <div class="h-line-primary"></div>
-    <nav class="post-nav">
-        <div class="prev-item">
-           
-                <div class="icon arrow-left"></div>
-                <div class="post-link">
-                    <a href="/2022/09/21/%E5%9F%BA%E4%BA%8Ecanvas%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%A4%9A%E5%8A%9F%E8%83%BD%E7%94%BB%E6%9D%BF/">Prev</a>
-                </div>
-            
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
         </div>
-        <div class="next-item">
-            
-                <div class="icon arrow-right"></div>
-                <div class="post-link">
-                  <a href="/2022/09/06/Hexo%E6%90%AD%E5%BB%BA%E5%9F%BA%E6%93%8D%E9%85%8D%E7%BD%AE/">Next</a>  
-                </div>  
-            
-        </div>
-    </nav>
-</div>
+    </div>
 
-    <!-- <div class="post-toc">
-  <div class="post-toc-wrap">
-    <div class="post-toc-title">目录</div>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%99%BB%E5%BD%95%E6%B5%81%E7%A8%8B"><span class="toc-text">基本登录流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E5%B0%81%E8%A3%85"><span class="toc-text">逻辑封装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%B1%82"><span class="toc-text">业务层</span></a></li></ol>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%99%BB%E5%BD%95%E6%B5%81%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">基本登录流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E5%B0%81%E8%A3%85"><span class="toc-number">3.</span> <span class="toc-text">逻辑封装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%B1%82"><span class="toc-number">4.</span> <span class="toc-text">业务层</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&text=微信小程序前端登录模块设计"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&is_video=false&description=微信小程序前端登录模块设计"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=微信小程序前端登录模块设计&body=Check out this article: https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&title=微信小程序前端登录模块设计"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&name=微信小程序前端登录模块设计&description=微信小程序登录基本上是每个小程序都必备的功能，但是随着业务的逐渐复杂，需要考虑的情况会越来越多，所以登录功能的健壮和高效是值得重点关注的，我会按照以往经验实现一个较优雅的登录方案"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/&t=微信小程序前端登录模块设计"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
   </div>
 </div>
 
-<script>
-  const tocLinks = document.querySelectorAll('.toc-link')
-  tocLinks.forEach((el) => {
-    el.setAttribute('href', `#${el.innerText}`)
-  })
-</script>
- -->
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
-      <div class="post-comment">
+    
+    2019-2024
+    leo
+  </div>
+</footer>
 
-     
+    </div>
+    <!-- styles -->
 
-    
-        <div id="disqus_thread"></div>
-        <script>
-            /**
-            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
-            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
-            
-            var disqus_config = function () {
-                this.page.url = 'https://lhrun.github.io/2022/09/10/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%89%8D%E7%AB%AF%E7%99%BB%E5%BD%95%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/';  // Replace PAGE_URL with your page's canonical URL variable
-                this.page.identifier = '2022/09/10/微信小程序前端登录模块设计/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-                this.language = 'en'
-            };
-            
-            (function() { // DON'T EDIT BELOW THIS LINE
-            var d = document, s = d.createElement('script');
-            s.src = 'https://lhblog-1.disqus.com/embed.js';
-            s.setAttribute('data-timestamp', +new Date());
-            (d.head || d.body).appendChild(s);
-            })();
-        </script>
-        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
-     
-    
-    
 
-</div>
-     
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
   
-</article>
-        </div>
-      </div>
-      
-      <div class="footer">
-    <div class="flex-container">
-        <div class="footer-text">
-            
-            
-            
-                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
-                
-        </div>
-    </div>
-</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
 
-    </div>
 
-    
-      <div class="search-popup">
-    <div class="search-popup-overlay">  
-    </div>
-    <div class="search-popup-window" >
-        <div class="search-header">
-            <div class="search-input-container">
-              <input autocomplete="off" autocapitalize="off" maxlength="80"
-                     placeholder="Search Anything" spellcheck="false"
-                     type="search" class="search-input">
-            </div>
-            <div class="search-close-btn">
-                <div class="icon close-btn"></div>
-            </div>
-        </div>
-        <div class="search-result-container">
-        </div>
-    </div>
-</div>
+<script src="/js/main.js"></script>
 
-<script>
-    const searchConfig = {
-        path             : "/search.xml",
-        top_n_per_article: "1",
-        unescape         : "false",
-        trigger: "auto",
-        preload: "false"
-    }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
-<script src="/js/search.js"></script>
-    
-    
+<!-- search -->
 
-  </body>
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'LHS';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
 </html>

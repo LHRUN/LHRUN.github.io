@@ -1,178 +1,180 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
-
-    <meta name="author" content="songlh">
-
-
-
-
-
-
-
-<title>【翻】Next.js 13 | LH&#39;BLOG</title>
-
-
-
-    <link rel="icon" href="/favicon.png">
-
-
-
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
-</style>
-
-
-
-    <!-- stylesheets list from _config.yml -->
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Next.js 13">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【翻】Next.js 13">
+<meta property="og:url" content="https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/index.html">
+<meta property="og:site_name" content="Leo&#39;blog">
+<meta property="og:description" content="Next.js 13">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://nextjs.org/_next/image?url=/static/blog/layouts-rfc/app-folder.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6">
+<meta property="og:image" content="https://nextjs.org/_next/image?url=/static/blog/next-13/colocating-assets-in-the-app-directory.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6">
+<meta property="og:image" content="https://nextjs.org/_next/image?url=/static/blog/next-13/streaming.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6">
+<meta property="og:image" content="https://nextjs.org/_next/image?url=/static/blog/next-13/streaming.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6">
+<meta property="og:image" content="https://nextjs.org/_next/image?url=/static/blog/next-13/turbopack.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6">
+<meta property="article:published_time" content="2023-09-24T09:57:32.000Z">
+<meta property="article:modified_time" content="2023-09-25T14:34:00.498Z">
+<meta property="article:author" content="leo">
+<meta property="article:tag" content="Next.js">
+<meta property="article:tag" content="React">
+<meta property="article:tag" content="Translate">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nextjs.org/_next/image?url=/static/blog/layouts-rfc/app-folder.png&w=3840&q=75&dpl=dpl_Cbau7EMekJRyZrPGm1DKP4FVgwP6">
     
-    <link rel="stylesheet" href="/css/style.css">
     
-
-
-
-
-    <!-- scripts list from _config.yml -->
-    
-    <script src="/js/frame.js"></script>
-    
-
-
-
-
-
-
-
-
-<script type="text/javascript">
-(function(c,l,a,r,i,t,y){
-    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-})(window, document, "clarity", "script", "jy4barl9vt");
-</script>
-
-  <meta name="generator" content="Hexo 6.2.0"></head>
-  <body>
-    <div class="mask-border">
-    </div>
-
-    <div class="wrapper">
-
-      <div class="header">
-  <div class="flex-container">
-    <div class="header-inner">
-      <div class="site-brand-container">
-        <a href="/">
-          
-            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
-          
-        </a>
-      </div>
-      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
-        Menu
-      </div>
-      <nav class="site-nav">
-        <ul class="menu-list">
-          
-            
-              <li class="menu-item">
-                <a href="/">Home</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/categories/gallery/">Posts</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/tags/Translate/">Translate</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/archives/">Archive</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/about/">About</a>
-              </li> 
-                   
-          
-          
-            <li class="menu-item search-btn">
-              <a href="#">Search</a>
-            </li>
-          
-        </ul>
-      </nav>
-    </div>
-  </div>
-</div>
-
-
-      <div class="main">
-        <div class="flex-container">
-          <article id="post">
-
-  
-    <div class="post-head">
-    <div class="post-info">
-        <div class="tag-list">
-            
-                
-                    <span class="post-tag">
-                        <a href="/tags/Next-js/">
-                            Next.js
-                        </a>
-                    </span>    
-                
-                    <span class="post-tag">
-                        <a href="/tags/React/">
-                            React
-                        </a>
-                    </span>    
-                
-                    <span class="post-tag">
-                        <a href="/tags/Translate/">
-                            Translate
-                        </a>
-                    </span>    
-                           
-            
-        </div>
-        <div class="post-title">
-            
-            
-                【翻】Next.js 13
-            
-            
-        </div>
-        <span class="post-date">
-            9月 24, 2023
-        </span>
-    </div>
-    <div class="post-img">
+      
         
-            <div class="h-line-primary"></div>
-              
-    </div>
-</div>
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/styles/base16/gruvbox-light-medium.min.css">
-<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
+          <link rel="shortcut icon" href="/images/IMG_1444.JPG">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/IMG_1444.JPG" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/IMG_1444.JPG">
+        
+      
+    
+    <!-- title -->
+    <title>【翻】Next.js 13</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
-<div class="post-content">
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "jy4barl9vt");
+  </script>
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/11/28/Explore-Full-Stack-Magic/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/08/31/%E3%80%90%E7%BF%BB%E3%80%91Render-Functions-JSX/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&text=【翻】Next.js 13"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&is_video=false&description=【翻】Next.js 13"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=【翻】Next.js 13&body=Check out this article: https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&name=【翻】Next.js 13&description=Next.js 13"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&t=【翻】Next.js 13"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-number">1.</span> <span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#New-app-Directory-Beta"><span class="toc-number">1.1.</span> <span class="toc-text">New app Directory(Beta)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Layouts"><span class="toc-number">1.1.1.</span> <span class="toc-text">Layouts</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Server-Components"><span class="toc-number">1.1.2.</span> <span class="toc-text">Server Components</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Streaming"><span class="toc-number">1.1.3.</span> <span class="toc-text">Streaming</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Data-Fetching"><span class="toc-number">1.1.4.</span> <span class="toc-text">Data Fetching</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Introducing-Turbopack-Alpha"><span class="toc-number">1.2.</span> <span class="toc-text">Introducing Turbopack (Alpha)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-image"><span class="toc-number">1.3.</span> <span class="toc-text">next&#x2F;image</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Upgrading-next-x2F-image-to-Next-js-13"><span class="toc-number">1.3.1.</span> <span class="toc-text">Upgrading next&#x2F;image to Next.js 13</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-font"><span class="toc-number">1.4.</span> <span class="toc-text">@next&#x2F;font</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-link"><span class="toc-number">1.5.</span> <span class="toc-text">next&#x2F;link</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Upgrading-next-x2F-link-to-Next-js-13"><span class="toc-number">1.5.1.</span> <span class="toc-text">Upgrading next&#x2F;link to Next.js 13</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OG-Image-Generation"><span class="toc-number">1.6.</span> <span class="toc-text">OG Image Generation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Middleware-API-Updates"><span class="toc-number">1.7.</span> <span class="toc-text">Middleware API Updates</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        【翻】Next.js 13
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">leo</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-09-24T09:57:32.000Z" class="dt-published" itemprop="datePublished">2023-09-24</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Next-js/" rel="tag">Next.js</a>, <a class="p-category" href="/tags/React/" rel="tag">React</a>, <a class="p-category" href="/tags/Translate/" rel="tag">Translate</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
     <blockquote>
 <p>为了提高英语水平和保持技术成长，开始按计划翻译一些短篇和博客，有问题欢迎讨论👻<br>原文：<a target="_blank" rel="noopener" href="https://nextjs.org/blog/next-13">Next.js 13</a></p>
 </blockquote>
@@ -410,131 +412,145 @@
 
 <p>从中间件发送响应目前需要使用 <code>next.config.js</code> 中的 <code>experimental.allowMiddlewareResponseBody</code> 配置项。</p>
 
-</div> 
+  </div>
+</article>
 
-<script>
-    window.onload = detectors();
-</script>
-    <div class="post-footer">
-    <div class="h-line-primary"></div>
-    <nav class="post-nav">
-        <div class="prev-item">
-           
-                <div class="icon arrow-left"></div>
-                <div class="post-link">
-                    <a href="/2023/11/28/Explore-Full-Stack-Magic/">Prev</a>
-                </div>
-            
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
         </div>
-        <div class="next-item">
-            
-                <div class="icon arrow-right"></div>
-                <div class="post-link">
-                  <a href="/2023/08/31/%E3%80%90%E7%BF%BB%E3%80%91Render-Functions-JSX/">Next</a>  
-                </div>  
-            
-        </div>
-    </nav>
-</div>
+    </div>
 
-    <!-- <div class="post-toc">
-  <div class="post-toc-wrap">
-    <div class="post-toc-title">目录</div>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#New-app-Directory-Beta"><span class="toc-text">New app Directory(Beta)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Layouts"><span class="toc-text">Layouts</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Server-Components"><span class="toc-text">Server Components</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Streaming"><span class="toc-text">Streaming</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Data-Fetching"><span class="toc-text">Data Fetching</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Introducing-Turbopack-Alpha"><span class="toc-text">Introducing Turbopack (Alpha)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-image"><span class="toc-text">next&#x2F;image</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Upgrading-next-x2F-image-to-Next-js-13"><span class="toc-text">Upgrading next&#x2F;image to Next.js 13</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-font"><span class="toc-text">@next&#x2F;font</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-link"><span class="toc-text">next&#x2F;link</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Upgrading-next-x2F-link-to-Next-js-13"><span class="toc-text">Upgrading next&#x2F;link to Next.js 13</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OG-Image-Generation"><span class="toc-text">OG Image Generation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Middleware-API-Updates"><span class="toc-text">Middleware API Updates</span></a></li></ol></li></ol>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%AD%A3%E6%96%87"><span class="toc-number">1.</span> <span class="toc-text">正文</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#New-app-Directory-Beta"><span class="toc-number">1.1.</span> <span class="toc-text">New app Directory(Beta)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Layouts"><span class="toc-number">1.1.1.</span> <span class="toc-text">Layouts</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Server-Components"><span class="toc-number">1.1.2.</span> <span class="toc-text">Server Components</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Streaming"><span class="toc-number">1.1.3.</span> <span class="toc-text">Streaming</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Data-Fetching"><span class="toc-number">1.1.4.</span> <span class="toc-text">Data Fetching</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Introducing-Turbopack-Alpha"><span class="toc-number">1.2.</span> <span class="toc-text">Introducing Turbopack (Alpha)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-image"><span class="toc-number">1.3.</span> <span class="toc-text">next&#x2F;image</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Upgrading-next-x2F-image-to-Next-js-13"><span class="toc-number">1.3.1.</span> <span class="toc-text">Upgrading next&#x2F;image to Next.js 13</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-font"><span class="toc-number">1.4.</span> <span class="toc-text">@next&#x2F;font</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#next-x2F-link"><span class="toc-number">1.5.</span> <span class="toc-text">next&#x2F;link</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Upgrading-next-x2F-link-to-Next-js-13"><span class="toc-number">1.5.1.</span> <span class="toc-text">Upgrading next&#x2F;link to Next.js 13</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OG-Image-Generation"><span class="toc-number">1.6.</span> <span class="toc-text">OG Image Generation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Middleware-API-Updates"><span class="toc-number">1.7.</span> <span class="toc-text">Middleware API Updates</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&text=【翻】Next.js 13"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&is_video=false&description=【翻】Next.js 13"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=【翻】Next.js 13&body=Check out this article: https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&title=【翻】Next.js 13"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&name=【翻】Next.js 13&description=Next.js 13"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/&t=【翻】Next.js 13"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
   </div>
 </div>
 
-<script>
-  const tocLinks = document.querySelectorAll('.toc-link')
-  tocLinks.forEach((el) => {
-    el.setAttribute('href', `#${el.innerText}`)
-  })
-</script>
- -->
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
-      <div class="post-comment">
+    
+    2019-2024
+    leo
+  </div>
+</footer>
 
-     
+    </div>
+    <!-- styles -->
 
-    
-        <div id="disqus_thread"></div>
-        <script>
-            /**
-            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
-            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
-            
-            var disqus_config = function () {
-                this.page.url = 'https://lhrun.github.io/2023/09/24/%E3%80%90%E7%BF%BB%E3%80%91Next-js-13/';  // Replace PAGE_URL with your page's canonical URL variable
-                this.page.identifier = '2023/09/24/【翻】Next-js-13/'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-                this.language = 'en'
-            };
-            
-            (function() { // DON'T EDIT BELOW THIS LINE
-            var d = document, s = d.createElement('script');
-            s.src = 'https://lhblog-1.disqus.com/embed.js';
-            s.setAttribute('data-timestamp', +new Date());
-            (d.head || d.body).appendChild(s);
-            })();
-        </script>
-        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>   
-     
-    
-    
 
-</div>
-     
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
   
-</article>
-        </div>
-      </div>
-      
-      <div class="footer">
-    <div class="flex-container">
-        <div class="footer-text">
-            
-            
-            
-                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
-                
-        </div>
-    </div>
-</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
 
-    </div>
 
-    
-      <div class="search-popup">
-    <div class="search-popup-overlay">  
-    </div>
-    <div class="search-popup-window" >
-        <div class="search-header">
-            <div class="search-input-container">
-              <input autocomplete="off" autocapitalize="off" maxlength="80"
-                     placeholder="Search Anything" spellcheck="false"
-                     type="search" class="search-input">
-            </div>
-            <div class="search-close-btn">
-                <div class="icon close-btn"></div>
-            </div>
-        </div>
-        <div class="search-result-container">
-        </div>
-    </div>
-</div>
+<script src="/js/main.js"></script>
 
-<script>
-    const searchConfig = {
-        path             : "/search.xml",
-        top_n_per_article: "1",
-        unescape         : "false",
-        trigger: "auto",
-        preload: "false"
-    }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
-<script src="/js/search.js"></script>
-    
-    
+<!-- search -->
 
-  </body>
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'LHS';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
 </html>

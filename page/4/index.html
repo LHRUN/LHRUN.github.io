@@ -1,224 +1,331 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
-
-    <meta name="author" content="songlh">
-
-
-
-
-
-
-
-<title>LH&#39;BLOG</title>
-
-
-
-    <link rel="icon" href="/favicon.png">
-
-
-
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono&display=swap');
-</style>
-
-
-
-    <!-- stylesheets list from _config.yml -->
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="🥳 Welcome to my blog, I am a front-end developer who loves open source and loves life!">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Leo&#39;blog">
+<meta property="og:url" content="https://lhrun.github.io/page/4/index.html">
+<meta property="og:site_name" content="Leo&#39;blog">
+<meta property="og:description" content="🥳 Welcome to my blog, I am a front-end developer who loves open source and loves life!">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="leo">
+<meta name="twitter:card" content="summary">
     
-    <link rel="stylesheet" href="/css/style.css">
     
-
-
-
-
-    <!-- scripts list from _config.yml -->
-    
-    <script src="/js/frame.js"></script>
-    
-
-
-
-
-
-
-
-
-<script type="text/javascript">
-(function(c,l,a,r,i,t,y){
-    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-})(window, document, "clarity", "script", "jy4barl9vt");
-</script>
-
-  <meta name="generator" content="Hexo 6.2.0"></head>
-  <body>
-    <div class="mask-border">
-    </div>
-
-    <div class="wrapper">
-
-      <div class="header">
-  <div class="flex-container">
-    <div class="header-inner">
-      <div class="site-brand-container">
-        <a href="/">
-          
-            <img loading="lazy" class="logo-img" src="/logo.png" alt="logo_image">
-          
-        </a>
-      </div>
-      <div id="menu-btn" class="menu-btn" onclick="toggleMenu()">
-        Menu
-      </div>
-      <nav class="site-nav">
-        <ul class="menu-list">
-          
-            
-              <li class="menu-item">
-                <a href="/">Home</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/categories/gallery/">Posts</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/tags/Translate/">Translate</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/archives/">Archive</a>
-              </li> 
-                   
-          
-            
-              <li class="menu-item">
-                <a href="/about/">About</a>
-              </li> 
-                   
-          
-          
-            <li class="menu-item search-btn">
-              <a href="#">Search</a>
-            </li>
-          
-        </ul>
-      </nav>
-    </div>
-  </div>
-</div>
-
-
-      <div class="main">
-        <div class="flex-container">
-          <div class="profile">
-    <div class="profile-image">
-        
-            <img loading="lazy" src="/profile_cover.jpeg" alt="featured_image">
-          
-    </div>
-    <div class="post-content profile-content">
-        <div class="profile-title">
-            Hello there, Here is LH&#39;BLOG
-        </div>
-        <div class="profile-body">
-            I&#39;m a Frontend Developer. I like to try new technologies and develop some interesting open source projects
-        </div>
-        <!-- <div class="icon-links">
-  <a target="_blank" rel="noopener" href="https://github.com/LHRUN">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" style="fill: rgba(0, 0, 0, 1);transform: ;msFilter:;"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.026 2c-5.509 0-9.974 4.465-9.974 9.974 0 4.406 2.857 8.145 6.821 9.465.499.09.679-.217.679-.481 0-.237-.008-.865-.011-1.696-2.775.602-3.361-1.338-3.361-1.338-.452-1.152-1.107-1.459-1.107-1.459-.905-.619.069-.605.069-.605 1.002.07 1.527 1.028 1.527 1.028.89 1.524 2.336 1.084 2.902.829.091-.645.351-1.085.635-1.334-2.214-.251-4.542-1.107-4.542-4.93 0-1.087.389-1.979 1.024-2.675-.101-.253-.446-1.268.099-2.64 0 0 .837-.269 2.742 1.021a9.582 9.582 0 0 1 2.496-.336 9.554 9.554 0 0 1 2.496.336c1.906-1.291 2.742-1.021 2.742-1.021.545 1.372.203 2.387.099 2.64.64.696 1.024 1.587 1.024 2.675 0 3.833-2.33 4.675-4.552 4.922.355.308.675.916.675 1.846 0 1.334-.012 2.41-.012 2.737 0 .267.178.577.687.479C19.146 20.115 22 16.379 22 11.974 22 6.465 17.535 2 12.026 2z"></path></svg>
-  </a>
-  <a target="_blank" rel="noopener" href="https://segmentfault.com/u/lh_s">
-    <img loading="lazy" src="https://static.segmentfault.com/main_site/f8fc5ab1/static/logo-b.d865fc97.svg" alt="">
-  </a>
-  <a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44719258">
-    <svg t="1662949680969" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1653" width="200" height="200"><path d="M512 0c282.784 0 512 229.216 512 512s-229.216 512-512 512S0 794.784 0 512 229.216 0 512 0z m189.952 752l11.2-108.224c-31.904 9.536-100.928 16.128-147.712 16.128-134.464 0-205.728-47.296-195.328-146.304 11.584-110.688 113.152-145.696 232.64-145.696 54.784 0 122.432 8.8 151.296 18.336L768 272.704C724.544 262.24 678.272 256 599.584 256c-203.2 0-388.704 94.88-406.4 263.488C178.336 660.96 303.584 768 535.616 768c80.672 0 138.464-6.432 166.336-16z" fill="#CE000D" p-id="1654"></path></svg>
-  </a>
-  <a target="_blank" rel="noopener" href="https://www.zhihu.com/people/wxae77cceaa49dcaf5">
-    <svg t="1662949716396" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1924" width="200" height="200"><path d="M576.8 807.52h57.28l20.8 72.48 100.8-72.48h141.92V229.28H576.8z m67.84-513.92H832v448h-66.24l-85.12 64.96-18.56-64.96h-17.44zM126.4 884.48a149.44 149.44 0 0 0 123.84-10.4c60.96-36 105.92-194.56 105.92-194.56l144 177.44s13.12-84.48-2.24-108.32-99.04-119.84-99.04-119.84l-36.64 32 26.08-104.96H544s0-61.76-30.56-65.28-125.44 0-125.44 0v-192H528s-1.6-64-28.8-64H270.56l35.52-104.64s-57.6 3.36-77.92 39.36-86.4 221.6-86.4 221.6 21.92 10.24 59.2-17.28a147.68 147.68 0 0 0 49.28-75.52l67.84-3.36L320 491.2s-116.96-1.76-140.64 0-37.28 65.28-37.28 65.28H320s-15.2 108.16-60.96 187.2-132.64 140.8-132.64 140.8z" fill="#49C0FB" p-id="1925"></path></svg>
-  </a>
-  <a target="_blank" rel="noopener" href="https://leetcode.cn/u/youthful-satoshiek4/">
-    <svg t="1662949788415" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2096" width="200" height="200"><path d="M1023.52385 511.966c0 163.698 0 327.396 0.477 491.094 0 17.052-3.888 20.94-20.94 20.872q-491.094-0.819-982.188 0c-17.051 0-20.94-3.82-20.871-20.872Q0.81985 511.966 0.00085 20.872C-0.06615 3.821 3.82085-0.068 20.87285 0.001q491.094 0.818 982.188 0c17.052 0 21.008 3.82 20.94 20.871-0.477 163.698-0.477 327.396-0.477 491.094z" fill="#FEFEFE" p-id="2097"></path><path d="M454.87785 321.736c-61.387 61.386-124.82 121.068-184.774 184.16-44.404 46.722-40.925 113.906 5.593 161.924 55.18 56.68 111.996 111.724 168.063 167.45 21.212 21.963 20.94 47.063 5.388 70.39-14.392 21.485-35.058 34.65-63.092 22.577a132.664 132.664 0 0 1-35.672-25.578c-51.77-52.315-104.767-103.47-155.99-156.4-89.898-92.83-90.921-232.451-0.478-324.668C320.98585 291.724 449.96585 163.903 578.40085 35.537c28.307-28.306 63.843-30.148 87.033-6.002s21.008 55.657-6.411 84.509q-43.176 45.426-86.692 90.443c-30.693 47.609-71.823 84.645-117.453 117.249z" fill="#070706" p-id="2098"></path><path d="M677.02885 641.015H493.41485c-40.925 0-70.186-24.76-69.504-58.113 0.614-32.262 27.966-55.998 68.208-56.135q187.025-0.886 374.05 0c39.833 0 62.342 22.031 62.683 56.476 0 35.74-23.055 57.294-64.934 57.704-62.137 0.545-124.547 0.068-186.889 0.068z" fill="#B4B2B1" p-id="2099"></path><path d="M386.05585 928.1c60.569-7.366 79.053-37.241 57.704-92.967 63.842 33.49 110.837 26.056 162.47-25.577 26.465-26.465 52.52-53.339 79.598-79.19s57.431-26.464 81.44-2.728 23.532 54.566-1.978 81.44c-34.104 35.195-67.457 70.595-103.47 103.266-76.939 69.777-199.917 75.915-275.764 15.756z" fill="#EAA240" p-id="2100"></path><path d="M454.87785 321.736A1295.942 1295.942 0 0 1 572.33085 204.487c89.693 27.829 142.349 101.152 202.372 164.926 19.575 20.871 11.663 53.747-10.777 72.777a53.338 53.338 0 0 1-73.869-2.183 821.627 821.627 0 0 1-74.414-74.278c-44.13-52.315-96.855-66.502-160.765-43.993z" fill="#EAA340" p-id="2101"></path></svg>
-  </a>
-</div> -->
-        
-            <div class="profile-link">
-                <a href="/about/">About</a> 
-            </div>           
-        
-            <div class="profile-link">
-                <a href="/categories/gallery/">Posts</a> 
-            </div>           
-        
-            <div class="profile-link">
-                <a href="/tags/Translate/">Translate</a> 
-            </div>           
-        
-    </div>
-    
-</div>
-        </div>
-      </div>
       
-      <div class="footer">
-    <div class="flex-container">
-        <div class="footer-text">
-            
-            
-            
-                Powered by <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
-                
-        </div>
-    </div>
-</div>
-
-    </div>
-
+        
+          <link rel="shortcut icon" href="/images/IMG_1444.JPG">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/IMG_1444.JPG" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/IMG_1444.JPG">
+        
+      
     
-      <div class="search-popup">
-    <div class="search-popup-overlay">  
-    </div>
-    <div class="search-popup-window" >
-        <div class="search-header">
-            <div class="search-input-container">
-              <input autocomplete="off" autocapitalize="off" maxlength="80"
-                     placeholder="Search Anything" spellcheck="false"
-                     type="search" class="search-input">
-            </div>
-            <div class="search-close-btn">
-                <div class="icon close-btn"></div>
-            </div>
-        </div>
-        <div class="search-result-container">
-        </div>
-    </div>
-</div>
+    <!-- title -->
+    <title>Leo&#39;blog</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
-<script>
-    const searchConfig = {
-        path             : "/search.xml",
-        top_n_per_article: "1",
-        unescape         : "false",
-        trigger: "auto",
-        preload: "false"
-    }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js"></script>
-<script src="/js/search.js"></script>
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
     
     
+	<!-- mathjax -->
+	
 
-  </body>
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "jy4barl9vt");
+  </script>
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+    <div class="content index py4 h-card">
+        
+          <header id="header">
+  <a class="u-url u-uid" href="/">
+  
+    
+      <img id="logo" alt class="u-logo" src="/images/IMG_1444.JPG" />
+    
+  
+    <div id="title">
+      <h1 class="p-name">Leo&#39;blog</h1>
+    </div>
+  </a>
+  <div id="nav">
+    <ul>
+      <li class="icon">
+        <a href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-2x"></i></a>
+      </li>
+      <!--
+     --><li><a href="/">Home</a></li><!--
+   --><!--
+     --><li><a href="/archives/">Writing</a></li><!--
+   --><!--
+     --><li><a href="/about/">About</a></li><!--
+   --><!--
+     --><li><a href="/search/">Search</a></li><!--
+   -->
+    </ul>
+  </div>
+</header>
+
+        
+        <section id="about" class="p-note">
+  
+    <p>🥳 Welcome to my blog, I am a front-end developer who loves open source and loves life!</p>
+
+  
+  
+    <p>
+      Find me on
+      
+      
+      
+        
+        
+          <a class="icon u-url" target="_blank" rel="noopener me" href="https://github.com/LHRUN" aria-label="github" title="github">
+            <i class="fa-brands fa-github"></i><!--
+      ---></a><!--
+    ---><!--
+    --->, 
+        
+      
+        
+        
+          <a class="icon u-url" target="_blank" rel="noopener me" href="https://twitter.com/Song_LongHao" aria-label="twitter" title="twitter">
+            <i class="fa-brands fa-twitter"></i><!--
+      ---></a><!--
+    ---><!--
+    --->, 
+        
+      
+        
+        
+          <a class="icon u-email" target="_blank" rel="noopener" href="song.lhlh@gmail.com" aria-label="mail" title="mail">
+            <i class="fa-solid fa-envelope"></i><!--
+      ---></a>
+        <!--
+    ---> and 
+        
+      
+        
+        
+          <a class="icon u-url" target="_blank" rel="noopener me" href="https://t.me/longhao_song" aria-label="telegram" title="telegram">
+            <i class="fa-brands fa-telegram"></i><!--
+      ---></a><!--
+    ---><!--
+    --->.
+        
+      
+    </p>
+  
+</section>
+
+<section id="writing">
+  <span class="h1"><a href="/archives/">Writing</a></span>
+  
+  <span class="h2">Topics</span>
+  <span class="widget tagcloud">
+    <a href="/tags/AI/" style="font-size: 17.14px;">AI</a> <a href="/tags/Canvas/" style="font-size: 14.29px;">Canvas</a> <a href="/tags/ChatGPT/" style="font-size: 11.43px;">ChatGPT</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Fabric-js/" style="font-size: 11.43px;">Fabric.js</a> <a href="/tags/Full-Stack/" style="font-size: 10px;">Full Stack</a> <a href="/tags/H5/" style="font-size: 10px;">H5</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JavaScript/" style="font-size: 12.86px;">JavaScript</a> <a href="/tags/Next-js/" style="font-size: 11.43px;">Next.js</a> <a href="/tags/Node-js/" style="font-size: 10px;">Node.js</a> <a href="/tags/PostgreSQL/" style="font-size: 10px;">PostgreSQL</a> <a href="/tags/Prisma/" style="font-size: 10px;">Prisma</a> <a href="/tags/React/" style="font-size: 15.71px;">React</a> <a href="/tags/ReactQuery/" style="font-size: 10px;">ReactQuery</a> <a href="/tags/SSR/" style="font-size: 10px;">SSR</a> <a href="/tags/Translate/" style="font-size: 20px;">Translate</a> <a href="/tags/TypeScript/" style="font-size: 10px;">TypeScript</a> <a href="/tags/Vercel/" style="font-size: 10px;">Vercel</a> <a href="/tags/Vite/" style="font-size: 10px;">Vite</a> <a href="/tags/Vue/" style="font-size: 18.57px;">Vue</a> <a href="/tags/Vue3/" style="font-size: 15.71px;">Vue3</a> <a href="/tags/Web-Component/" style="font-size: 10px;">Web Component</a> <a href="/tags/Web-Design/" style="font-size: 10px;">Web Design</a> <a href="/tags/canvas/" style="font-size: 12.86px;">canvas</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a> <a href="/tags/markdown-it/" style="font-size: 10px;">markdown-it</a> <a href="/tags/pnpm/" style="font-size: 12.86px;">pnpm</a> <a href="/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/" style="font-size: 18.57px;">微信小程序</a> <a href="/tags/%E7%80%91%E5%B8%83%E6%B5%81/" style="font-size: 10px;">瀑布流</a> <a href="/tags/%E8%93%9D%E7%89%99/" style="font-size: 10px;">蓝牙</a> <a href="/tags/%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8/" style="font-size: 10px;">虚拟列表</a>
+  </span>
+  <span class="h2">Most recent</span>
+  
+  <ul class="post-list">
+    
+    
+      
+    
+    
+      <li class="post-item">
+        
+    <div class="meta">
+      
+        
+          <time datetime="2024-01-10T14:12:04.000Z" class="dt-published" itemprop="datePublished">2024-01-10</time>
+        
+      
+    </div>
+
+
+        <span>
+    
+        <a class="" href="/2024/01/10/Exploring-the-Canvas-Series-The-Art-of-Time-Reversal-in-the-Canvas/">Exploring the Canvas Series: The Art of Time Reversal in the Canvas</a>
+    
+
+
+</span>
+      </li>
+    
+      <li class="post-item">
+        
+    <div class="meta">
+      
+        
+          <time datetime="2024-01-09T14:31:55.000Z" class="dt-published" itemprop="datePublished">2024-01-09</time>
+        
+      
+    </div>
+
+
+        <span>
+    
+        <a class="" href="/2024/01/09/%E7%94%BB%E6%9D%BF%E6%8E%A2%E7%A7%98%E7%B3%BB%E5%88%97%EF%BC%9A%E7%94%BB%E6%9D%BF%E4%B8%AD%E7%9A%84%E6%97%B6%E5%85%89%E5%80%92%E6%B5%81%E6%9C%AF/">画板探秘系列：画板中的时光倒流术</a>
+    
+
+
+</span>
+      </li>
+    
+      <li class="post-item">
+        
+    <div class="meta">
+      
+        
+          <time datetime="2023-12-01T13:14:28.000Z" class="dt-published" itemprop="datePublished">2023-12-01</time>
+        
+      
+    </div>
+
+
+        <span>
+    
+        <a class="" href="/2023/12/01/Canvas-Artistry2/">Canvas Artistry：Drawing magic with multiple effects</a>
+    
+
+
+</span>
+      </li>
+    
+      <li class="post-item">
+        
+    <div class="meta">
+      
+        
+          <time datetime="2023-11-30T15:18:19.000Z" class="dt-published" itemprop="datePublished">2023-11-30</time>
+        
+      
+    </div>
+
+
+        <span>
+    
+        <a class="" href="/2023/11/30/Canvas-Artistry1/">Canvas Artistry： Mastering Selection, Dragging, and Scaling</a>
+    
+
+
+</span>
+      </li>
+    
+      <li class="post-item">
+        
+    <div class="meta">
+      
+        
+          <time datetime="2023-11-28T15:23:44.000Z" class="dt-published" itemprop="datePublished">2023-11-28</time>
+        
+      
+    </div>
+
+
+        <span>
+    
+        <a class="" href="/2023/11/28/Explore-Full-Stack-Magic/">Explore Full Stack Magic：Next.js + Prisma + Next-auth + vercel/postgres</a>
+    
+
+
+</span>
+      </li>
+    
+  </ul>
+  
+</section>
+
+
+<section id="projects">
+  <span class="h1"><a target="_blank" rel="noopener" href="https://github.com/LHRUN">Projects</a></span>
+  <ul class="project-list">
+    
+      <li class="project-item">
+        <a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">paint-board</a>: <p>🎨 A powerful multi-end drawing board that brings together a lot of creative brushes to experience a whole new range of drawing effects!</p>
+
+      </li>
+    
+      <li class="project-item">
+        <a target="_blank" rel="noopener" href="https://github.com/LHRUN/bubble">bubble</a>: <p>Let’s start changing your profile. (Readme Profile Collection)</p>
+
+      </li>
+    
+  </ul>
+</section>
+
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2019-2024
+    leo
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
 </html>
