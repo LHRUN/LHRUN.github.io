@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="IntroductionI am currently developing a powerful open source creative drawing board. This drawing board contains a variety of creative brushes, which allows users to experience a new drawing effect. W">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Exploring the Canvas Series: Creative Brushes Part 2">
+<meta property="og:url" content="https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/index.html">
+<meta property="og:site_name" content="Leo&#39;blog">
+<meta property="og:description" content="IntroductionI am currently developing a powerful open source creative drawing board. This drawing board contains a variety of creative brushes, which allows users to experience a new drawing effect. W">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/LHRUN/file-store/main/paint-board/preview_device.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/LHRUN/file-store/main/post/creativeBrush/multiColor.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/LHRUN/file-store/main/post/creativeBrush/text.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/LHRUN/file-store/main/post/creativeBrush/multiLine.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/LHRUN/file-store/main/post/creativeBrush/reticulate.png">
+<meta property="article:published_time" content="2024-04-15T14:48:08.000Z">
+<meta property="article:modified_time" content="2024-04-16T15:48:20.034Z">
+<meta property="article:author" content="leo">
+<meta property="article:tag" content="Canvas">
+<meta property="article:tag" content="Fabric.js">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/LHRUN/file-store/main/paint-board/preview_device.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/IMG_1444.JPG">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/IMG_1444.JPG" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/IMG_1444.JPG">
+        
+      
+    
+    <!-- title -->
+    <title>Exploring the Canvas Series: Creative Brushes Part 2</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "jy4barl9vt");
+  </script>
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2024/04/16/Exploring-the-Canvas-Series-Creative-Brushes-Part-3/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2024/04/14/Exploring-the-Canvas-Series-Creative-Brushes-Part-1/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&text=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&is_video=false&description=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Exploring the Canvas Series: Creative Brushes Part 2&body=Check out this article: https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&name=Exploring the Canvas Series: Creative Brushes Part 2&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&t=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-number">1.</span> <span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Multi-Colour-Brush"><span class="toc-number">2.</span> <span class="toc-text">Multi Colour Brush</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Text-Brush"><span class="toc-number">3.</span> <span class="toc-text">Text Brush</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Multi-Line-Connection"><span class="toc-number">4.</span> <span class="toc-text">Multi Line Connection</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reticulate-Brush"><span class="toc-number">5.</span> <span class="toc-text">Reticulate Brush</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">6.</span> <span class="toc-text">Conclusion</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Exploring the Canvas Series: Creative Brushes Part 2
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">leo</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2024-04-15T14:48:08.000Z" class="dt-published" itemprop="datePublished">2024-04-15</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Canvas/" rel="tag">Canvas</a>, <a class="p-category" href="/tags/Fabric-js/" rel="tag">Fabric.js</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>I am currently developing a powerful open source creative drawing board. This drawing board contains a variety of creative brushes, which allows users to experience a new drawing effect. Whether on mobile or PC , you can enjoy a better interactive experience and effect display . And this project has many powerful auxiliary painting functions, including but not limited to forward and backward, copy and delete, upload and download, multiple boards and layers and so on. I’m not going to list all the detailed features, looking forward to your exploration.</p>
+<p>Link: <a target="_blank" rel="noopener" href="https://songlh.top/paint-board/">https://songlh.top/paint-board/</a></p>
+<p>Github: <a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">https://github.com/LHRUN/paint-board</a> 欢迎Star⭐️</p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/paint-board/preview_device.png"></p>
+<p>In the gradual development of the project, I plan to write some articles, on the one hand, to record the technical details, which is my habit all the time. On the other hand, I’d like to promote the project, and I hope to get your use and feedback, and of course, a Star would be my greatest support.</p>
+<p>I’m going to explain the implementation of the Creative Brush in 3 articles, this is the second one, and I’ll upload all the source code to my Github.</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board-demo">Github Source Code Demo</a></p>
+<h2 id="Multi-Colour-Brush"><a href="#Multi-Colour-Brush" class="headerlink" title="Multi Colour Brush"></a>Multi Colour Brush</h2><ul>
+<li>The multicolour brush effect is as follows</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/creativeBrush/multiColor.png"></p>
+<ul>
+<li>Multi-colour brushes are similar to material brushes in that they receive a <code>CanvasPattern</code> object via <code>strokeStyle</code>.</li>
+<li>We can create a new <code>canvas</code>, then draw the effect you want on this <code>canvas</code>, and finally create a <code>pattern</code> from this <code>canvas</code> and assign it to the <code>strokeStyle</code> to get a multicolour brush effect.</li>
+</ul>
+<pre><code class="highlight ts"><span class="keyword">import</span> &#123; useEffect, useRef, useState, <span class="title class_">MouseEvent</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>
+<span class="keyword">import</span> <span class="string">&#x27;./index.css&#x27;</span>
+
+<span class="keyword">let</span> isMouseDown = <span class="literal">false</span>
+<span class="keyword">let</span> <span class="attr">movePoint</span>: &#123; <span class="attr">x</span>: <span class="built_in">number</span>, <span class="attr">y</span>: <span class="built_in">number</span> &#125; | <span class="literal">null</span> = <span class="literal">null</span>
+<span class="keyword">const</span> <span class="variable constant_">COLOR_WIDTH</span> = <span class="number">5</span> <span class="comment">// width of each colour</span>
+
+<span class="comment">/**</span>
+<span class="comment"> * get multicolour brush pattern</span>
+<span class="comment"> * <span class="doctag">@param</span> colors Colour array, colours to be painted</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">getPattern</span> = <span class="keyword">async</span> (<span class="params">colors: <span class="built_in">string</span>[]</span>) =&gt; &#123;
+  <span class="keyword">const</span> canvas = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;canvas&#x27;</span>)
+  <span class="keyword">const</span> context = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasRenderingContext2D</span>
+  <span class="title function_">renderRow</span>(canvas, context, colors)
+  <span class="keyword">return</span> context.<span class="title function_">createPattern</span>(canvas, <span class="string">&#x27;repeat&#x27;</span>)
+&#125;
+
+<span class="comment">/**</span>
+<span class="comment"> * row effect drawing</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">renderRow</span> = (<span class="params"></span>
+<span class="params">  canvas: HTMLCanvasElement,</span>
+<span class="params">  context: CanvasRenderingContext2D,</span>
+<span class="params">  colors: <span class="built_in">string</span>[]</span>
+<span class="params"></span>) =&gt; &#123;
+  canvas.<span class="property">width</span> = <span class="number">20</span>
+  canvas.<span class="property">height</span> = colors.<span class="property">length</span> * <span class="variable constant_">COLOR_WIDTH</span>
+  colors.<span class="title function_">forEach</span>(<span class="function">(<span class="params">color, i</span>) =&gt;</span> &#123;
+    context.<span class="property">fillStyle</span> = color
+    context.<span class="title function_">fillRect</span>(<span class="number">0</span>, <span class="variable constant_">COLOR_WIDTH</span> * i, <span class="number">20</span>, <span class="variable constant_">COLOR_WIDTH</span>)
+  &#125;)
+&#125;
+
+<span class="keyword">function</span> <span class="title function_">PaintBoard</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> canvasRef = useRef&lt;<span class="title class_">HTMLCanvasElement</span> | <span class="literal">null</span>&gt;(<span class="literal">null</span>)
+  <span class="keyword">const</span> [context2D, setContext2D] = useState&lt;<span class="title class_">CanvasRenderingContext2D</span> | <span class="literal">null</span>&gt;(<span class="literal">null</span>)
+
+  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;
+    <span class="title function_">initDraw</span>()
+  &#125;, [canvasRef])
+
+  <span class="keyword">const</span> <span class="title function_">initDraw</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
+    <span class="keyword">if</span> (canvasRef?.<span class="property">current</span>) &#123;
+      <span class="keyword">const</span> context2D = canvasRef?.<span class="property">current</span>.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>)
+      <span class="keyword">if</span> (context2D) &#123;
+        context2D.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+        context2D.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+        context2D.<span class="property">lineWidth</span> = <span class="number">10</span>
+        <span class="comment">// Assigns a value to strokeStyle based on the generated pattern</span>
+        <span class="keyword">const</span> pattern = <span class="keyword">await</span> <span class="title function_">getPattern</span>([<span class="string">&#x27;blue&#x27;</span>, <span class="string">&#x27;red&#x27;</span>, <span class="string">&#x27;black&#x27;</span>])
+        <span class="keyword">if</span> (pattern) &#123;
+          context2D.<span class="property">strokeStyle</span> = pattern
+        &#125;
+        
+        <span class="title function_">setContext2D</span>(context2D)
+      &#125;
+    &#125;
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">onMouseDown</span> = (<span class="params"></span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    isMouseDown = <span class="literal">true</span>
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">onMouseMove</span> = (<span class="params">event: MouseEvent</span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    <span class="keyword">if</span> (isMouseDown) &#123;
+      <span class="keyword">const</span> &#123; clientX, clientY &#125; = event
+      <span class="keyword">if</span> (movePoint) &#123;
+        context2D.<span class="title function_">beginPath</span>()
+        context2D.<span class="title function_">moveTo</span>(movePoint.<span class="property">x</span>, movePoint.<span class="property">y</span>)
+        context2D.<span class="title function_">lineTo</span>(clientX, clientY)
+        context2D.<span class="title function_">stroke</span>()
+      &#125;
+      movePoint = &#123;
+        <span class="attr">x</span>: clientX,
+        <span class="attr">y</span>: clientY
+      &#125;
+    &#125;
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">onMouseUp</span> = (<span class="params"></span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    isMouseDown = <span class="literal">false</span>
+    movePoint = <span class="literal">null</span>
+  &#125;
+
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">canvas</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">ref</span>=<span class="string">&#123;canvasRef&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseDown</span>=<span class="string">&#123;onMouseDown&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseMove</span>=<span class="string">&#123;onMouseMove&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseUp</span>=<span class="string">&#123;onMouseUp&#125;</span></span></span>
+<span class="tag"><span class="language-xml">      /&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+  )
+&#125;</code></pre>
+
+<h2 id="Text-Brush"><a href="#Text-Brush" class="headerlink" title="Text Brush"></a>Text Brush</h2><ul>
+<li>The text brush will follow the mouse movement to draw the text, the effect is as follows</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/creativeBrush/text.png"></p>
+<ul>
+<li>The text brush is drawn in three steps:<ul>
+<li><ol>
+<li>The distance between the two moves is the distance, then the width of the text is determined by <code>measureText</code>, if the distance is greater than the width of the text, then it can be drawn.</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>Then we take the vector of the two points, get the angle according to <code>Math.atan2</code>, and draw the current text according to this angle.</li>
+</ol>
+</li>
+<li><ol start="3">
+<li>Finally, update the track coordinates, while drawing the text coordinates to the next one, and start again if the drawing is finished.</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="highlight ts"><span class="keyword">interface</span> <span class="title class_">Point</span> &#123;
+  <span class="attr">x</span>: <span class="built_in">number</span>
+  <span class="attr">y</span>: <span class="built_in">number</span>
+&#125;
+
+<span class="keyword">let</span> isMouseDown = <span class="literal">false</span>
+<span class="keyword">let</span> <span class="attr">movePoint</span>: <span class="title class_">Point</span> = &#123; <span class="attr">x</span>: <span class="number">0</span>, <span class="attr">y</span>: <span class="number">0</span> &#125;
+
+<span class="keyword">let</span> counter = <span class="number">0</span> <span class="comment">// currently drawing text</span>
+<span class="keyword">const</span> textValue = <span class="string">&#x27;PaintBoard&#x27;</span> <span class="comment">// Drawing text content</span>
+<span class="keyword">const</span> minFontSize = <span class="number">5</span> <span class="comment">// min fontsize</span>
+
+<span class="comment">/**</span>
+<span class="comment"> * Get the distance between two points</span>
+<span class="comment"> */</span>
+<span class="keyword">const</span> <span class="title function_">getDistance</span> = (<span class="params">start: Point, end: Point</span>) =&gt; &#123;
+  <span class="keyword">return</span> <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(<span class="title class_">Math</span>.<span class="title function_">pow</span>(start.<span class="property">x</span> - end.<span class="property">x</span>, <span class="number">2</span>) + <span class="title class_">Math</span>.<span class="title function_">pow</span>(start.<span class="property">y</span> - end.<span class="property">y</span>, <span class="number">2</span>))
+&#125;
+
+<span class="keyword">function</span> <span class="title function_">PaintBoard</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> canvasRef = useRef&lt;<span class="title class_">HTMLCanvasElement</span> | <span class="literal">null</span>&gt;(<span class="literal">null</span>)
+  <span class="keyword">const</span> [context2D, setContext2D] = useState&lt;<span class="title class_">CanvasRenderingContext2D</span> | <span class="literal">null</span>&gt;(<span class="literal">null</span>)
+
+  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;
+    <span class="keyword">if</span> (canvasRef?.<span class="property">current</span>) &#123;
+      <span class="keyword">const</span> context2D = canvasRef?.<span class="property">current</span>.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>)
+      <span class="keyword">if</span> (context2D) &#123;
+        context2D.<span class="property">fillStyle</span> = <span class="string">&#x27;#000&#x27;</span>
+        <span class="title function_">setContext2D</span>(context2D)
+      &#125;
+    &#125;
+  &#125;, [canvasRef])
+
+  <span class="keyword">const</span> <span class="title function_">onMouseDown</span> = (<span class="params">event: MouseEvent</span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    isMouseDown = <span class="literal">true</span>
+    <span class="keyword">const</span> &#123; clientX, clientY &#125; = event
+    movePoint = &#123;
+      <span class="attr">x</span>: clientX,
+      <span class="attr">y</span>: clientY
+    &#125;
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">onMouseMove</span> = (<span class="params">event: MouseEvent</span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    <span class="keyword">if</span> (isMouseDown) &#123;
+      <span class="keyword">const</span> &#123; clientX, clientY &#125; = event
+
+      <span class="comment">// Get the distance between two points</span>
+      <span class="keyword">const</span> distance = <span class="title function_">getDistance</span>(movePoint, &#123; <span class="attr">x</span>: clientX, <span class="attr">y</span>: clientY &#125;)
+      <span class="keyword">const</span> fontSize = minFontSize + distance
+      <span class="keyword">const</span> letter = textValue[counter]
+      context2D.<span class="property">font</span> = <span class="string">`<span class="subst">$&#123;fontSize&#125;</span>px Georgia`</span>
+
+      <span class="comment">// Get text width</span>
+      <span class="keyword">const</span> textWidth = context2D.<span class="title function_">measureText</span>(letter).<span class="property">width</span>
+
+      <span class="keyword">if</span> (distance &gt; textWidth) &#123;
+        <span class="comment">// Calculate the current movement angle</span>
+        <span class="keyword">const</span> angle = <span class="title class_">Math</span>.<span class="title function_">atan2</span>(clientY - movePoint.<span class="property">y</span>, clientX - movePoint.<span class="property">x</span>)
+
+        context2D.<span class="title function_">save</span>();
+        context2D.<span class="title function_">translate</span>(movePoint.<span class="property">x</span>, movePoint.<span class="property">y</span>)
+        context2D.<span class="title function_">rotate</span>(angle);
+        context2D.<span class="title function_">fillText</span>(letter, <span class="number">0</span>, <span class="number">0</span>);
+        context2D.<span class="title function_">restore</span>();
+
+        <span class="comment">// Update the position of the text after drawing</span>
+        movePoint = &#123;
+          <span class="attr">x</span>: movePoint.<span class="property">x</span> + <span class="title class_">Math</span>.<span class="title function_">cos</span>(angle) * textWidth,
+          <span class="attr">y</span>: movePoint.<span class="property">y</span> + <span class="title class_">Math</span>.<span class="title function_">sin</span>(angle) * textWidth
+        &#125;
+
+        <span class="comment">// Update data</span>
+        counter++
+        <span class="keyword">if</span> (counter &gt; textValue.<span class="property">length</span> - <span class="number">1</span>) &#123;
+          counter = <span class="number">0</span>
+        &#125;
+      &#125;
+    &#125;
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">onMouseUp</span> = (<span class="params"></span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    isMouseDown = <span class="literal">false</span>
+    movePoint = &#123; <span class="attr">x</span>: <span class="number">0</span>, <span class="attr">y</span>: <span class="number">0</span> &#125;
+  &#125;
+
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">canvas</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">ref</span>=<span class="string">&#123;canvasRef&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseDown</span>=<span class="string">&#123;onMouseDown&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseMove</span>=<span class="string">&#123;onMouseMove&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseUp</span>=<span class="string">&#123;onMouseUp&#125;</span></span></span>
+<span class="tag"><span class="language-xml">      /&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+  )
+&#125;</code></pre>
+
+<h2 id="Multi-Line-Connection"><a href="#Multi-Line-Connection" class="headerlink" title="Multi Line Connection"></a>Multi Line Connection</h2><ul>
+<li>The effect of multi-line connection is as follows:</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/creativeBrush/multiLine.png"></p>
+<ul>
+<li>Multiline connectivity is the process of connecting previous trajectory points twice during normal plotting, and then adjusting the number of points or the number of points to be connected to achieve different effects.</li>
+</ul>
+<pre><code class="highlight ts"><span class="keyword">interface</span> <span class="title class_">Point</span> &#123;
+  <span class="attr">x</span>: <span class="built_in">number</span>
+  <span class="attr">y</span>: <span class="built_in">number</span>
+&#125;
+
+<span class="keyword">let</span> isMouseDown = <span class="literal">false</span>
+<span class="keyword">let</span> <span class="attr">movePoints</span>: <span class="title class_">Point</span>[] = [] <span class="comment">// Mouse movement track point recording</span>
+
+<span class="keyword">function</span> <span class="title function_">PaintBoard</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> canvasRef = useRef&lt;<span class="title class_">HTMLCanvasElement</span> | <span class="literal">null</span>&gt;(<span class="literal">null</span>)
+  <span class="keyword">const</span> [context2D, setContext2D] = useState&lt;<span class="title class_">CanvasRenderingContext2D</span> | <span class="literal">null</span>&gt;(<span class="literal">null</span>)
+
+  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;
+    <span class="keyword">if</span> (canvasRef?.<span class="property">current</span>) &#123;
+      <span class="keyword">const</span> context2D = canvasRef?.<span class="property">current</span>.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>)
+      <span class="keyword">if</span> (context2D) &#123;
+        context2D.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+        context2D.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+        context2D.<span class="property">lineWidth</span> = <span class="number">3</span>
+        
+        <span class="title function_">setContext2D</span>(context2D)
+      &#125;
+    &#125;
+  &#125;, [canvasRef])
+
+  <span class="keyword">const</span> <span class="title function_">onMouseDown</span> = (<span class="params"></span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    isMouseDown = <span class="literal">true</span>
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">onMouseMove</span> = (<span class="params">event: MouseEvent</span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    <span class="keyword">if</span> (isMouseDown) &#123;
+      <span class="keyword">const</span> &#123; clientX, clientY &#125; = event
+      <span class="keyword">const</span> length = movePoints.<span class="property">length</span>
+      <span class="keyword">if</span> (length) &#123;
+        <span class="comment">// Normal line segment connection</span>
+        context2D.<span class="title function_">beginPath</span>()
+        context2D.<span class="title function_">moveTo</span>(movePoints[length - <span class="number">1</span>].<span class="property">x</span>, movePoints[length - <span class="number">1</span>].<span class="property">y</span>)
+        context2D.<span class="title function_">lineTo</span>(clientX, clientY)
+        context2D.<span class="title function_">stroke</span>()
+
+        <span class="comment">/**</span>
+<span class="comment">         * Linking of previous mouse points</span>
+<span class="comment">         * Currently, connections are made at intervals of 5 points, and the number of connections is 3.</span>
+<span class="comment">         */</span>
+        <span class="keyword">if</span> (length % <span class="number">5</span> === <span class="number">0</span>) &#123;
+          <span class="keyword">for</span> (
+            <span class="keyword">let</span> i = movePoints.<span class="property">length</span> - <span class="number">5</span>, count = <span class="number">0</span>;
+            i &gt;= <span class="number">0</span> &amp;&amp; count &lt; <span class="number">3</span>;
+            i = i - <span class="number">5</span>, count++
+          ) &#123;
+            context2D.<span class="title function_">save</span>()
+            context2D.<span class="title function_">beginPath</span>()
+            context2D.<span class="property">lineWidth</span> = <span class="number">1</span>
+            context2D.<span class="title function_">moveTo</span>(movePoints[length - <span class="number">1</span>].<span class="property">x</span>, movePoints[length - <span class="number">1</span>].<span class="property">y</span>)
+            context2D.<span class="title function_">lineTo</span>(movePoints[i].<span class="property">x</span>, movePoints[i].<span class="property">y</span>)
+            context2D.<span class="title function_">stroke</span>()
+            context2D.<span class="title function_">restore</span>()
+          &#125;
+        &#125;
+      &#125;
+      movePoints.<span class="title function_">push</span>(&#123;
+        <span class="attr">x</span>: clientX,
+        <span class="attr">y</span>: clientY
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">onMouseUp</span> = (<span class="params"></span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    isMouseDown = <span class="literal">false</span>
+    movePoints = []
+  &#125;
+
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">canvas</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">ref</span>=<span class="string">&#123;canvasRef&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseDown</span>=<span class="string">&#123;onMouseDown&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseMove</span>=<span class="string">&#123;onMouseMove&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseUp</span>=<span class="string">&#123;onMouseUp&#125;</span></span></span>
+<span class="tag"><span class="language-xml">      /&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+  )
+&#125;</code></pre>
+
+<h2 id="Reticulate-Brush"><a href="#Reticulate-Brush" class="headerlink" title="Reticulate Brush"></a>Reticulate Brush</h2><ul>
+<li>The reticulate brush effect is as follows</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/main/post/creativeBrush/reticulate.png"></p>
+<ul>
+<li>Reticulate brush is in the normal drawing process, will be traversed on the previous track points, if certain conditions are met, it will be judged as similar, and then the similar points for the second connection, multiple connections will achieve the effect of the net!</li>
+</ul>
+<pre><code class="highlight ts"><span class="keyword">interface</span> <span class="title class_">Point</span> &#123;
+  <span class="attr">x</span>: <span class="built_in">number</span>
+  <span class="attr">y</span>: <span class="built_in">number</span>
+&#125;
+
+<span class="keyword">let</span> isMouseDown = <span class="literal">false</span>
+<span class="keyword">let</span> <span class="attr">movePoints</span>: <span class="title class_">Point</span>[] = [] <span class="comment">// Mouse point recording</span>
+
+<span class="keyword">function</span> <span class="title function_">PaintBoard</span>(<span class="params"></span>) &#123;
+  <span class="keyword">const</span> canvasRef = useRef&lt;<span class="title class_">HTMLCanvasElement</span> | <span class="literal">null</span>&gt;(<span class="literal">null</span>)
+  <span class="keyword">const</span> [context2D, setContext2D] = useState&lt;<span class="title class_">CanvasRenderingContext2D</span> | <span class="literal">null</span>&gt;(<span class="literal">null</span>)
+
+  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;
+    <span class="keyword">if</span> (canvasRef?.<span class="property">current</span>) &#123;
+      <span class="keyword">const</span> context2D = canvasRef?.<span class="property">current</span>.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>)
+      <span class="keyword">if</span> (context2D) &#123;
+        context2D.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>
+        context2D.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>
+        context2D.<span class="property">lineWidth</span> = <span class="number">3</span>
+        
+        <span class="title function_">setContext2D</span>(context2D)
+      &#125;
+    &#125;
+  &#125;, [canvasRef])
+
+  <span class="keyword">const</span> <span class="title function_">onMouseDown</span> = (<span class="params"></span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    isMouseDown = <span class="literal">true</span>
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">onMouseMove</span> = (<span class="params">event: MouseEvent</span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    <span class="keyword">if</span> (isMouseDown) &#123;
+      <span class="keyword">const</span> &#123; clientX, clientY &#125; = event
+      <span class="keyword">const</span> length = movePoints.<span class="property">length</span>
+      <span class="keyword">if</span> (length) &#123;
+        <span class="comment">// Normal Drawing Connection</span>
+        context2D.<span class="title function_">beginPath</span>()
+        context2D.<span class="title function_">moveTo</span>(movePoints[length - <span class="number">1</span>].<span class="property">x</span>, movePoints[length - <span class="number">1</span>].<span class="property">y</span>)
+        context2D.<span class="title function_">lineTo</span>(clientX, clientY)
+        context2D.<span class="title function_">stroke</span>()
+
+        <span class="keyword">if</span> (length % <span class="number">2</span> === <span class="number">0</span>) &#123;
+          <span class="keyword">const</span> limitDistance = <span class="number">1000</span>
+          <span class="comment">/**</span>
+<span class="comment">           * If dx * dx + dy * dy &lt; 1000, then the two points are considered to be close, and the line is quadratically connected.</span>
+<span class="comment">           * limitDistance can be adjusted by yourself</span>
+<span class="comment">           */</span>
+          <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; length; i++) &#123;
+            <span class="keyword">const</span> dx = movePoints[i].<span class="property">x</span> - movePoints[length - <span class="number">1</span>].<span class="property">x</span>
+            <span class="keyword">const</span> dy = movePoints[i].<span class="property">y</span> - movePoints[length - <span class="number">1</span>].<span class="property">y</span>
+            <span class="keyword">const</span> d = dx * dx + dy * dy
+        
+            <span class="keyword">if</span> (d &lt; limitDistance) &#123;
+              context2D.<span class="title function_">save</span>()
+              context2D.<span class="title function_">beginPath</span>()
+              context2D.<span class="property">lineWidth</span> = <span class="number">1</span>
+              context2D.<span class="title function_">moveTo</span>(movePoints[length - <span class="number">1</span>].<span class="property">x</span>, movePoints[length - <span class="number">1</span>].<span class="property">y</span>)
+              context2D.<span class="title function_">lineTo</span>(movePoints[i].<span class="property">x</span>, movePoints[i].<span class="property">y</span>)
+              context2D.<span class="title function_">stroke</span>()
+              context2D.<span class="title function_">restore</span>()
+            &#125;
+          &#125;
+        &#125;
+      &#125;
+      movePoints.<span class="title function_">push</span>(&#123;
+        <span class="attr">x</span>: clientX,
+        <span class="attr">y</span>: clientY
+      &#125;)
+    &#125;
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">onMouseUp</span> = (<span class="params"></span>) =&gt; &#123;
+    <span class="keyword">if</span> (!canvasRef?.<span class="property">current</span> || !context2D) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    isMouseDown = <span class="literal">false</span>
+    movePoints = []
+  &#125;
+
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">canvas</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">ref</span>=<span class="string">&#123;canvasRef&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseDown</span>=<span class="string">&#123;onMouseDown&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseMove</span>=<span class="string">&#123;onMouseMove&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onMouseUp</span>=<span class="string">&#123;onMouseUp&#125;</span></span></span>
+<span class="tag"><span class="language-xml">      /&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+  )
+&#125;</code></pre>
+
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>Thank you for reading. This is the whole content of this article, I hope this article is helpful to you, welcome to like and favourite. If you have any questions, please feel free to discuss in the comment section!</p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-number">1.</span> <span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Multi-Colour-Brush"><span class="toc-number">2.</span> <span class="toc-text">Multi Colour Brush</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Text-Brush"><span class="toc-number">3.</span> <span class="toc-text">Text Brush</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Multi-Line-Connection"><span class="toc-number">4.</span> <span class="toc-text">Multi Line Connection</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reticulate-Brush"><span class="toc-number">5.</span> <span class="toc-text">Reticulate Brush</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">6.</span> <span class="toc-text">Conclusion</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&text=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&is_video=false&description=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Exploring the Canvas Series: Creative Brushes Part 2&body=Check out this article: https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&title=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&name=Exploring the Canvas Series: Creative Brushes Part 2&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://lhrun.github.io/2024/04/15/Exploring-the-Canvas-Series-Creative-Brushes-Part-2/&t=Exploring the Canvas Series: Creative Brushes Part 2"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2019-2024
+    leo
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'LHS';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>
