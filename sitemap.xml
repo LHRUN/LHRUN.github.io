@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/</loc>
+    
+    <lastmod>2024-11-23</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/2024/11/23/%E7%94%BB%E6%9D%BF%E6%8E%A2%E7%A7%98%E7%B3%BB%E5%88%97%EF%BC%9A%E7%BB%93%E5%90%88%20Transformers.js%20%E5%AE%9E%E7%8E%B0%E5%9B%BE%E5%83%8F%E6%99%BA%E8%83%BD%E5%A4%84%E7%90%86/</loc>
+    
+    <lastmod>2024-11-23</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://lhrun.github.io/2024/04/16/Exploring-the-Canvas-Series-Creative-Brushes-Part-3/</loc>
     
     <lastmod>2024-04-17</lastmod>
@@ -29,7 +47,7 @@
   </url>
   
   <url>
-    <loc>https://lhrun.github.io/2024/04/12/%E7%94%BB%E6%9D%BF%E6%8E%A2%E7%A7%98%E7%B3%BB%E5%88%97%EF%BC%9A%E5%88%9B%E6%84%8F%E7%94%BB%E7%AC%94%E7%AC%AC%E4%BA%8C%E6%9C%9F/</loc>
+    <loc>https://lhrun.github.io/2024/04/13/%E7%94%BB%E6%9D%BF%E6%8E%A2%E7%A7%98%E7%B3%BB%E5%88%97%EF%BC%9A%E5%88%9B%E6%84%8F%E7%94%BB%E7%AC%94%E7%AC%AC%E4%B8%89%E6%9C%9F/</loc>
     
     <lastmod>2024-04-16</lastmod>
     
@@ -38,7 +56,7 @@
   </url>
   
   <url>
-    <loc>https://lhrun.github.io/2024/04/13/%E7%94%BB%E6%9D%BF%E6%8E%A2%E7%A7%98%E7%B3%BB%E5%88%97%EF%BC%9A%E5%88%9B%E6%84%8F%E7%94%BB%E7%AC%94%E7%AC%AC%E4%B8%89%E6%9C%9F/</loc>
+    <loc>https://lhrun.github.io/2024/04/12/%E7%94%BB%E6%9D%BF%E6%8E%A2%E7%A7%98%E7%B3%BB%E5%88%97%EF%BC%9A%E5%88%9B%E6%84%8F%E7%94%BB%E7%AC%94%E7%AC%AC%E4%BA%8C%E6%9C%9F/</loc>
     
     <lastmod>2024-04-16</lastmod>
     
@@ -517,232 +535,232 @@
 
   <url>
     <loc>https://lhrun.github.io/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
   
   <url>
-    <loc>https://lhrun.github.io/tags/Canvas/</loc>
-    <lastmod>2024-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://lhrun.github.io/tags/Next-js/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Vercel/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Full-Stack/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Prisma/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/PostgreSQL/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/tags/Canvas/</loc>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Fabric-js/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/H5/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Hexo/</loc>
-    <lastmod>2024-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://lhrun.github.io/tags/Vue3/</loc>
-    <lastmod>2024-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://lhrun.github.io/tags/Vite/</loc>
-    <lastmod>2024-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://lhrun.github.io/tags/SSR/</loc>
-    <lastmod>2024-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://lhrun.github.io/tags/Vue/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/React/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/tags/Vue3/</loc>
+    <lastmod>2024-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/tags/Vite/</loc>
+    <lastmod>2024-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/tags/SSR/</loc>
+    <lastmod>2024-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/tags/Vue/</loc>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/canvas/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/pnpm/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Translate/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/AI/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/ChatGPT/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/TypeScript/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Web-Component/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/JavaScript/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Node-js/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Web-Design/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/Docker/</loc>
-    <lastmod>2024-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://lhrun.github.io/tags/%E7%80%91%E5%B8%83%E6%B5%81/</loc>
-    <lastmod>2024-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://lhrun.github.io/tags/%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8/</loc>
-    <lastmod>2024-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://lhrun.github.io/tags/%E8%93%9D%E7%89%99/</loc>
-    <lastmod>2024-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://lhrun.github.io/tags/ReactQuery/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/markdown/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://lhrun.github.io/tags/markdown-it/</loc>
-    <lastmod>2024-04-17</lastmod>
+    <lastmod>2024-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/tags/%E7%80%91%E5%B8%83%E6%B5%81/</loc>
+    <lastmod>2024-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/tags/%E8%99%9A%E6%8B%9F%E5%88%97%E8%A1%A8/</loc>
+    <lastmod>2024-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/tags/%E8%93%9D%E7%89%99/</loc>
+    <lastmod>2024-11-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://lhrun.github.io/tags/ReactQuery/</loc>
+    <lastmod>2024-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>

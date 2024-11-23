@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="IntroductionI am currently maintaining a powerful open source creative drawing board. This drawing board integrates a lot of interesting brushes and auxiliary drawing functions, which allows users to">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing">
+<meta property="og:url" content="https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/index.html">
+<meta property="og:site_name" content="Leo&#39;blog">
+<meta property="og:description" content="IntroductionI am currently maintaining a powerful open source creative drawing board. This drawing board integrates a lot of interesting brushes and auxiliary drawing functions, which allows users to">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/LHRUN/file-store/refs/heads/main/post/paint_board_transformersjs/image_1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/LHRUN/file-store/refs/heads/main/post/paint_board_transformersjs/image_2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/LHRUN/file-store/refs/heads/main/post/paint_board_transformersjs/image_3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/LHRUN/file-store/refs/heads/main/post/paint_board_transformersjs/image_4.png">
+<meta property="article:published_time" content="2024-11-23T13:47:38.000Z">
+<meta property="article:modified_time" content="2024-11-23T15:28:55.394Z">
+<meta property="article:author" content="leo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/LHRUN/file-store/refs/heads/main/post/paint_board_transformersjs/image_1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/IMG_1444.JPG">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/IMG_1444.JPG" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/IMG_1444.JPG">
+        
+      
+    
+    <!-- title -->
+    <title>Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "jy4barl9vt");
+  </script>
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/search/">Search</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2024/11/23/%E7%94%BB%E6%9D%BF%E6%8E%A2%E7%A7%98%E7%B3%BB%E5%88%97%EF%BC%9A%E7%BB%93%E5%90%88%20Transformers.js%20%E5%AE%9E%E7%8E%B0%E5%9B%BE%E5%83%8F%E6%99%BA%E8%83%BD%E5%A4%84%E7%90%86/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&text=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&is_video=false&description=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing&body=Check out this article: https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&name=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&t=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-number">1.</span> <span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Transformers-js"><span class="toc-number">2.</span> <span class="toc-text">Transformers.js</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Function-1-Remove-background"><span class="toc-number">3.</span> <span class="toc-text">Function 1: Remove background</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Function-2-Image-Marker-Segmentation"><span class="toc-number">4.</span> <span class="toc-text">Function 2: Image Marker Segmentation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">5.</span> <span class="toc-text">Conclusion</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">leo</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2024-11-23T13:47:38.000Z" class="dt-published" itemprop="datePublished">2024-11-23</time>
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>I am currently maintaining a powerful open source creative drawing board. This drawing board integrates a lot of interesting brushes and auxiliary drawing functions, which allows users to experience a new drawing effect. Whether on mobile or PC, you can enjoy a better interactive experience and effect display.</p>
+<p>In this article, I will explain in detail how to combine Transformers.js to achieve background removal and image marking segmentation. The result is as follows</p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/refs/heads/main/post/paint_board_transformersjs/image_1.png"></p>
+<p>Link: <a target="_blank" rel="noopener" href="https://songlh.top/paint-board/">https://songlh.top/paint-board/</a></p>
+<p>Github: <a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board">https://github.com/LHRUN/paint-board</a> Welcome to Star ⭐️</p>
+<h2 id="Transformers-js"><a href="#Transformers-js" class="headerlink" title="Transformers.js"></a>Transformers.js</h2><p><a target="_blank" rel="noopener" href="https://huggingface.co/docs/transformers.js/index">Transformers.js</a> is a powerful JavaScript library based on Hugging Face’s Transformers that can be run directly in the browser without relying on server-side computation. This means that you can run your models locally, increasing efficiency and reducing deployment and maintenance costs. </p>
+<p>Currently Transformers.js has provided 1000+ models on Hugging Face, covering various domains, which can satisfy most of your needs, such as image processing, text generation, translation, sentiment analysis and other tasks processing, you can easily achieve through Transformers.js. Search for models as follows. </p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/refs/heads/main/post/paint_board_transformersjs/image_2.png"></p>
+<p>The current major version of Transformers.js has been updated to V3, which adds a lot of great features, details: <a target="_blank" rel="noopener" href="https://huggingface.co/blog/transformersjs-v3">Transformers.js v3: WebGPU Support, New Models &amp; Tasks, and More…</a>.</p>
+<p>Both of the features I’ve added to this post use WebGpu support, which is only available in V3, and has greatly improved processing speed, with parsing now in the milliseconds. However, it should be noted that there are not many browsers that support WebGPU, so it is recommended to use the latest version of Google to visit.</p>
+<h2 id="Function-1-Remove-background"><a href="#Function-1-Remove-background" class="headerlink" title="Function 1: Remove background"></a>Function 1: Remove background</h2><p>To remove the background I use the <a target="_blank" rel="noopener" href="https://huggingface.co/Xenova/modnet">Xenova&#x2F;modnet</a> model, which looks like this</p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/refs/heads/main/post/paint_board_transformersjs/image_3.png"></p>
+<p>The processing logic can be divided into three steps</p>
+<ol>
+<li>initialise the state, and load the model and processor.</li>
+<li>the display of the interface, this is based on your own design, not on mine.</li>
+<li>Show the effect, this is based on your own design, not mine. Nowadays it is more popular to use a border line to dynamically display the contrast effect before and after removing the background.</li>
+</ol>
+<p>The code logic is as follows, <code>React + TS</code> , see my project’s source code for details, the source code is located in <a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board/blob/main/src/components/boardOperation/uploadImage/index.tsx">src&#x2F;components&#x2F;boardOperation&#x2F;uploadImage&#x2F;index.tsx</a></p>
+<pre><code class="highlight tsx"><span class="keyword">import</span> &#123; useState, <span class="variable constant_">FC</span>, useRef, useEffect, useMemo &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>
+<span class="keyword">import</span> &#123;
+  env,
+  <span class="title class_">AutoModel</span>,
+  <span class="title class_">AutoProcessor</span>,
+  <span class="title class_">RawImage</span>,
+  <span class="title class_">PreTrainedModel</span>,
+  <span class="title class_">Processor</span>
+&#125; <span class="keyword">from</span> <span class="string">&#x27;@huggingface/transformers&#x27;</span>
+
+<span class="keyword">const</span> <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span> = &#123;
+  <span class="attr">LOADING</span>: <span class="number">0</span>,
+  <span class="attr">NO_SUPPORT_WEBGPU</span>: <span class="number">1</span>,
+  <span class="attr">LOAD_ERROR</span>: <span class="number">2</span>,
+  <span class="attr">LOAD_SUCCESS</span>: <span class="number">3</span>,
+  <span class="attr">PROCESSING</span>: <span class="number">4</span>,
+  <span class="attr">PROCESSING_SUCCESS</span>: <span class="number">5</span>
+&#125;
+
+<span class="keyword">type</span> <span class="title class_">RemoveBackgroundStatusType</span> =
+  (<span class="keyword">typeof</span> <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>)[keyof <span class="keyword">typeof</span> <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>]
+
+<span class="keyword">const</span> <span class="title class_">UploadImage</span>: <span class="variable constant_">FC</span>&lt;&#123; <span class="attr">url</span>: <span class="built_in">string</span> &#125;&gt; = <span class="function">(<span class="params">&#123; url &#125;</span>) =&gt;</span> &#123;
+  <span class="keyword">const</span> [removeBackgroundStatus, setRemoveBackgroundStatus] =
+    useState&lt;<span class="title class_">RemoveBackgroundStatusType</span>&gt;()
+  <span class="keyword">const</span> [processedImage, setProcessedImage] = <span class="title function_">useState</span>(<span class="string">&#x27;&#x27;</span>)
+
+  <span class="keyword">const</span> modelRef = useRef&lt;<span class="title class_">PreTrainedModel</span>&gt;()
+  <span class="keyword">const</span> processorRef = useRef&lt;<span class="title class_">Processor</span>&gt;()
+
+  <span class="keyword">const</span> removeBackgroundBtnTip = <span class="title function_">useMemo</span>(<span class="function">() =&gt;</span> &#123;
+    <span class="keyword">switch</span> (removeBackgroundStatus) &#123;
+      <span class="keyword">case</span> <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">LOADING</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;Remove background function loading&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">NO_SUPPORT_WEBGPU</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;WebGPU is not supported in this browser, to use the remove background function, please use the latest version of Google Chrome&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">LOAD_ERROR</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;Remove background function failed to load&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">LOAD_SUCCESS</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;Remove background function loaded successfully&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">PROCESSING</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;Remove Background Processing&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">PROCESSING_SUCCESS</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;Remove Background Processing Success&#x27;</span>
+      <span class="attr">default</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;&#x27;</span>
+    &#125;
+  &#125;, [removeBackgroundStatus])
+
+  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;
+    ;(<span class="keyword">async</span> () =&gt; &#123;
+      <span class="keyword">try</span> &#123;
+        <span class="keyword">if</span> (removeBackgroundStatus === <span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">LOADING</span>) &#123;
+          <span class="keyword">return</span>
+        &#125;
+        <span class="title function_">setRemoveBackgroundStatus</span>(<span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">LOADING</span>)
+
+        <span class="comment">// Checking WebGPU Support</span>
+        <span class="keyword">if</span> (!navigator?.<span class="property">gpu</span>) &#123;
+          <span class="title function_">setRemoveBackgroundStatus</span>(<span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">NO_SUPPORT_WEBGPU</span>)
+          <span class="keyword">return</span>
+        &#125;
+        <span class="keyword">const</span> model_id = <span class="string">&#x27;Xenova/modnet&#x27;</span>
+        <span class="keyword">if</span> (env.<span class="property">backends</span>.<span class="property">onnx</span>.<span class="property">wasm</span>) &#123;
+          env.<span class="property">backends</span>.<span class="property">onnx</span>.<span class="property">wasm</span>.<span class="property">proxy</span> = <span class="literal">false</span>
+        &#125;
+
+        <span class="comment">// Load model and processor</span>
+        modelRef.<span class="property">current</span> ??= <span class="keyword">await</span> <span class="title class_">AutoModel</span>.<span class="title function_">from_pretrained</span>(model_id, &#123;
+          <span class="attr">device</span>: <span class="string">&#x27;webgpu&#x27;</span>
+        &#125;)
+        processorRef.<span class="property">current</span> ??= <span class="keyword">await</span> <span class="title class_">AutoProcessor</span>.<span class="title function_">from_pretrained</span>(model_id)
+        <span class="title function_">setRemoveBackgroundStatus</span>(<span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">LOAD_SUCCESS</span>)
+      &#125; <span class="keyword">catch</span> (err) &#123;
+        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;err&#x27;</span>, err)
+        <span class="title function_">setRemoveBackgroundStatus</span>(<span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">LOAD_ERROR</span>)
+      &#125;
+    &#125;)()
+  &#125;, [])
+
+  <span class="keyword">const</span> <span class="title function_">processImages</span> = <span class="keyword">async</span> (<span class="params"></span>) =&gt; &#123;
+    <span class="keyword">const</span> model = modelRef.<span class="property">current</span>
+    <span class="keyword">const</span> processor = processorRef.<span class="property">current</span>
+
+    <span class="keyword">if</span> (!model || !processor) &#123;
+      <span class="keyword">return</span>
+    &#125;
+
+    <span class="title function_">setRemoveBackgroundStatus</span>(<span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">PROCESSING</span>)
+
+    <span class="comment">// load image</span>
+    <span class="keyword">const</span> img = <span class="keyword">await</span> <span class="title class_">RawImage</span>.<span class="title function_">fromURL</span>(url)
+
+    <span class="comment">// Pre-processed image</span>
+    <span class="keyword">const</span> &#123; pixel_values &#125; = <span class="keyword">await</span> <span class="title function_">processor</span>(img)
+
+    <span class="comment">// Generate image mask</span>
+    <span class="keyword">const</span> &#123; output &#125; = <span class="keyword">await</span> <span class="title function_">model</span>(&#123; <span class="attr">input</span>: pixel_values &#125;)
+    <span class="keyword">const</span> maskData = (
+      <span class="keyword">await</span> <span class="title class_">RawImage</span>.<span class="title function_">fromTensor</span>(output[<span class="number">0</span>].<span class="title function_">mul</span>(<span class="number">255</span>).<span class="title function_">to</span>(<span class="string">&#x27;uint8&#x27;</span>)).<span class="title function_">resize</span>(
+        img.<span class="property">width</span>,
+        img.<span class="property">height</span>
+      )
+    ).<span class="property">data</span>
+
+    <span class="comment">// Create a new canvas</span>
+    <span class="keyword">const</span> canvas = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&#x27;canvas&#x27;</span>)
+    canvas.<span class="property">width</span> = img.<span class="property">width</span>
+    canvas.<span class="property">height</span> = img.<span class="property">height</span>
+    <span class="keyword">const</span> ctx = canvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasRenderingContext2D</span>
+
+    <span class="comment">// Draw the original image</span>
+    ctx.<span class="title function_">drawImage</span>(img.<span class="title function_">toCanvas</span>(), <span class="number">0</span>, <span class="number">0</span>)
+
+    <span class="comment">// Updating the mask area</span>
+    <span class="keyword">const</span> pixelData = ctx.<span class="title function_">getImageData</span>(<span class="number">0</span>, <span class="number">0</span>, img.<span class="property">width</span>, img.<span class="property">height</span>)
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; maskData.<span class="property">length</span>; ++i) &#123;
+      pixelData.<span class="property">data</span>[<span class="number">4</span> * i + <span class="number">3</span>] = maskData[i]
+    &#125;
+    ctx.<span class="title function_">putImageData</span>(pixelData, <span class="number">0</span>, <span class="number">0</span>)
+
+    <span class="comment">// Save new image</span>
+    <span class="title function_">setProcessedImage</span>(canvas.<span class="title function_">toDataURL</span>(<span class="string">&#x27;image/png&#x27;</span>))
+    <span class="title function_">setRemoveBackgroundStatus</span>(<span class="variable constant_">REMOVE_BACKGROUND_STATUS</span>.<span class="property">PROCESSING_SUCCESS</span>)
+  &#125;
+
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;card shadow-xl&quot;</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">button</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">className</span>=<span class="string">&#123;</span>`<span class="attr">btn</span> <span class="attr">btn-primary</span> <span class="attr">btn-sm</span> $&#123;</span></span>
+<span class="tag"><span class="language-xml">          ![</span></span>
+<span class="tag"><span class="language-xml">            <span class="attr">REMOVE_BACKGROUND_STATUS.LOAD_SUCCESS</span>,</span></span>
+<span class="tag"><span class="language-xml">            <span class="attr">REMOVE_BACKGROUND_STATUS.PROCESSING_SUCCESS</span>,</span></span>
+<span class="tag"><span class="language-xml">            <span class="attr">undefined</span></span></span>
+<span class="tag"><span class="language-xml">          ]<span class="attr">.includes</span>(<span class="attr">removeBackgroundStatus</span>)</span></span>
+<span class="tag"><span class="language-xml">            ? &#x27;<span class="attr">btn-disabled</span>&#x27;</span></span>
+<span class="tag"><span class="language-xml">            <span class="attr">:</span> &#x27;&#x27;</span></span>
+<span class="tag"><span class="language-xml">        &#125;`&#125;</span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onClick</span>=<span class="string">&#123;processImages&#125;</span></span></span>
+<span class="tag"><span class="language-xml">      &gt;</span></span>
+<span class="language-xml">        Remove background</span>
+<span class="language-xml">      <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;text-xs text-base-content mt-2 flex&quot;</span>&gt;</span></span>
+<span class="language-xml">        &#123;removeBackgroundBtnTip&#125;</span>
+<span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;relative mt-4 border border-base-content border-dashed rounded-lg overflow-hidden&quot;</span>&gt;</span></span>
+<span class="language-xml">        <span class="tag">&lt;<span class="name">img</span></span></span>
+<span class="tag"><span class="language-xml">          <span class="attr">className</span>=<span class="string">&#123;</span>`<span class="attr">w-</span>[<span class="attr">50vw</span>] <span class="attr">max-w-</span>[<span class="attr">400px</span>] <span class="attr">h-</span>[<span class="attr">50vh</span>] <span class="attr">max-h-</span>[<span class="attr">400px</span>] <span class="attr">object-contain</span>`&#125;</span></span>
+<span class="tag"><span class="language-xml">          <span class="attr">src</span>=<span class="string">&#123;url&#125;</span></span></span>
+<span class="tag"><span class="language-xml">        /&gt;</span></span>
+<span class="language-xml">        &#123;processedImage &amp;&amp; (</span>
+<span class="language-xml">          <span class="tag">&lt;<span class="name">img</span></span></span>
+<span class="tag"><span class="language-xml">            <span class="attr">className</span>=<span class="string">&#123;</span>`<span class="attr">w-full</span> <span class="attr">h-full</span> <span class="attr">absolute</span> <span class="attr">top-0</span> <span class="attr">left-0</span> <span class="attr">z-</span>[<span class="attr">2</span>] <span class="attr">object-contain</span>`&#125;</span></span>
+<span class="tag"><span class="language-xml">            <span class="attr">src</span>=<span class="string">&#123;processedImage&#125;</span></span></span>
+<span class="tag"><span class="language-xml">          /&gt;</span></span>
+<span class="language-xml">        )&#125;</span>
+<span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+  )
+&#125;
+
+<span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">UploadImage</span></code></pre>
+
+<h2 id="Function-2-Image-Marker-Segmentation"><a href="#Function-2-Image-Marker-Segmentation" class="headerlink" title="Function 2: Image Marker Segmentation"></a>Function 2: Image Marker Segmentation</h2><p>The image marker segmentation is implemented using the <a target="_blank" rel="noopener" href="https://huggingface.co/Xenova/slimsam-77-uniform">Xenova&#x2F;slimsam-77-uniform</a> model. The effect is as follows, you can click on the image after it is loaded, and the segmentation is generated according to the coordinates of your click.</p>
+<p><img src="https://raw.githubusercontent.com/LHRUN/file-store/refs/heads/main/post/paint_board_transformersjs/image_4.png"></p>
+<p>The processing logic can be divided into five steps</p>
+<ol>
+<li>initialise the state, and load the model and processor</li>
+<li>Get the image and load it, then save the image loading data and embedding data.</li>
+<li>listen to the image click event, record the click data, divided into positive markers and negative markers, after each click according to the click data decoded to generate the mask data, and then according to the mask data to draw the segmentation effect.</li>
+<li>interface display, this to your own design arbitrary play, not my prevail</li>
+<li>click to save the image, according to the mask pixel data, match the original image data, and then exported through the canvas drawing</li>
+</ol>
+<p>The code logic is as follows, <code>React + TS</code> , see my project’s source code for details, the source code is located in <a target="_blank" rel="noopener" href="https://github.com/LHRUN/paint-board/blob/main/src/components/boardOperation/uploadImage/imageSegmentation.tsx">src&#x2F;components&#x2F;boardOperation&#x2F;uploadImage&#x2F;imageSegmentation.tsx</a></p>
+<pre><code class="highlight tsx"><span class="keyword">import</span> &#123; useState, useRef, useEffect, useMemo, <span class="title class_">MouseEvent</span>, <span class="variable constant_">FC</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>
+<span class="keyword">import</span> &#123;
+  <span class="title class_">SamModel</span>,
+  <span class="title class_">AutoProcessor</span>,
+  <span class="title class_">RawImage</span>,
+  <span class="title class_">PreTrainedModel</span>,
+  <span class="title class_">Processor</span>,
+  <span class="title class_">Tensor</span>,
+  <span class="title class_">SamImageProcessorResult</span>
+&#125; <span class="keyword">from</span> <span class="string">&#x27;@huggingface/transformers&#x27;</span>
+
+<span class="keyword">import</span> <span class="title class_">LoadingIcon</span> <span class="keyword">from</span> <span class="string">&#x27;@/components/icons/loading.svg?react&#x27;</span>
+<span class="keyword">import</span> <span class="title class_">PositiveIcon</span> <span class="keyword">from</span> <span class="string">&#x27;@/components/icons/boardOperation/image-segmentation-positive.svg?react&#x27;</span>
+<span class="keyword">import</span> <span class="title class_">NegativeIcon</span> <span class="keyword">from</span> <span class="string">&#x27;@/components/icons/boardOperation/image-segmentation-negative.svg?react&#x27;</span>
+
+<span class="keyword">interface</span> <span class="title class_">MarkPoint</span> &#123;
+  <span class="attr">position</span>: <span class="built_in">number</span>[]
+  <span class="attr">label</span>: <span class="built_in">number</span>
+&#125;
+
+<span class="keyword">const</span> <span class="variable constant_">SEGMENTATION_STATUS</span> = &#123;
+  <span class="attr">LOADING</span>: <span class="number">0</span>,
+  <span class="attr">NO_SUPPORT_WEBGPU</span>: <span class="number">1</span>,
+  <span class="attr">LOAD_ERROR</span>: <span class="number">2</span>,
+  <span class="attr">LOAD_SUCCESS</span>: <span class="number">3</span>,
+  <span class="attr">PROCESSING</span>: <span class="number">4</span>,
+  <span class="attr">PROCESSING_SUCCESS</span>: <span class="number">5</span>
+&#125;
+
+<span class="keyword">type</span> <span class="title class_">SegmentationStatusType</span> =
+  (<span class="keyword">typeof</span> <span class="variable constant_">SEGMENTATION_STATUS</span>)[keyof <span class="keyword">typeof</span> <span class="variable constant_">SEGMENTATION_STATUS</span>]
+
+<span class="keyword">const</span> <span class="title class_">ImageSegmentation</span>: <span class="variable constant_">FC</span>&lt;&#123; <span class="attr">url</span>: <span class="built_in">string</span> &#125;&gt; = <span class="function">(<span class="params">&#123; url &#125;</span>) =&gt;</span> &#123;
+  <span class="keyword">const</span> [markPoints, setMarkPoints] = useState&lt;<span class="title class_">MarkPoint</span>[]&gt;([])
+  <span class="keyword">const</span> [segmentationStatus, setSegmentationStatus] =
+    useState&lt;<span class="title class_">SegmentationStatusType</span>&gt;()
+  <span class="keyword">const</span> [pointStatus, setPointStatus] = useState&lt;<span class="built_in">boolean</span>&gt;(<span class="literal">true</span>)
+
+  <span class="keyword">const</span> maskCanvasRef = useRef&lt;<span class="title class_">HTMLCanvasElement</span>&gt;(<span class="literal">null</span>) <span class="comment">// Segmentation mask</span>
+  <span class="keyword">const</span> modelRef = useRef&lt;<span class="title class_">PreTrainedModel</span>&gt;() <span class="comment">// model</span>
+  <span class="keyword">const</span> processorRef = useRef&lt;<span class="title class_">Processor</span>&gt;() <span class="comment">// processor</span>
+  <span class="keyword">const</span> imageInputRef = useRef&lt;<span class="title class_">RawImage</span>&gt;() <span class="comment">// original image</span>
+  <span class="keyword">const</span> imageProcessed = useRef&lt;<span class="title class_">SamImageProcessorResult</span>&gt;() <span class="comment">// Processed image</span>
+  <span class="keyword">const</span> imageEmbeddings = useRef&lt;<span class="title class_">Tensor</span>&gt;() <span class="comment">// Embedding data</span>
+
+  <span class="keyword">const</span> segmentationTip = <span class="title function_">useMemo</span>(<span class="function">() =&gt;</span> &#123;
+    <span class="keyword">switch</span> (segmentationStatus) &#123;
+      <span class="keyword">case</span> <span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">LOADING</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;Image Segmentation function Loading&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">NO_SUPPORT_WEBGPU</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;WebGPU is not supported in this browser, to use the image segmentation function, please use the latest version of Google Chrome.&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">LOAD_ERROR</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;Image Segmentation function failed to load&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">LOAD_SUCCESS</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;Image Segmentation function loaded successfully&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">PROCESSING</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;Image Processing...&#x27;</span>
+      <span class="keyword">case</span> <span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">PROCESSING_SUCCESS</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;The image has been processed successfully, you can click on the image to mark it, the green mask area is the segmentation area.&#x27;</span>
+      <span class="attr">default</span>:
+        <span class="keyword">return</span> <span class="string">&#x27;&#x27;</span>
+    &#125;
+  &#125;, [segmentationStatus])
+
+  <span class="comment">// 1. load model and processor</span>
+  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;
+    ;(<span class="keyword">async</span> () =&gt; &#123;
+      <span class="keyword">try</span> &#123;
+        <span class="keyword">if</span> (segmentationStatus === <span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">LOADING</span>) &#123;
+          <span class="keyword">return</span>
+        &#125;
+
+        <span class="title function_">setSegmentationStatus</span>(<span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">LOADING</span>)
+        <span class="keyword">if</span> (!navigator?.<span class="property">gpu</span>) &#123;
+          <span class="title function_">setSegmentationStatus</span>(<span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">NO_SUPPORT_WEBGPU</span>)
+          <span class="keyword">return</span>
+        &#125;
+        <span class="keyword">const</span> model_id = <span class="string">&#x27;Xenova/slimsam-77-uniform&#x27;</span>
+        modelRef.<span class="property">current</span> ??= <span class="keyword">await</span> <span class="title class_">SamModel</span>.<span class="title function_">from_pretrained</span>(model_id, &#123;
+          <span class="attr">dtype</span>: <span class="string">&#x27;fp16&#x27;</span>, <span class="comment">// or &quot;fp32&quot;</span>
+          <span class="attr">device</span>: <span class="string">&#x27;webgpu&#x27;</span>
+        &#125;)
+        processorRef.<span class="property">current</span> ??= <span class="keyword">await</span> <span class="title class_">AutoProcessor</span>.<span class="title function_">from_pretrained</span>(model_id)
+
+        <span class="title function_">setSegmentationStatus</span>(<span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">LOAD_SUCCESS</span>)
+      &#125; <span class="keyword">catch</span> (err) &#123;
+        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;err&#x27;</span>, err)
+        <span class="title function_">setSegmentationStatus</span>(<span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">LOAD_ERROR</span>)
+      &#125;
+    &#125;)()
+  &#125;, [])
+
+  <span class="comment">// 2. process image</span>
+  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;
+    ;(<span class="keyword">async</span> () =&gt; &#123;
+      <span class="keyword">try</span> &#123;
+        <span class="keyword">if</span> (
+          !modelRef.<span class="property">current</span> ||
+          !processorRef.<span class="property">current</span> ||
+          !url ||
+          segmentationStatus === <span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">PROCESSING</span>
+        ) &#123;
+          <span class="keyword">return</span>
+        &#125;
+        <span class="title function_">setSegmentationStatus</span>(<span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">PROCESSING</span>)
+        <span class="title function_">clearPoints</span>()
+
+        imageInputRef.<span class="property">current</span> = <span class="keyword">await</span> <span class="title class_">RawImage</span>.<span class="title function_">fromURL</span>(url)
+        imageProcessed.<span class="property">current</span> = <span class="keyword">await</span> processorRef.<span class="title function_">current</span>(
+          imageInputRef.<span class="property">current</span>
+        )
+        imageEmbeddings.<span class="property">current</span> = <span class="keyword">await</span> (
+          modelRef.<span class="property">current</span> <span class="keyword">as</span> <span class="built_in">any</span>
+        ).<span class="title function_">get_image_embeddings</span>(imageProcessed.<span class="property">current</span>)
+
+        <span class="title function_">setSegmentationStatus</span>(<span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">PROCESSING_SUCCESS</span>)
+      &#125; <span class="keyword">catch</span> (err) &#123;
+        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;err&#x27;</span>, err)
+      &#125;
+    &#125;)()
+  &#125;, [url, modelRef.<span class="property">current</span>, processorRef.<span class="property">current</span>])
+
+  <span class="comment">// Updating the mask effect</span>
+  <span class="keyword">function</span> <span class="title function_">updateMaskOverlay</span>(<span class="params">mask: RawImage, scores: <span class="built_in">Float32Array</span></span>) &#123;
+    <span class="keyword">const</span> maskCanvas = maskCanvasRef.<span class="property">current</span>
+    <span class="keyword">if</span> (!maskCanvas) &#123;
+      <span class="keyword">return</span>
+    &#125;
+    <span class="keyword">const</span> maskContext = maskCanvas.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>) <span class="keyword">as</span> <span class="title class_">CanvasRenderingContext2D</span>
+
+    <span class="comment">// Update canvas dimensions (if different)</span>
+    <span class="keyword">if</span> (maskCanvas.<span class="property">width</span> !== mask.<span class="property">width</span> || maskCanvas.<span class="property">height</span> !== mask.<span class="property">height</span>) &#123;
+      maskCanvas.<span class="property">width</span> = mask.<span class="property">width</span>
+      maskCanvas.<span class="property">height</span> = mask.<span class="property">height</span>
+    &#125;
+
+    <span class="comment">// Allocate buffer for pixel data</span>
+    <span class="keyword">const</span> imageData = maskContext.<span class="title function_">createImageData</span>(
+      maskCanvas.<span class="property">width</span>,
+      maskCanvas.<span class="property">height</span>
+    )
+
+    <span class="comment">// Select best mask</span>
+    <span class="keyword">const</span> numMasks = scores.<span class="property">length</span> <span class="comment">// 3</span>
+    <span class="keyword">let</span> bestIndex = <span class="number">0</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; numMasks; ++i) &#123;
+      <span class="keyword">if</span> (scores[i] &gt; scores[bestIndex]) &#123;
+        bestIndex = i
+      &#125;
+    &#125;
+
+    <span class="comment">// Fill mask with colour</span>
+    <span class="keyword">const</span> pixelData = imageData.<span class="property">data</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; pixelData.<span class="property">length</span>; ++i) &#123;
+      <span class="keyword">if</span> (mask.<span class="property">data</span>[numMasks * i + bestIndex] === <span class="number">1</span>) &#123;
+        <span class="keyword">const</span> offset = <span class="number">4</span> * i
+        pixelData[offset] = <span class="number">101</span> <span class="comment">// r</span>
+        pixelData[offset + <span class="number">1</span>] = <span class="number">204</span> <span class="comment">// g</span>
+        pixelData[offset + <span class="number">2</span>] = <span class="number">138</span> <span class="comment">// b</span>
+        pixelData[offset + <span class="number">3</span>] = <span class="number">255</span> <span class="comment">// a</span>
+      &#125;
+    &#125;
+
+    <span class="comment">// Draw image data to context</span>
+    maskContext.<span class="title function_">putImageData</span>(imageData, <span class="number">0</span>, <span class="number">0</span>)
+  &#125;
+
+  <span class="comment">// 3. Decoding based on click data</span>
+  <span class="keyword">const</span> <span class="title function_">decode</span> = <span class="keyword">async</span> (<span class="params">markPoints: MarkPoint[]</span>) =&gt; &#123;
+    <span class="keyword">if</span> (
+      !modelRef.<span class="property">current</span> ||
+      !imageEmbeddings.<span class="property">current</span> ||
+      !processorRef.<span class="property">current</span> ||
+      !imageProcessed.<span class="property">current</span>
+    ) &#123;
+      <span class="keyword">return</span>
+    &#125;
+
+    <span class="comment">// No click on the data directly clears the segmentation effect</span>
+    <span class="keyword">if</span> (!markPoints.<span class="property">length</span> &amp;&amp; maskCanvasRef.<span class="property">current</span>) &#123;
+      <span class="keyword">const</span> maskContext = maskCanvasRef.<span class="property">current</span>.<span class="title function_">getContext</span>(
+        <span class="string">&#x27;2d&#x27;</span>
+      ) <span class="keyword">as</span> <span class="title class_">CanvasRenderingContext2D</span>
+      maskContext.<span class="title function_">clearRect</span>(
+        <span class="number">0</span>,
+        <span class="number">0</span>,
+        maskCanvasRef.<span class="property">current</span>.<span class="property">width</span>,
+        maskCanvasRef.<span class="property">current</span>.<span class="property">height</span>
+      )
+      <span class="keyword">return</span>
+    &#125;
+
+    <span class="comment">// Prepare inputs for decoding</span>
+    <span class="keyword">const</span> reshaped = imageProcessed.<span class="property">current</span>.<span class="property">reshaped_input_sizes</span>[<span class="number">0</span>]
+    <span class="keyword">const</span> points = markPoints
+      .<span class="title function_">map</span>(<span class="function">(<span class="params">x</span>) =&gt;</span> [x.<span class="property">position</span>[<span class="number">0</span>] * reshaped[<span class="number">1</span>], x.<span class="property">position</span>[<span class="number">1</span>] * reshaped[<span class="number">0</span>]])
+      .<span class="title function_">flat</span>(<span class="title class_">Infinity</span>)
+    <span class="keyword">const</span> labels = markPoints.<span class="title function_">map</span>(<span class="function">(<span class="params">x</span>) =&gt;</span> <span class="title class_">BigInt</span>(x.<span class="property">label</span>)).<span class="title function_">flat</span>(<span class="title class_">Infinity</span>)
+
+    <span class="keyword">const</span> num_points = markPoints.<span class="property">length</span>
+    <span class="keyword">const</span> input_points = <span class="keyword">new</span> <span class="title class_">Tensor</span>(<span class="string">&#x27;float32&#x27;</span>, points, [<span class="number">1</span>, <span class="number">1</span>, num_points, <span class="number">2</span>])
+    <span class="keyword">const</span> input_labels = <span class="keyword">new</span> <span class="title class_">Tensor</span>(<span class="string">&#x27;int64&#x27;</span>, labels, [<span class="number">1</span>, <span class="number">1</span>, num_points])
+
+    <span class="comment">// Generate the mask</span>
+    <span class="keyword">const</span> &#123; pred_masks, iou_scores &#125; = <span class="keyword">await</span> modelRef.<span class="title function_">current</span>(&#123;
+      ...imageEmbeddings.<span class="property">current</span>,
+      input_points,
+      input_labels
+    &#125;)
+
+    <span class="comment">// Post-process the mask</span>
+    <span class="keyword">const</span> masks = <span class="keyword">await</span> (processorRef.<span class="property">current</span> <span class="keyword">as</span> <span class="built_in">any</span>).<span class="title function_">post_process_masks</span>(
+      pred_masks,
+      imageProcessed.<span class="property">current</span>.<span class="property">original_sizes</span>,
+      imageProcessed.<span class="property">current</span>.<span class="property">reshaped_input_sizes</span>
+    )
+
+    <span class="title function_">updateMaskOverlay</span>(<span class="title class_">RawImage</span>.<span class="title function_">fromTensor</span>(masks[<span class="number">0</span>][<span class="number">0</span>]), iou_scores.<span class="property">data</span>)
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">clamp</span> = (<span class="params">x: <span class="built_in">number</span>, min = <span class="number">0</span>, max = <span class="number">1</span></span>) =&gt; &#123;
+    <span class="keyword">return</span> <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="title class_">Math</span>.<span class="title function_">min</span>(x, max), min)
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">clickImage</span> = (<span class="params">e: MouseEvent</span>) =&gt; &#123;
+    <span class="keyword">if</span> (segmentationStatus !== <span class="variable constant_">SEGMENTATION_STATUS</span>.<span class="property">PROCESSING_SUCCESS</span>) &#123;
+      <span class="keyword">return</span>
+    &#125;
+
+    <span class="keyword">const</span> &#123; clientX, clientY, currentTarget &#125; = e
+    <span class="keyword">const</span> &#123; left, top &#125; = currentTarget.<span class="title function_">getBoundingClientRect</span>()
+
+    <span class="keyword">const</span> x = <span class="title function_">clamp</span>(
+      (clientX - left + currentTarget.<span class="property">scrollLeft</span>) / currentTarget.<span class="property">scrollWidth</span>
+    )
+    <span class="keyword">const</span> y = <span class="title function_">clamp</span>(
+      (clientY - top + currentTarget.<span class="property">scrollTop</span>) / currentTarget.<span class="property">scrollHeight</span>
+    )
+
+    <span class="keyword">const</span> existingPointIndex = markPoints.<span class="title function_">findIndex</span>(
+      <span class="function">(<span class="params">point</span>) =&gt;</span>
+        <span class="title class_">Math</span>.<span class="title function_">abs</span>(point.<span class="property">position</span>[<span class="number">0</span>] - x) &lt; <span class="number">0.01</span> &amp;&amp;
+        <span class="title class_">Math</span>.<span class="title function_">abs</span>(point.<span class="property">position</span>[<span class="number">1</span>] - y) &lt; <span class="number">0.01</span> &amp;&amp;
+        point.<span class="property">label</span> === (pointStatus ? <span class="number">1</span> : <span class="number">0</span>)
+    )
+
+    <span class="keyword">const</span> newPoints = [...markPoints]
+    <span class="keyword">if</span> (existingPointIndex !== -<span class="number">1</span>) &#123;
+      <span class="comment">// If there is a marker in the currently clicked area, it is deleted.</span>
+      newPoints.<span class="title function_">splice</span>(existingPointIndex, <span class="number">1</span>)
+    &#125; <span class="keyword">else</span> &#123;
+      newPoints.<span class="title function_">push</span>(&#123;
+        <span class="attr">position</span>: [x, y],
+        <span class="attr">label</span>: pointStatus ? <span class="number">1</span> : <span class="number">0</span>
+      &#125;)
+    &#125;
+
+    <span class="title function_">setMarkPoints</span>(newPoints)
+    <span class="title function_">decode</span>(newPoints)
+  &#125;
+
+  <span class="keyword">const</span> <span class="title function_">clearPoints</span> = (<span class="params"></span>) =&gt; &#123;
+    <span class="title function_">setMarkPoints</span>([])
+    <span class="title function_">decode</span>([])
+  &#125;
+
+  <span class="keyword">return</span> (
+    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;card shadow-xl overflow-auto&quot;</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;flex items-center gap-x-3&quot;</span>&gt;</span></span>
+<span class="language-xml">        <span class="tag">&lt;<span class="name">button</span> <span class="attr">className</span>=<span class="string">&quot;btn btn-primary btn-sm&quot;</span> <span class="attr">onClick</span>=<span class="string">&#123;clearPoints&#125;</span>&gt;</span></span>
+<span class="language-xml">          Clear Points</span>
+<span class="language-xml">        <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>
+<span class="language-xml"></span>
+<span class="language-xml">        <span class="tag">&lt;<span class="name">button</span></span></span>
+<span class="tag"><span class="language-xml">          <span class="attr">className</span>=<span class="string">&quot;btn btn-primary btn-sm&quot;</span></span></span>
+<span class="tag"><span class="language-xml">          <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> setPointStatus(true)&#125;</span>
+<span class="language-xml">        &gt;</span>
+<span class="language-xml">          &#123;pointStatus ? &#x27;Positive&#x27; : &#x27;Negative&#x27;&#125;</span>
+<span class="language-xml">        <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;text-xs text-base-content mt-2&quot;</span>&gt;</span>&#123;segmentationTip&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;<span class="name">div</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">id</span>=<span class="string">&quot;test-image-container&quot;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">className</span>=<span class="string">&quot;relative mt-4 border border-base-content border-dashed rounded-lg h-[60vh] max-h-[500px] w-fit max-w-[60vw] overflow-x-auto overflow-y-hidden&quot;</span></span></span>
+<span class="tag"><span class="language-xml">        <span class="attr">onClick</span>=<span class="string">&#123;clickImage&#125;</span></span></span>
+<span class="tag"><span class="language-xml">      &gt;</span></span>
+<span class="language-xml">        &#123;segmentationStatus !== SEGMENTATION_STATUS.PROCESSING_SUCCESS &amp;&amp; (</span>
+<span class="language-xml">          <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;absolute z-[3] top-0 left-0 w-full h-full bg-slate-400 bg-opacity-70 flex justify-center items-center&quot;</span>&gt;</span></span>
+<span class="language-xml">            <span class="tag">&lt;<span class="name">LoadingIcon</span> <span class="attr">className</span>=<span class="string">&quot;animate-spin&quot;</span> /&gt;</span></span>
+<span class="language-xml">          <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">        )&#125;</span>
+<span class="language-xml">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;h-full w-max relative overflow-hidden&quot;</span>&gt;</span></span>
+<span class="language-xml">          <span class="tag">&lt;<span class="name">img</span> <span class="attr">className</span>=<span class="string">&quot;h-full max-w-none&quot;</span> <span class="attr">src</span>=<span class="string">&#123;url&#125;</span> /&gt;</span></span>
+<span class="language-xml"></span>
+<span class="language-xml">          <span class="tag">&lt;<span class="name">canvas</span></span></span>
+<span class="tag"><span class="language-xml">            <span class="attr">ref</span>=<span class="string">&#123;maskCanvasRef&#125;</span></span></span>
+<span class="tag"><span class="language-xml">            <span class="attr">className</span>=<span class="string">&quot;absolute top-0 left-0 h-full w-full z-[1] opacity-60&quot;</span></span></span>
+<span class="tag"><span class="language-xml">          &gt;</span><span class="tag">&lt;/<span class="name">canvas</span>&gt;</span></span>
+<span class="language-xml"></span>
+<span class="language-xml">          &#123;markPoints.map((point, index) =&gt; &#123;</span>
+<span class="language-xml">            switch (point.label) &#123;</span>
+<span class="language-xml">              case 1:</span>
+<span class="language-xml">                return (</span>
+<span class="language-xml">                  <span class="tag">&lt;<span class="name">PositiveIcon</span></span></span>
+<span class="tag"><span class="language-xml">                    <span class="attr">key</span>=<span class="string">&#123;index&#125;</span></span></span>
+<span class="tag"><span class="language-xml">                    <span class="attr">className</span>=<span class="string">&quot;w-[24px] h-[24px] absolute z-[2] -ml-[13px] -mt-[14px] fill-[#FFD401]&quot;</span></span></span>
+<span class="tag"><span class="language-xml">                    <span class="attr">style</span>=<span class="string">&#123;&#123;</span></span></span>
+<span class="tag"><span class="language-xml">                      <span class="attr">top:</span> `$&#123;<span class="attr">point.position</span>[<span class="attr">1</span>] * <span class="attr">100</span>&#125;%`,</span></span>
+<span class="tag"><span class="language-xml">                      <span class="attr">left:</span> `$&#123;<span class="attr">point.position</span>[<span class="attr">0</span>] * <span class="attr">100</span>&#125;%`</span></span>
+<span class="tag"><span class="language-xml">                    &#125;&#125;</span></span>
+<span class="tag"><span class="language-xml">                  /&gt;</span></span>
+<span class="language-xml">                )</span>
+<span class="language-xml">              case 0:</span>
+<span class="language-xml">                return (</span>
+<span class="language-xml">                  <span class="tag">&lt;<span class="name">NegativeIcon</span></span></span>
+<span class="tag"><span class="language-xml">                    <span class="attr">key</span>=<span class="string">&#123;index&#125;</span></span></span>
+<span class="tag"><span class="language-xml">                    <span class="attr">className</span>=<span class="string">&quot;w-[24px] h-[24px] absolute z-[2] -ml-[13px] -mt-[14px] fill-[#F44237]&quot;</span></span></span>
+<span class="tag"><span class="language-xml">                    <span class="attr">style</span>=<span class="string">&#123;&#123;</span></span></span>
+<span class="tag"><span class="language-xml">                      <span class="attr">top:</span> `$&#123;<span class="attr">point.position</span>[<span class="attr">1</span>] * <span class="attr">100</span>&#125;%`,</span></span>
+<span class="tag"><span class="language-xml">                      <span class="attr">left:</span> `$&#123;<span class="attr">point.position</span>[<span class="attr">0</span>] * <span class="attr">100</span>&#125;%`</span></span>
+<span class="tag"><span class="language-xml">                    &#125;&#125;</span></span>
+<span class="tag"><span class="language-xml">                  /&gt;</span></span>
+<span class="language-xml">                )</span>
+<span class="language-xml">              default:</span>
+<span class="language-xml">                return null</span>
+<span class="language-xml">            &#125;</span>
+<span class="language-xml">          &#125;)&#125;</span>
+<span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+<span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>
+  )
+&#125;
+
+<span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">ImageSegmentation</span></code></pre>
+
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>Thank you for reading. This is the whole content of this article, I hope this article is helpful to you, welcome to like and favourite. If you have any questions, please feel free to discuss in the comment section!</p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-number">1.</span> <span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Transformers-js"><span class="toc-number">2.</span> <span class="toc-text">Transformers.js</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Function-1-Remove-background"><span class="toc-number">3.</span> <span class="toc-text">Function 1: Remove background</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Function-2-Image-Marker-Segmentation"><span class="toc-number">4.</span> <span class="toc-text">Function 2: Image Marker Segmentation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">5.</span> <span class="toc-text">Conclusion</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&text=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&is_video=false&description=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing&body=Check out this article: https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&title=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&name=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://lhrun.github.io/2024/11/23/Exploring-the-Canvas-Series-combined-with-Transformers-js-to-achieve-intelligent-image-processing/&t=Exploring the Canvas Series: combined with Transformers.js to achieve intelligent image processing"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2019-2024
+    leo
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'LHS';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+</body>
+</html>
